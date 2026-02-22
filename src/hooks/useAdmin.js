@@ -229,7 +229,11 @@ export function useAdminCustomers(filters = {}) {
                 query = query.eq('role', filters.role.toLowerCase());
             }
             if (filters.search) {
-                query = query.or(`display_name.ilike.%${filters.search}%,username.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+                // Sanitize: strip PostgREST special chars to prevent filter injection
+                const safe = filters.search.replace(/[.,%()]/g, '').trim();
+                if (safe) {
+                    query = query.or(`display_name.ilike.%${safe}%,username.ilike.%${safe}%,phone.ilike.%${safe}%`);
+                }
             }
 
             const { data, error: fetchError } = await query;

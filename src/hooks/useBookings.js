@@ -129,13 +129,16 @@ export async function getBooking(bookingId) {
     return data;
 }
 
-export async function cancelBooking(bookingId) {
-    const { data, error } = await supabase
+export async function cancelBooking(bookingId, userId) {
+    const query = supabase
         .from('bubatrent_booking_bookings')
         .update({ status: 'CANCELLED' })
-        .eq('id', bookingId)
-        .select()
-        .single();
+        .eq('id', bookingId);
+
+    // If userId provided, enforce ownership (customer path)
+    if (userId) query.eq('user_id', userId);
+
+    const { data, error } = await query.select().single();
 
     if (error) throw error;
     return data;

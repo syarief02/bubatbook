@@ -6,6 +6,7 @@ import DateRangePicker from '../components/DateRangePicker';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { Car, Shield, Zap, CreditCard, Search } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 export default function Home() {
   const { cars, loading, error } = useCars();
@@ -13,18 +14,20 @@ export default function Home() {
   const [pickupDate, setPickupDate] = useState(searchParams.get('pickup') || '');
   const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
   const [carSearch, setCarSearch] = useState('');
+  const toast = useToast();
 
   const filteredCars = cars.filter(car => {
     if (!carSearch) return true;
     const q = carSearch.toLowerCase();
     return car.name.toLowerCase().includes(q)
       || car.brand.toLowerCase().includes(q)
-      || car.model.toLowerCase().includes(q);
+      || car.model.toLowerCase().includes(q)
+      || (car.plate_number || '').toLowerCase().includes(q);
   });
 
   function handleSearch() {
     if (!pickupDate || !returnDate) {
-      alert('Please select both pick-up and return dates.');
+      toast.error('Please select both pick-up and return dates.');
       return;
     }
     const fleetSection = document.getElementById('fleet');
@@ -118,7 +121,20 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <LoadingSpinner />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="glass-card overflow-hidden animate-pulse">
+                <div className="-mx-6 -mt-6 mb-4 h-48 bg-white/5" />
+                <div className="h-5 bg-white/5 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-white/5 rounded w-1/2 mb-4" />
+                <div className="flex gap-4">
+                  <div className="h-3 bg-white/5 rounded w-16" />
+                  <div className="h-3 bg-white/5 rounded w-16" />
+                  <div className="h-3 bg-white/5 rounded w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : error ? (
           <div className="glass-card text-center">
             <p className="text-red-400">{error}</p>

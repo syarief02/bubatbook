@@ -20,7 +20,7 @@ export default function MyBookings() {
   async function handleCancel(bookingId) {
     try {
       setCancellingId(bookingId);
-      await cancelBooking(bookingId);
+      await cancelBooking(bookingId, user.id);
       setConfirmCancelId(null);
       await refetch();
     } catch (err) {

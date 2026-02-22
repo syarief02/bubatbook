@@ -12,6 +12,7 @@ import {
   ArrowLeft, Clock, CheckCircle, AlertTriangle, Shield,
   ChevronRight
 } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 const STEPS = ['Your Info', 'Review', 'Payment'];
 
@@ -20,6 +21,7 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
   const { car, loading: carLoading } = useCar(carId);
 
   const pickupDate = searchParams.get('pickup');
@@ -109,7 +111,7 @@ export default function Checkout() {
       setCustomerInfo(info);
       setStep(1);
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -120,7 +122,7 @@ export default function Checkout() {
       await simulatePayment(booking.id, deposit);
       navigate(`/booking/${booking.id}/confirmation`);
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   }
 

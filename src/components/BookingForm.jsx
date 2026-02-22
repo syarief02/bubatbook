@@ -39,6 +39,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
           onChange={(e) => setName(e.target.value)}
           className="input-field"
           placeholder="Ahmad bin Abdullah"
+          maxLength={100}
           disabled={loading}
         />
         {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name}</p>}
@@ -55,6 +56,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
           onChange={(e) => setEmail(e.target.value)}
           className="input-field"
           placeholder="ahmad@email.com"
+          maxLength={254}
           disabled={loading}
         />
         {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
@@ -71,6 +73,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
           onChange={(e) => setPhone(e.target.value)}
           className="input-field"
           placeholder="+60 12-345 6789"
+          maxLength={20}
           disabled={loading}
         />
         {errors.phone && <p className="text-xs text-red-400 mt-1">{errors.phone}</p>}
@@ -87,6 +90,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
           className="input-field resize-none"
           rows={3}
           placeholder="Any special requests or pick-up instructions..."
+          maxLength={500}
           disabled={loading}
         />
       </div>

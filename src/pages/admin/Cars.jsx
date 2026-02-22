@@ -49,6 +49,7 @@ export default function AdminCars() {
         year: Number(form.year),
         seats: Number(form.seats),
         price_per_day: Number(form.price_per_day),
+        deposit_amount: Number(form.deposit_amount || 0),
       };
       delete data.id;
       delete data.created_at;
@@ -60,9 +61,10 @@ export default function AdminCars() {
         await createCar(data);
       }
       setShowForm(false);
+      toast.success(editing ? 'Car updated' : 'Car added');
       refetch();
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setSaving(false);
     }
@@ -141,6 +143,10 @@ export default function AdminCars() {
                 <div>
                   <label className="input-label">Price/Day (MYR) *</label>
                   <input type="number" value={form.price_per_day} onChange={e => setForm({ ...form, price_per_day: e.target.value })} className="input-field" min="1" required />
+                </div>
+                <div>
+                  <label className="input-label">Deposit (MYR)</label>
+                  <input type="number" value={form.deposit_amount || ''} onChange={e => setForm({ ...form, deposit_amount: e.target.value })} className="input-field" min="0" placeholder="0" />
                 </div>
                 <div>
                   <label className="input-label">Available</label>
