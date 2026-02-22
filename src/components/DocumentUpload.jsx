@@ -12,12 +12,30 @@ export default function DocumentUpload({ bookingId, onUploadComplete }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+  function validateFile(file) {
+    if (!file) return null;
+    if (file.size > MAX_FILE_SIZE) return `${file.name} exceeds 5MB limit`;
+    if (!ALLOWED_TYPES.includes(file.type)) return `${file.name}: only JPG, PNG, WebP, or PDF allowed`;
+    return null;
+  }
+
   async function handleUpload(e) {
     e.preventDefault();
     if (!licenceNumber || !licenceExpiry) {
       setError('Licence number and expiry date are required.');
       return;
     }
+    if (licenceExpiry && new Date(licenceExpiry) < new Date()) {
+      setError('Licence has expired. Please provide a valid licence.');
+      return;
+    }
+    const licErr = validateFile(licenceFile);
+    if (licErr) { setError(licErr); return; }
+    const icErr = validateFile(icFile);
+    if (icErr) { setError(icErr); return; }
 
     setUploading(true);
     setError('');
@@ -96,6 +114,7 @@ export default function DocumentUpload({ bookingId, onUploadComplete }) {
           onChange={(e) => setLicenceNumber(e.target.value)}
           className="input-field"
           placeholder="Enter your licence number"
+          maxLength={30}
           disabled={uploading}
         />
       </div>
@@ -140,6 +159,7 @@ export default function DocumentUpload({ bookingId, onUploadComplete }) {
             onChange={(e) => setIcNumber(e.target.value)}
             className="input-field"
             placeholder="Optional"
+            maxLength={30}
             disabled={uploading}
           />
         </div>

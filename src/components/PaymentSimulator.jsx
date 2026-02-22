@@ -7,6 +7,7 @@ export default function PaymentSimulator({ depositAmount, onPaymentComplete, dis
   const [completed, setCompleted] = useState(false);
 
   async function handlePay() {
+    if (processing || completed) return;
     setProcessing(true);
     // Simulate payment processing delay
     await new Promise((resolve) => setTimeout(resolve, 2000));

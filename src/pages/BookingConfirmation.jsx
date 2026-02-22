@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBooking, cancelBooking } from '../hooks/useBookings';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../components/Toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { formatDate } from '../utils/dates';
@@ -9,6 +11,8 @@ import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTr
 
 export default function BookingConfirmation() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const toast = useToast();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -32,11 +36,12 @@ export default function BookingConfirmation() {
   async function handleCancel() {
     try {
       setCancelling(true);
-      const updated = await cancelBooking(id);
+      await cancelBooking(id, user?.id);
       setBooking((prev) => ({ ...prev, status: 'CANCELLED' }));
       setShowCancelConfirm(false);
+      toast.success('Booking cancelled');
     } catch (err) {
-      alert('Failed to cancel booking: ' + err.message);
+      toast.error('Failed to cancel: ' + err.message);
     } finally {
       setCancelling(false);
     }

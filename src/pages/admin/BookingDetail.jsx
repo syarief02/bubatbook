@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { getBooking } from '../../hooks/useBookings';
 import { updateBookingStatus, getBookingDocuments, verifyDocument, getAuditLogs } from '../../hooks/useAdmin';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../components/Toast';
 import { formatDate, formatDateTime } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import { maskSensitive } from '../../utils/format';
@@ -17,6 +18,7 @@ import {
 export default function AdminBookingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const toast = useToast();
   const [booking, setBooking] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -47,7 +49,7 @@ export default function AdminBookingDetail() {
       const updated = await updateBookingStatus(id, newStatus);
       setBooking(prev => ({ ...prev, ...updated }));
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -59,7 +61,7 @@ export default function AdminBookingDetail() {
       const logsData = await getAuditLogs(id);
       setAuditLogs(logsData);
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -109,7 +111,14 @@ export default function AdminBookingDetail() {
                 <img src={car.image_url} alt={car?.name} className="w-24 h-16 rounded-xl object-cover" />
               )}
               <div>
-                <p className="text-white font-semibold">{car?.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-white font-semibold">{car?.name}</p>
+                  {car?.plate_number && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                      {car.plate_number}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-slate-500">{car?.brand} {car?.model} · {car?.year}</p>
               </div>
             </div>
