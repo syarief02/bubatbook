@@ -2,10 +2,15 @@ import { Link } from 'react-router-dom';
 import { Users, Fuel, Settings2, Calendar } from 'lucide-react';
 import { formatMYR } from '../utils/pricing';
 
-export default function CarCard({ car }) {
+export default function CarCard({ car, pickupDate, returnDate }) {
+  const queryParams = new URLSearchParams();
+  if (pickupDate) queryParams.append('pickup', pickupDate);
+  if (returnDate) queryParams.append('return', returnDate);
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+
   return (
     <Link
-      to={`/cars/${car.id}`}
+      to={`/cars/${car.id}${queryString}`}
       className="glass-card glass-card-hover block overflow-hidden group"
     >
       {/* Car Image */}

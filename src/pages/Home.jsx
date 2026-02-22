@@ -15,6 +15,17 @@ export default function Home() {
 
   const filteredCars = cars; // All cars - availability filtering done at booking time
 
+  function handleSearch() {
+    if (!pickupDate || !returnDate) {
+      alert('Please select both pick-up and return dates.');
+      return;
+    }
+    const fleetSection = document.getElementById('fleet');
+    if (fleetSection) {
+      fleetSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
   return (
     <div>
       {/* Hero Section */}
@@ -45,7 +56,10 @@ export default function Home() {
               onReturnChange={setReturnDate}
             />
             <div className="mt-4 flex justify-center">
-              <button className="btn-primary flex items-center gap-2">
+              <button 
+                onClick={handleSearch}
+                className="btn-primary flex items-center gap-2"
+              >
                 <Search className="w-4 h-4" />
                 Find Available Cars
               </button>
@@ -76,7 +90,7 @@ export default function Home() {
       </section>
 
       {/* Car Grid */}
-      <section className="page-container">
+      <section id="fleet" className="page-container scroll-mt-24">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="section-title">Our Fleet</h2>
@@ -102,7 +116,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCars.map((car, i) => (
               <div key={car.id} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
-                <CarCard car={car} />
+                <CarCard car={car} pickupDate={pickupDate} returnDate={returnDate} />
               </div>
             ))}
           </div>
