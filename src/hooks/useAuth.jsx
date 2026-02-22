@@ -9,28 +9,18 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Wrap getSession with timeout to prevent Navigator LockManager hangs
-        const sessionTimeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Session timeout')), 5000)
-        );
-
-        Promise.race([
-            supabase.auth.getSession(),
-            sessionTimeout,
-        ])
-            .then(({ data: { session } }) => {
-                setUser(session?.user ?? null);
-                if (session?.user) {
-                    fetchProfile(session.user.id);
-                } else {
-                    setLoading(false);
-                }
-            })
-            .catch((err) => {
-                console.warn('Auth session init failed (lock timeout?), continuing as guest:', err.message);
-                setUser(null);
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                fetchProfile(session.user.id);
+            } else {
                 setLoading(false);
-            });
+            }
+        }).catch((err) => {
+            console.warn('Auth session init failed:', err.message);
+            setUser(null);
+            setLoading(false);
+        });
 
         const {
             data: { subscription },
@@ -100,13 +90,6 @@ export function AuthProvider({ children }) {
             setUser(null);
             setProfile(null);
         }
-    }
-
-    async function resetPassword(email) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/login`,
-        });
-        if (error) throw error;
     }
 
     return (
