@@ -16,8 +16,6 @@ export default function Login() {
   const [forgotMode, setForgotMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
-  if (user) return <Navigate to="/" replace />;
-
   // Lockout countdown timer
   useEffect(() => {
     if (!lockedUntil) return;
@@ -34,6 +32,8 @@ export default function Login() {
     }, 1000);
     return () => clearInterval(interval);
   }, [lockedUntil]);
+
+  if (user) return <Navigate to="/" replace />;
 
   async function handleSubmit(e) {
     e.preventDefault();

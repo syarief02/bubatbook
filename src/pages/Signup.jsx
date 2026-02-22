@@ -55,8 +55,6 @@ export default function Signup() {
   const [lockedUntil, setLockedUntil] = useState(null);
   const [lockCountdown, setLockCountdown] = useState(0);
 
-  if (user) return <Navigate to="/" replace />;
-
   // Lockout countdown timer
   useEffect(() => {
     if (!lockedUntil) return;
@@ -73,6 +71,8 @@ export default function Signup() {
     }, 1000);
     return () => clearInterval(interval);
   }, [lockedUntil]);
+
+  if (user) return <Navigate to="/" replace />;
 
   async function handleSubmit(e) {
     e.preventDefault();
