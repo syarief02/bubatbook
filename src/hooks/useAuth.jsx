@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-const AuthContext = createContext({});
+const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -70,10 +70,15 @@ export function AuthProvider({ children }) {
     }
 
     async function signOut() {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        setUser(null);
-        setProfile(null);
+        try {
+            await supabase.auth.signOut();
+        } catch (err) {
+            console.error('Sign out error:', err);
+        } finally {
+            // Always clear local state even if API fails
+            setUser(null);
+            setProfile(null);
+        }
     }
 
     return (

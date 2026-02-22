@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
+import { ToastProvider } from './components/Toast';
 
 const Home = lazy(() => import('./pages/Home'));
 const CarDetail = lazy(() => import('./pages/CarDetail'));
@@ -71,7 +72,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <AppRoutes />
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

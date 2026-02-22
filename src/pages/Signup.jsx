@@ -1,7 +1,43 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { Mail, Lock, User, Phone, AlertCircle, Car } from 'lucide-react';
+import { Mail, Lock, User, Phone, AlertCircle, Car, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+
+function PasswordStrength({ password }) {
+  const checks = [
+    { label: '8+ characters', pass: password.length >= 8 },
+    { label: 'Uppercase letter', pass: /[A-Z]/.test(password) },
+    { label: 'Number', pass: /\d/.test(password) },
+  ];
+  const passed = checks.filter(c => c.pass).length;
+
+  if (!password) return null;
+
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="flex gap-1">
+        {[1, 2, 3].map(i => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full transition-colors ${
+              i <= passed
+                ? passed === 3 ? 'bg-green-400' : passed >= 2 ? 'bg-yellow-400' : 'bg-red-400'
+                : 'bg-white/10'
+            }`}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+        {checks.map(({ label, pass }) => (
+          <span key={label} className={`text-[10px] flex items-center gap-0.5 ${pass ? 'text-green-400' : 'text-slate-500'}`}>
+            {pass ? <CheckCircle className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Signup() {
   const { signUp, user } = useAuth();
@@ -10,13 +46,11 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (user) {
-    navigate('/', { replace: true });
-    return null;
-  }
+  if (user) return <Navigate to="/" replace />;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -24,6 +58,11 @@ export default function Signup() {
 
     if (!phone.trim() || phone.replace(/\D/g, '').length < 9) {
       setError('Please enter a valid phone number');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
 
@@ -111,16 +150,27 @@ export default function Signup() {
                 <Lock className="w-4 h-4 text-violet-400" />
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-                placeholder="Minimum 6 characters"
-                required
-                disabled={loading}
-                minLength={6}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field !pr-10"
+                  placeholder="Minimum 8 characters"
+                  required
+                  disabled={loading}
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <PasswordStrength password={password} />
             </div>
 
             <button type="submit" disabled={loading} className="btn-primary w-full">

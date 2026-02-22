@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBookings, cancelBooking } from '../hooks/useBookings';
+import { useToast } from '../components/Toast';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CalendarDays, ExternalLink, Car, XCircle, AlertTriangle } from 'lucide-react';
+import { CalendarDays, ExternalLink, Car, XCircle, Hash } from 'lucide-react';
 
 export default function MyBookings() {
   const { user } = useAuth();
+  const toast = useToast();
   const { bookings, loading, error, refetch } = useBookings(user?.id);
   const [cancellingId, setCancellingId] = useState(null);
   const [confirmCancelId, setConfirmCancelId] = useState(null);
@@ -22,7 +24,7 @@ export default function MyBookings() {
       setConfirmCancelId(null);
       await refetch();
     } catch (err) {
-      alert('Failed to cancel booking: ' + err.message);
+      toast.error('Failed to cancel: ' + err.message);
     } finally {
       setCancellingId(null);
     }
@@ -77,7 +79,12 @@ export default function MyBookings() {
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div>
                         <h3 className="text-white font-semibold">{car?.name || 'Car'}</h3>
-                        <p className="text-xs text-slate-500">{car?.brand} {car?.model}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-slate-500">{car?.brand} {car?.model}</p>
+                          <span className="text-[10px] text-slate-600 font-mono flex items-center gap-0.5">
+                            <Hash className="w-2.5 h-2.5" />{booking.id.slice(0, 8)}
+                          </span>
+                        </div>
                       </div>
                       <BookingStatusBadge status={booking.status} />
                     </div>

@@ -1,20 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Mail, Lock, AlertCircle, Car } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Car, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const { signIn, user } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (user) {
-    navigate('/', { replace: true });
-    return null;
-  }
+  if (user) return <Navigate to="/" replace />;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -22,7 +19,6 @@ export default function Login() {
     setLoading(true);
     try {
       await signIn(email, password);
-      navigate('/');
     } catch (err) {
       setError(err.message || 'Failed to sign in');
     } finally {
@@ -71,16 +67,26 @@ export default function Login() {
                 <Lock className="w-4 h-4 text-violet-400" />
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-                placeholder="••••••••"
-                required
-                disabled={loading}
-                minLength={6}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field !pr-10"
+                  placeholder="••••••••"
+                  required
+                  disabled={loading}
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button type="submit" disabled={loading} className="btn-primary w-full">
