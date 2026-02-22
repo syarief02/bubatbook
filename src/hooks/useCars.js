@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { expireOldHolds } from './useBookings';
 
 export function useCars() {
     const [cars, setCars] = useState([]);
@@ -64,6 +65,9 @@ export function useCar(id) {
 }
 
 export async function checkAvailability(carId, pickupDate, returnDate) {
+    // Clean up expired holds first
+    await expireOldHolds();
+
     const { data, error } = await supabase
         .from('bubatrent_booking_bookings')
         .select('id')

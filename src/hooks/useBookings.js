@@ -37,7 +37,19 @@ export function useBookings(userId) {
     return { bookings, loading, error, refetch: fetchBookings };
 }
 
+export async function expireOldHolds() {
+    const now = new Date().toISOString();
+    await supabase
+        .from('bubatrent_booking_bookings')
+        .update({ status: 'EXPIRED' })
+        .eq('status', 'HOLD')
+        .lt('hold_expires_at', now);
+}
+
 export async function createHoldBooking(carId, userId, pickupDate, returnDate, totalPrice, depositAmount) {
+    // Clean up expired holds first so exclusion constraint doesn't block valid bookings
+    await expireOldHolds();
+
     const holdExpiresAt = new Date(Date.now() + HOLD_DURATION_MINUTES * 60 * 1000).toISOString();
 
     const { data, error } = await supabase

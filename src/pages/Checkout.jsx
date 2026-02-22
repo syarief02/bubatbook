@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useCar } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
-import { createHoldBooking, updateBookingCustomerInfo, simulatePayment } from '../hooks/useBookings';
+import { createHoldBooking, updateBookingCustomerInfo, simulatePayment, cancelBooking } from '../hooks/useBookings';
 import BookingForm from '../components/BookingForm';
 import PaymentSimulator from '../components/PaymentSimulator';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -59,12 +59,14 @@ export default function Checkout() {
       setTimeRemaining(remaining);
       if (remaining === 'Expired') {
         clearInterval(timerRef.current);
+        // Auto-expire the hold in the database
+        cancelBooking(booking.id).catch(() => {});
       }
     }
     tick();
     timerRef.current = setInterval(tick, 1000);
     return () => clearInterval(timerRef.current);
-  }, [booking?.hold_expires_at]);
+  }, [booking?.hold_expires_at, booking?.id]);
 
   if (carLoading || (loading && !holdError)) return <LoadingSpinner fullScreen />;
 

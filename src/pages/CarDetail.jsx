@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCar } from '../hooks/useCars';
+import { useCar, checkAvailability } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
 import DateRangePicker from '../components/DateRangePicker';
 import PriceCalculator from '../components/PriceCalculator';
@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
 import {
   ArrowLeft, Users, Fuel, Settings2, Calendar, MapPin,
-  Shield, CheckCircle, Star
+  Shield, CheckCircle, Star, AlertCircle, Loader2
 } from 'lucide-react';
 
 export default function CarDetail() {
@@ -18,6 +18,31 @@ export default function CarDetail() {
   const { car, loading, error } = useCar(id);
   const [pickupDate, setPickupDate] = useState('');
   const [returnDate, setReturnDate] = useState('');
+  const [isAvailable, setIsAvailable] = useState(null);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+  // Check availability when dates change
+  useEffect(() => {
+    if (!pickupDate || !returnDate || !id) {
+      setIsAvailable(null);
+      return;
+    }
+    let cancelled = false;
+    async function doCheck() {
+      try {
+        setCheckingAvailability(true);
+        const available = await checkAvailability(id, pickupDate, returnDate);
+        if (!cancelled) setIsAvailable(available);
+      } catch (err) {
+        console.error('Availability check failed:', err);
+        if (!cancelled) setIsAvailable(null);
+      } finally {
+        if (!cancelled) setCheckingAvailability(false);
+      }
+    }
+    doCheck();
+    return () => { cancelled = true; };
+  }, [id, pickupDate, returnDate]);
 
   if (loading) return <LoadingSpinner fullScreen />;
   if (error || !car) {
@@ -36,7 +61,7 @@ export default function CarDetail() {
       navigate(`/login`);
       return;
     }
-    if (!pickupDate || !returnDate || days <= 0) return;
+    if (!pickupDate || !returnDate || days <= 0 || !isAvailable) return;
     navigate(`/checkout/${car.id}?pickup=${pickupDate}&return=${returnDate}`);
   }
 
@@ -138,12 +163,34 @@ export default function CarDetail() {
                 className="mb-4"
               />
 
+              {/* Availability indicator */}
+              {pickupDate && returnDate && days > 0 && (
+                <div className="mb-4">
+                  {checkingAvailability ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Checking availability...
+                    </div>
+                  ) : isAvailable === true ? (
+                    <div className="flex items-center gap-2 text-sm text-green-400">
+                      <CheckCircle className="w-4 h-4" />
+                      Available for selected dates!
+                    </div>
+                  ) : isAvailable === false ? (
+                    <div className="flex items-center gap-2 text-sm text-red-400">
+                      <AlertCircle className="w-4 h-4" />
+                      Not available for these dates. Try different dates.
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
               <button
                 onClick={handleBookNow}
-                disabled={!pickupDate || !returnDate || days <= 0}
+                disabled={!pickupDate || !returnDate || days <= 0 || checkingAvailability || isAvailable === false}
                 className="btn-primary w-full !py-4 text-base"
               >
-                {!user ? 'Sign in to Book' : days > 0 ? `Book Now · Pay ${formatMYR(deposit)} Deposit` : 'Select Dates'}
+                {!user ? 'Sign in to Book' : checkingAvailability ? 'Checking...' : isAvailable === false ? 'Not Available' : days > 0 ? `Book Now · Pay ${formatMYR(deposit)} Deposit` : 'Select Dates'}
               </button>
 
               {!user && (

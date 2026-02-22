@@ -1,16 +1,34 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useBookings } from '../hooks/useBookings';
+import { useBookings, cancelBooking } from '../hooks/useBookings';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CalendarDays, ExternalLink, Car } from 'lucide-react';
+import { CalendarDays, ExternalLink, Car, XCircle, AlertTriangle } from 'lucide-react';
 
 export default function MyBookings() {
   const { user } = useAuth();
-  const { bookings, loading, error } = useBookings(user?.id);
+  const { bookings, loading, error, refetch } = useBookings(user?.id);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [confirmCancelId, setConfirmCancelId] = useState(null);
+
+  async function handleCancel(bookingId) {
+    try {
+      setCancellingId(bookingId);
+      await cancelBooking(bookingId);
+      setConfirmCancelId(null);
+      await refetch();
+    } catch (err) {
+      alert('Failed to cancel booking: ' + err.message);
+    } finally {
+      setCancellingId(null);
+    }
+  }
+
+  const canCancel = (status) => ['HOLD', 'PAID', 'CONFIRMED'].includes(status);
 
   return (
     <div className="page-container max-w-3xl mx-auto">
@@ -83,7 +101,7 @@ export default function MyBookings() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {booking.status === 'PAID' && (
                         <Link
                           to={`/booking/${booking.id}/documents`}
@@ -98,6 +116,38 @@ export default function MyBookings() {
                       >
                         View Details <ExternalLink className="w-3 h-3" />
                       </Link>
+
+                      {/* Cancel Button */}
+                      {canCancel(booking.status) && (
+                        <>
+                          {confirmCancelId === booking.id ? (
+                            <div className="flex items-center gap-2 ml-auto">
+                              <span className="text-xs text-yellow-400">Cancel this booking?</span>
+                              <button
+                                onClick={() => handleCancel(booking.id)}
+                                disabled={cancellingId === booking.id}
+                                className="text-xs px-2.5 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                              >
+                                {cancellingId === booking.id ? 'Cancelling...' : 'Yes, Cancel'}
+                              </button>
+                              <button
+                                onClick={() => setConfirmCancelId(null)}
+                                className="text-xs px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 hover:bg-white/10 transition-colors"
+                              >
+                                No
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmCancelId(booking.id)}
+                              className="text-xs text-red-400/60 hover:text-red-400 flex items-center gap-1 ml-auto transition-colors"
+                            >
+                              <XCircle className="w-3 h-3" />
+                              Cancel
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
