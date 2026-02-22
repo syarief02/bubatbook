@@ -6,9 +6,14 @@ export default function DateRangePicker({ pickupDate, returnDate, onPickupChange
   const today = getTodayString();
 
   // Return date must be at least 1 day after pickup (DB constraint: return_date > pickup_date)
-  const minReturnDate = pickupDate
-    ? format(addDays(parseISO(pickupDate), 1), 'yyyy-MM-dd')
-    : getTomorrowString();
+  let minReturnDate = getTomorrowString();
+  try {
+    if (pickupDate && /^\d{4}-\d{2}-\d{2}$/.test(pickupDate)) {
+      minReturnDate = format(addDays(parseISO(pickupDate), 1), 'yyyy-MM-dd');
+    }
+  } catch {
+    // Ignore parse errors from incomplete date strings
+  }
 
   return (
     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${className}`}>
