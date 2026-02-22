@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.bubatrent_booking_profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   username TEXT UNIQUE,
   display_name TEXT,
+  phone TEXT,
   role TEXT DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -32,11 +33,12 @@ CREATE POLICY "Users can update own profile"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  INSERT INTO public.bubatrent_booking_profiles (id, username, display_name)
+  INSERT INTO public.bubatrent_booking_profiles (id, username, display_name, phone)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1))
+    COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1)),
+    NEW.raw_user_meta_data->>'phone'
   );
   RETURN NEW;
 END;

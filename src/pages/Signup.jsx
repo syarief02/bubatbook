@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Mail, Lock, User, AlertCircle, Car } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth.jsx';
+import { Mail, Lock, User, Phone, AlertCircle, Car } from 'lucide-react';
 
 export default function Signup() {
   const { signUp, user } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,9 +21,15 @@ export default function Signup() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 9) {
+      setError('Please enter a valid phone number');
+      return;
+    }
+
     setLoading(true);
     try {
-      await signUp(email, password, displayName);
+      await signUp(email, password, displayName, phone.trim());
       navigate('/');
     } catch (err) {
       setError(err.message || 'Failed to create account');
@@ -78,6 +85,22 @@ export default function Signup() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
                 placeholder="you@email.com"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div>
+              <label className="input-label flex items-center gap-1.5">
+                <Phone className="w-4 h-4 text-violet-400" />
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="input-field"
+                placeholder="+60 12-345 6789"
                 required
                 disabled={loading}
               />
