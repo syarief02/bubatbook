@@ -11,11 +11,13 @@ import {
   Search, Users, Shield, ShieldOff, Mail, Phone, CalendarDays,
   ChevronDown, ChevronUp, X, AlertTriangle
 } from 'lucide-react';
+import { useToast } from '../../components/Toast';
 
 const ROLE_OPTIONS = ['ALL', 'customer', 'admin'];
 
 export default function Customers() {
   const { user } = useAuth();
+  const toast = useToast();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -62,7 +64,7 @@ export default function Customers() {
       await refetch();
       setConfirmRole(null);
     } catch (err) {
-      alert('Failed to update role: ' + err.message);
+      toast.error('Failed to update role: ' + err.message);
     } finally {
       setRoleChanging(null);
     }
