@@ -80,7 +80,7 @@ export default function CarDetail() {
           {/* Image */}
           <div className="rounded-2xl overflow-hidden mb-6 aspect-[16/9]">
             {car.image_url ? (
-              <img src={car.image_url} alt={car.name} className="w-full h-full object-cover" />
+              <img src={car.image_url} alt={car.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-dark-800 to-dark-900 flex items-center justify-center">
                 <Calendar className="w-16 h-16 text-slate-700" />

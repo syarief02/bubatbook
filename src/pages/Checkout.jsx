@@ -235,7 +235,7 @@ export default function Checkout() {
           <div className="glass-card lg:sticky lg:top-24">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Summary</h3>
             {car.image_url && (
-              <img src={car.image_url} alt={car.name} className="w-full h-32 object-cover rounded-xl mb-4" />
+              <img src={car.image_url} alt={car.name} className="w-full h-32 object-cover rounded-xl mb-4" loading="lazy" referrerPolicy="no-referrer" />
             )}
             <h4 className="text-white font-semibold mb-1">{car.name}</h4>
             <p className="text-xs text-slate-500 mb-4">{car.brand} {car.model}</p>

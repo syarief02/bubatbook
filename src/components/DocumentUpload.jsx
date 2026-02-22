@@ -45,7 +45,7 @@ export default function DocumentUpload({ bookingId, onUploadComplete }) {
       let icPath = null;
 
       if (licenceFile) {
-        const ext = licenceFile.name.split('.').pop();
+        const ext = licenceFile.name.split('.').pop().replace(/[^a-zA-Z0-9]/g, '');
         const filePath = `${bookingId}/licence_${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
           .from('customer-documents')
@@ -55,7 +55,7 @@ export default function DocumentUpload({ bookingId, onUploadComplete }) {
       }
 
       if (icFile) {
-        const ext = icFile.name.split('.').pop();
+        const ext = icFile.name.split('.').pop().replace(/[^a-zA-Z0-9]/g, '');
         const filePath = `${bookingId}/ic_${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
           .from('customer-documents')

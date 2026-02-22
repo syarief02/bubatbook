@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { Mail, Lock, User, Phone, AlertCircle, Car, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 function PasswordStrength({ password }) {
   const checks = [
@@ -42,6 +43,7 @@ function PasswordStrength({ password }) {
 export default function Signup() {
   const { signUp, user } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -49,12 +51,37 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(null);
+  const [lockCountdown, setLockCountdown] = useState(0);
 
   if (user) return <Navigate to="/" replace />;
+
+  // Lockout countdown timer
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const interval = setInterval(() => {
+      const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setLockedUntil(null);
+        setLockCountdown(0);
+        setAttempts(0);
+        clearInterval(interval);
+      } else {
+        setLockCountdown(remaining);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lockedUntil]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    if (lockedUntil && Date.now() < lockedUntil) {
+      setError(`Too many attempts. Try again in ${lockCountdown}s`);
+      return;
+    }
 
     if (!phone.trim() || phone.replace(/\D/g, '').length < 9) {
       setError('Please enter a valid phone number');
@@ -69,8 +96,14 @@ export default function Signup() {
     setLoading(true);
     try {
       await signUp(email, password, displayName, phone.trim());
+      toast.success('Account created successfully! Welcome to BubatRent.');
       navigate('/');
     } catch (err) {
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      if (newAttempts >= 5) {
+        setLockedUntil(Date.now() + 60000);
+      }
       setError(err.message || 'Failed to create account');
     } finally {
       setLoading(false);

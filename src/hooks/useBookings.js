@@ -130,13 +130,13 @@ export async function getBooking(bookingId) {
 }
 
 export async function cancelBooking(bookingId, userId) {
-    const query = supabase
+    let query = supabase
         .from('bubatrent_booking_bookings')
         .update({ status: 'CANCELLED' })
         .eq('id', bookingId);
 
     // If userId provided, enforce ownership (customer path)
-    if (userId) query.eq('user_id', userId);
+    if (userId) query = query.eq('user_id', userId);
 
     const { data, error } = await query.select().single();
 

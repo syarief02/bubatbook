@@ -20,6 +20,8 @@ export default function CarCard({ car, pickupDate, returnDate }) {
             src={car.image_url}
             alt={car.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-dark-800 to-dark-900 flex items-center justify-center">

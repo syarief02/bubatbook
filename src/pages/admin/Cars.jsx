@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminCars, createCar, updateCar, deleteCar } from '../../hooks/useAdmin';
 import { useToast } from '../../components/Toast';
@@ -24,6 +24,18 @@ export default function AdminCars() {
   const [form, setForm] = useState(EMPTY_CAR);
   const [saving, setSaving] = useState(false);
   const [featuresInput, setFeaturesInput] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!showForm) return;
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setShowForm(false);
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showForm]);
 
   function openNew() {
     setEditing(null);
@@ -71,13 +83,16 @@ export default function AdminCars() {
   }
 
   async function handleDelete(carId) {
-    if (!confirm('Delete this car? This cannot be undone.')) return;
     try {
+      setDeleting(true);
       await deleteCar(carId);
       toast.success('Car deleted');
+      setDeleteConfirmId(null);
       refetch();
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -230,9 +245,27 @@ export default function AdminCars() {
                 <button onClick={() => openEdit(car)} className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors">
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => handleDelete(car.id)} className="p-2 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors">
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {deleteConfirmId === car.id ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleDelete(car.id)}
+                      disabled={deleting}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                    >
+                      {deleting ? 'Deleting...' : 'Confirm'}
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirmId(null)}
+                      className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setDeleteConfirmId(car.id)} className="p-2 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))}

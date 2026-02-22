@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTriangle, Download } from 'lucide-react';
 
 export default function BookingConfirmation() {
   const { id } = useParams();
@@ -66,6 +66,60 @@ export default function BookingConfirmation() {
     navigator.clipboard.writeText(booking.id);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function downloadReceipt() {
+    const receiptLines = [
+      '═══════════════════════════════════════════',
+      '          BUBATRENT BOOKING RECEIPT        ',
+      '═══════════════════════════════════════════',
+      '',
+      `Booking Ref:    ${booking.id.slice(0, 8).toUpperCase()}`,
+      `Full ID:        ${booking.id}`,
+      `Status:         ${booking.status}`,
+      `Date Issued:    ${new Date().toLocaleDateString('en-MY', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+      '',
+      '───────────────────────────────────────────',
+      '  VEHICLE DETAILS',
+      '───────────────────────────────────────────',
+      `Car:            ${car?.name || 'N/A'}`,
+      `Brand/Model:    ${car?.brand || ''} ${car?.model || ''}`,
+      '',
+      '───────────────────────────────────────────',
+      '  RENTAL PERIOD',
+      '───────────────────────────────────────────',
+      `Pick-up:        ${formatDate(booking.pickup_date)}`,
+      `Return:         ${formatDate(booking.return_date)}`,
+      '',
+      '───────────────────────────────────────────',
+      '  PRICING',
+      '───────────────────────────────────────────',
+      `Total Price:    ${formatMYR(booking.total_price)}`,
+      `Deposit Paid:   ${formatMYR(booking.deposit_amount)}`,
+      `Balance Due:    ${formatMYR(booking.total_price - booking.deposit_amount)}`,
+      payment ? `Payment Ref:    ${payment.reference_number}` : '',
+      '',
+      '───────────────────────────────────────────',
+      '  CUSTOMER',
+      '───────────────────────────────────────────',
+      `Name:           ${booking.customer_name || 'N/A'}`,
+      `Email:          ${booking.customer_email || 'N/A'}`,
+      `Phone:          ${booking.customer_phone || 'N/A'}`,
+      '',
+      '═══════════════════════════════════════════',
+      '  Thank you for choosing BubatRent!',
+      '  For support, contact us via WhatsApp.',
+      '═══════════════════════════════════════════',
+    ].filter(Boolean).join('\n');
+
+    const blob = new Blob([receiptLines], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BubatRent-Receipt-${booking.id.slice(0, 8).toUpperCase()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Receipt downloaded!');
   }
 
   return (
@@ -146,8 +200,17 @@ export default function BookingConfirmation() {
         </div>
 
         {payment && (
-          <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
-            <span>Payment Ref: {payment.reference_number}</span>
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-xs text-slate-500">Payment Ref: {payment.reference_number}</span>
+            {!isCancelled && (
+              <button
+                onClick={downloadReceipt}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download Receipt
+              </button>
+            )}
           </div>
         )}
 

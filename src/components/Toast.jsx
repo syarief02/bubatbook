@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(undefined);
@@ -22,17 +22,13 @@ export function ToastProvider({ children }) {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  const toast = useCallback({
-    success: (msg) => addToast(msg, 'success'),
-    error: (msg) => addToast(msg, 'error', 6000),
-    info: (msg) => addToast(msg, 'info'),
+  const toastFn = useMemo(() => {
+    const fn = (msg, type, dur) => addToast(msg, type, dur);
+    fn.success = (msg) => addToast(msg, 'success');
+    fn.error = (msg) => addToast(msg, 'error', 6000);
+    fn.info = (msg) => addToast(msg, 'info');
+    return fn;
   }, [addToast]);
-
-  // Reassign methods properly
-  const toastFn = useCallback((msg, type, dur) => addToast(msg, type, dur), [addToast]);
-  toastFn.success = (msg) => addToast(msg, 'success');
-  toastFn.error = (msg) => addToast(msg, 'error', 6000);
-  toastFn.info = (msg) => addToast(msg, 'info');
 
   return (
     <ToastContext.Provider value={toastFn}>
