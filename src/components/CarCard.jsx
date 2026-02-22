@@ -38,9 +38,16 @@ export default function CarCard({ car, pickupDate, returnDate }) {
         <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-violet-300 transition-colors">
           {car.name}
         </h3>
-        <p className="text-sm text-slate-500 mb-3">
-          {car.brand} {car.model} · {car.year}
-        </p>
+        <div className="flex items-center gap-2 mb-3">
+          <p className="text-sm text-slate-500">
+            {car.brand} {car.model} · {car.year}
+          </p>
+          {car.plate_number && (
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-500 border border-white/5">
+              {car.plate_number}
+            </span>
+          )}
+        </div>
 
         {/* Specs */}
         <div className="flex items-center gap-4 text-xs text-slate-400">

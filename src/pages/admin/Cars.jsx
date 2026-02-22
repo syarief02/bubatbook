@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminCars, createCar, updateCar, deleteCar } from '../../hooks/useAdmin';
+import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import { formatMYR } from '../../utils/pricing';
@@ -12,10 +13,11 @@ const EMPTY_CAR = {
   name: '', brand: '', model: '', year: new Date().getFullYear(),
   transmission: 'Auto', seats: 5, fuel_type: 'Petrol',
   price_per_day: 150, deposit_amount: 0, image_url: '',
-  features: [], is_available: true,
+  plate_number: '', features: [], is_available: true,
 };
 
 export default function AdminCars() {
+  const toast = useToast();
   const { cars, loading, error, refetch } = useAdminCars();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -70,9 +72,10 @@ export default function AdminCars() {
     if (!confirm('Delete this car? This cannot be undone.')) return;
     try {
       await deleteCar(carId);
+      toast.success('Car deleted');
       refetch();
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -154,6 +157,11 @@ export default function AdminCars() {
               </div>
 
               <div>
+                <label className="input-label">Plate Number</label>
+                <input value={form.plate_number || ''} onChange={e => setForm({ ...form, plate_number: e.target.value.toUpperCase() })} className="input-field font-mono" placeholder="ABC1234" maxLength={10} />
+              </div>
+
+              <div>
                 <label className="input-label">Features (comma separated)</label>
                 <input value={featuresInput} onChange={e => setFeaturesInput(e.target.value)} className="input-field" placeholder="Bluetooth, Keyless Entry, Rear Camera" />
               </div>
@@ -198,6 +206,11 @@ export default function AdminCars() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-white font-semibold truncate">{car.name}</h3>
+                  {car.plate_number && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20 shrink-0">
+                      {car.plate_number}
+                    </span>
+                  )}
                   {!car.is_available && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] bg-red-500/10 text-red-400 border border-red-500/20">Unavailable</span>
                   )}

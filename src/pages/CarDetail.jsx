@@ -92,8 +92,15 @@ export default function CarDetail() {
           <div className="glass-card mb-6">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">{car.name}</h1>
-                <p className="text-slate-400">{car.brand} {car.model} · {car.year}</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{car.name}</h1>
+                <div className="flex items-center gap-3">
+                  <p className="text-slate-400">{car.brand} {car.model} · {car.year}</p>
+                  {car.plate_number && (
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">
+                      {car.plate_number}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-2xl font-bold gradient-text">{formatMYR(car.price_per_day)}</p>
