@@ -1,8 +1,24 @@
+import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminStats } from '../../hooks/useAdmin';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { formatMYR } from '../../utils/pricing';
 import { CalendarDays, Car, DollarSign, FileCheck, TrendingUp, Users } from 'lucide-react';
+
+// Static color maps — dynamic template literals like `bg-${color}-500/10`
+// get purged by Tailwind in production builds.
+const bgColorMap = {
+  violet: 'bg-violet-500/10',
+  green: 'bg-green-500/10',
+  indigo: 'bg-indigo-500/10',
+  yellow: 'bg-yellow-500/10',
+};
+const textColorMap = {
+  violet: 'text-violet-400',
+  green: 'text-green-400',
+  indigo: 'text-indigo-400',
+  yellow: 'text-yellow-400',
+};
 
 export default function AdminDashboard() {
   const { stats, loading } = useAdminStats();
@@ -27,8 +43,8 @@ export default function AdminDashboard() {
             style={{ animationDelay: `${i * 80}ms` }}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl bg-${color}-500/10 flex items-center justify-center`}>
-                <Icon className={`w-5 h-5 text-${color}-400`} />
+              <div className={`w-10 h-10 rounded-xl ${bgColorMap[color]} flex items-center justify-center`}>
+                <Icon className={`w-5 h-5 ${textColorMap[color]}`} />
               </div>
             </div>
             <p className="text-2xl font-bold text-white">{value}</p>
@@ -52,7 +68,7 @@ export default function AdminDashboard() {
 
       {/* Quick actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <a href="/admin/cars" className="glass-card glass-card-hover flex items-center gap-4">
+        <Link to="/admin/cars" className="glass-card glass-card-hover flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
             <Car className="w-6 h-6 text-violet-400" />
           </div>
@@ -60,8 +76,8 @@ export default function AdminDashboard() {
             <p className="text-white font-semibold">Manage Cars</p>
             <p className="text-xs text-slate-500">Add, edit, or remove cars from your fleet</p>
           </div>
-        </a>
-        <a href="/admin/bookings" className="glass-card glass-card-hover flex items-center gap-4">
+        </Link>
+        <Link to="/admin/bookings" className="glass-card glass-card-hover flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">
             <CalendarDays className="w-6 h-6 text-indigo-400" />
           </div>
@@ -69,7 +85,7 @@ export default function AdminDashboard() {
             <p className="text-white font-semibold">Manage Bookings</p>
             <p className="text-xs text-slate-500">View and update booking statuses</p>
           </div>
-        </a>
+        </Link>
       </div>
     </AdminLayout>
   );

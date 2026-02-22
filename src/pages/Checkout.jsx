@@ -32,10 +32,12 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
   const timerRef = useRef(null);
+  const holdCreatedRef = useRef(false);
 
-  // Create hold on mount
+  // Create hold on mount — guarded against React 18 StrictMode double-invoke
   useEffect(() => {
-    if (!car || !user || !pickupDate || !returnDate || booking) return;
+    if (!car || !user || !pickupDate || !returnDate || booking || holdCreatedRef.current) return;
+    holdCreatedRef.current = true;
     async function createHold() {
       try {
         setLoading(true);
@@ -43,6 +45,7 @@ export default function Checkout() {
         const hold = await createHoldBooking(car.id, user.id, pickupDate, returnDate, total, deposit);
         setBooking(hold);
       } catch (err) {
+        holdCreatedRef.current = false; // Allow retry on error
         setHoldError(err.message || 'Unable to hold this booking. The dates may no longer be available.');
       } finally {
         setLoading(false);
