@@ -16,8 +16,9 @@ export const supabase = createClient(
                 auth: {
                         persistSession: true,
                         detectSessionInUrl: true,
-                        lock: 'no-op',           // Disable Navigator LockManager — prevents timeout crash
                         storageKey: 'bubatrent-auth',
+                        // No-op lock: bypass Navigator LockManager to prevent timeout errors
+                        lock: async (_name, _acquireTimeout, fn) => await fn(),
                 },
         }
 );
