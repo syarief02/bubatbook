@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Car, CalendarDays, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft } from 'lucide-react';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/cars', label: 'Cars', icon: Car },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
+  { to: '/admin/customers', label: 'Customers', icon: Users },
 ];
 
 export default function AdminLayout({ children, title }) {

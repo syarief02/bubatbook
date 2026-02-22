@@ -13,11 +13,13 @@ export function useAdminStats() {
                     { count: activeBookings },
                     { count: totalCars },
                     { count: pendingVerifications },
+                    { count: totalCustomers },
                 ] = await Promise.all([
                     supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }),
                     supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).in('status', ['HOLD', 'PAID', 'CONFIRMED']),
                     supabase.from('bubatrent_booking_cars').select('*', { count: 'exact', head: true }),
                     supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).eq('status', 'PAID'),
+                    supabase.from('bubatrent_booking_profiles').select('*', { count: 'exact', head: true }),
                 ]);
 
                 // Calculate revenue from completed payments
@@ -34,6 +36,7 @@ export function useAdminStats() {
                     totalCars: totalCars || 0,
                     pendingVerifications: pendingVerifications || 0,
                     totalRevenue,
+                    totalCustomers: totalCustomers || 0,
                 });
             } catch (err) {
                 console.error('Error fetching admin stats:', err);
@@ -206,3 +209,94 @@ export async function getAuditLogs(bookingId) {
     if (error) throw error;
     return data || [];
 }
+
+// ─── Customer Management ───
+
+export function useAdminCustomers(filters = {}) {
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchCustomers = useCallback(async () => {
+        try {
+            setLoading(true);
+            let query = supabase
+                .from('bubatrent_booking_profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (filters.role && filters.role !== 'ALL') {
+                query = query.eq('role', filters.role.toLowerCase());
+            }
+            if (filters.search) {
+                query = query.or(`display_name.ilike.%${filters.search}%,username.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+            }
+
+            const { data, error: fetchError } = await query;
+            if (fetchError) throw fetchError;
+
+            // Get booking counts for each customer
+            const customerIds = (data || []).map(c => c.id);
+            let bookingCounts = {};
+            if (customerIds.length > 0) {
+                const { data: bookings } = await supabase
+                    .from('bubatrent_booking_bookings')
+                    .select('user_id, id')
+                    .in('user_id', customerIds);
+                (bookings || []).forEach(b => {
+                    bookingCounts[b.user_id] = (bookingCounts[b.user_id] || 0) + 1;
+                });
+            }
+
+            const enriched = (data || []).map(c => ({
+                ...c,
+                booking_count: bookingCounts[c.id] || 0,
+            }));
+
+            setCustomers(enriched);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [filters.role, filters.search]);
+
+    useEffect(() => {
+        fetchCustomers();
+    }, [fetchCustomers]);
+
+    return { customers, loading, error, refetch: fetchCustomers };
+}
+
+export async function updateUserRole(userId, newRole, adminId) {
+    // Log the role change
+    await supabase.from('bubatrent_booking_audit_logs').insert({
+        admin_id: adminId,
+        action: 'CHANGE_ROLE',
+        resource_type: 'profile',
+        resource_id: userId,
+        details: { new_role: newRole, timestamp: new Date().toISOString() },
+    });
+
+    const { data, error } = await supabase
+        .from('bubatrent_booking_profiles')
+        .update({ role: newRole })
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+export async function getCustomerBookings(userId) {
+    const { data, error } = await supabase
+        .from('bubatrent_booking_bookings')
+        .select('*, bubatrent_booking_cars(name, brand, model, image_url)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+

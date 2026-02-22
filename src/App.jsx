@@ -19,6 +19,8 @@ const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminCars = lazy(() => import('./pages/admin/Cars'));
 const AdminBookings = lazy(() => import('./pages/admin/Bookings'));
 const AdminBookingDetail = lazy(() => import('./pages/admin/BookingDetail'));
+const AdminCustomers = lazy(() => import('./pages/admin/Customers'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -54,7 +56,8 @@ function AppRoutes() {
             <Route path="/admin/cars" element={<AdminRoute><AdminCars /></AdminRoute>} />
             <Route path="/admin/bookings" element={<AdminRoute><AdminBookings /></AdminRoute>} />
             <Route path="/admin/bookings/:id" element={<AdminRoute><AdminBookingDetail /></AdminRoute>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </main>

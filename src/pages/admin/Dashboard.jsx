@@ -12,12 +12,14 @@ const bgColorMap = {
   green: 'bg-green-500/10',
   indigo: 'bg-indigo-500/10',
   yellow: 'bg-yellow-500/10',
+  cyan: 'bg-cyan-500/10',
 };
 const textColorMap = {
   violet: 'text-violet-400',
   green: 'text-green-400',
   indigo: 'text-indigo-400',
   yellow: 'text-yellow-400',
+  cyan: 'text-cyan-400',
 };
 
 export default function AdminDashboard() {
@@ -30,12 +32,13 @@ export default function AdminDashboard() {
     { label: 'Active Bookings', value: stats?.activeBookings || 0, icon: TrendingUp, color: 'green' },
     { label: 'Fleet Size', value: stats?.totalCars || 0, icon: Car, color: 'indigo' },
     { label: 'Pending Verifications', value: stats?.pendingVerifications || 0, icon: FileCheck, color: 'yellow' },
+    { label: 'Registered Users', value: stats?.totalCustomers || 0, icon: Users, color: 'cyan' },
   ];
 
   return (
     <AdminLayout title="Dashboard">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {cards.map(({ label, value, icon: Icon, color }, i) => (
           <div
             key={label}
@@ -84,6 +87,15 @@ export default function AdminDashboard() {
           <div>
             <p className="text-white font-semibold">Manage Bookings</p>
             <p className="text-xs text-slate-500">View and update booking statuses</p>
+          </div>
+        </Link>
+        <Link to="/admin/customers" className="glass-card glass-card-hover flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+            <Users className="w-6 h-6 text-cyan-400" />
+          </div>
+          <div>
+            <p className="text-white font-semibold">Manage Customers</p>
+            <p className="text-xs text-slate-500">View users, roles, and booking history</p>
           </div>
         </Link>
       </div>

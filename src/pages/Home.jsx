@@ -12,8 +12,15 @@ export default function Home() {
   const [searchParams] = useSearchParams();
   const [pickupDate, setPickupDate] = useState(searchParams.get('pickup') || '');
   const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
+  const [carSearch, setCarSearch] = useState('');
 
-  const filteredCars = cars; // All cars - availability filtering done at booking time
+  const filteredCars = cars.filter(car => {
+    if (!carSearch) return true;
+    const q = carSearch.toLowerCase();
+    return car.name.toLowerCase().includes(q)
+      || car.brand.toLowerCase().includes(q)
+      || car.model.toLowerCase().includes(q);
+  });
 
   function handleSearch() {
     if (!pickupDate || !returnDate) {
@@ -91,12 +98,22 @@ export default function Home() {
 
       {/* Car Grid */}
       <section id="fleet" className="page-container scroll-mt-24">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h2 className="section-title">Our Fleet</h2>
             <p className="section-subtitle !mb-0">
-              {cars.length} car{cars.length !== 1 ? 's' : ''} available
+              {filteredCars.length} car{filteredCars.length !== 1 ? 's' : ''} available
             </p>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search cars..."
+              value={carSearch}
+              onChange={e => setCarSearch(e.target.value)}
+              className="input-field !pl-10 !py-2 text-sm"
+            />
           </div>
         </div>
 
