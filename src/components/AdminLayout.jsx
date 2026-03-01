@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt } from 'lucide-react';
+import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2 } from 'lucide-react';
 import FleetSelector from './FleetSelector';
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/admin/customers', label: 'Customers', icon: Users },
   { to: '/admin/sales', label: 'Sales', icon: DollarSign },
   { to: '/admin/expenses', label: 'Expenses', icon: Receipt },
+  { to: '/admin/fleet', label: 'Fleet Settings', icon: Building2 },
 ];
 
 export default function AdminLayout({ children, title }) {

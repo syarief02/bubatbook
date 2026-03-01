@@ -27,6 +27,7 @@ const VerifyAccount = lazy(() => import('./pages/VerifyAccount'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AdminSales = lazy(() => import('./pages/admin/Sales'));
 const AdminExpenses = lazy(() => import('./pages/admin/Expenses'));
+const FleetSettings = lazy(() => import('./pages/admin/FleetSettings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
@@ -77,6 +78,7 @@ function AppRoutes() {
             <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
             <Route path="/admin/sales" element={<AdminRoute><AdminSales /></AdminRoute>} />
             <Route path="/admin/expenses" element={<AdminRoute><AdminExpenses /></AdminRoute>} />
+            <Route path="/admin/fleet" element={<AdminRoute><FleetSettings /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

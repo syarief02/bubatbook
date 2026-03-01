@@ -496,7 +496,7 @@ export default function Customers() {
                         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">Deposit Credit</h4>
                         <div className="flex items-center gap-2 mb-2">
                           <Wallet className="w-4 h-4 text-green-400" />
-                          <span className="text-sm text-white font-semibold">{formatMYR(customer.deposit_credit || 0)}</span>
+                          <span className="text-sm text-white font-semibold">{formatMYR(customer.fleet_credit || 0)}</span>
                         </div>
                         <div className="space-y-2">
                           {/* Add Credit */}
@@ -554,6 +554,7 @@ export default function Customers() {
                                     type: 'added',
                                     description: addCreditForm.reason || 'Manual credit (admin)',
                                     admin_id: user.id,
+                                    fleet_group_id: activeFleetId,
                                   });
 
                                   // Audit log
@@ -602,6 +603,7 @@ export default function Customers() {
                                     type: 'deducted',
                                     description: deductReason || 'Admin deduction',
                                     admin_id: user.id,
+                                    fleet_group_id: activeFleetId,
                                   });
                                   toast.success(`Deducted ${formatMYR(deductAmount)}`);
                                   setDeductAmount(''); setDeductReason('');
