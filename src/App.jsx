@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
+import ScrollToTop from './components/ScrollToTop';
 import { ToastProvider } from './components/Toast';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -50,6 +51,7 @@ function AppRoutes() {
   return (
     <>
       <Navbar />
+      <ScrollToTop />
       <main className="min-h-screen pt-16">
         <Suspense fallback={<LoadingSpinner fullScreen />}>
           <Routes>
