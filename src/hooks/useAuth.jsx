@@ -103,7 +103,7 @@ export function AuthProvider({ children }) {
                 profile,
                 loading,
                 isAdmin: profile?.role === 'admin',
-                isVerified: profile?.is_verified === true,
+                isVerified: profile?.is_verified === true && (!profile?.licence_expiry || new Date(profile.licence_expiry) >= new Date()),
                 signUp,
                 signIn,
                 signOut,

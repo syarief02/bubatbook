@@ -9,7 +9,7 @@ export function calculatePrice(pricePerDay, pickupDate, returnDate) {
     if (days <= 0) return { days: 0, total: 0, deposit: 0 };
 
     const total = days * pricePerDay;
-    const deposit = Math.ceil(total * 0.3); // 30% deposit
+    const deposit = Math.max(100, Math.ceil(total * 0.3)); // 30% deposit, minimum RM100
 
     return { days, total, deposit };
 }

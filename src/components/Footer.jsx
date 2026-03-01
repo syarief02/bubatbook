@@ -45,7 +45,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-sm text-slate-400">
                 <Mail className="w-4 h-4 text-violet-400" />
-                <span>hello@rent2go.my</span>
+                <span>bubatresources@gmail.com</span>
               </li>
             </ul>
             <div className="mt-4 flex items-center gap-2 text-xs text-slate-600">

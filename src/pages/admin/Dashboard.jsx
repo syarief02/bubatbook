@@ -3,7 +3,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { useAdminStats } from '../../hooks/useAdmin';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { formatMYR } from '../../utils/pricing';
-import { CalendarDays, Car, DollarSign, FileCheck, TrendingUp, Users } from 'lucide-react';
+import { CalendarDays, Car, DollarSign, FileCheck, TrendingUp, Users, Receipt } from 'lucide-react';
 
 // Static color maps — dynamic template literals like `bg-${color}-500/10`
 // get purged by Tailwind in production builds.
@@ -96,6 +96,24 @@ export default function AdminDashboard() {
           <div>
             <p className="text-white font-semibold">Manage Customers</p>
             <p className="text-xs text-slate-500">View users, roles, and booking history</p>
+          </div>
+        </Link>
+        <Link to="/admin/sales" className="glass-card glass-card-hover flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
+            <DollarSign className="w-6 h-6 text-green-400" />
+          </div>
+          <div>
+            <p className="text-white font-semibold">Sales</p>
+            <p className="text-xs text-slate-500">View revenue breakdown and per-car sales</p>
+          </div>
+        </Link>
+        <Link to="/admin/expenses" className="glass-card glass-card-hover flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <Receipt className="w-6 h-6 text-red-400" />
+          </div>
+          <div>
+            <p className="text-white font-semibold">Expenses</p>
+            <p className="text-xs text-slate-500">Manage expense claims and invoices</p>
           </div>
         </Link>
       </div>

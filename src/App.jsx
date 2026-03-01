@@ -22,6 +22,9 @@ const AdminBookings = lazy(() => import('./pages/admin/Bookings'));
 const AdminBookingDetail = lazy(() => import('./pages/admin/BookingDetail'));
 const AdminCustomers = lazy(() => import('./pages/admin/Customers'));
 const VerifyAccount = lazy(() => import('./pages/VerifyAccount'));
+const Profile = lazy(() => import('./pages/Profile'));
+const AdminSales = lazy(() => import('./pages/admin/Sales'));
+const AdminExpenses = lazy(() => import('./pages/admin/Expenses'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
@@ -52,6 +55,7 @@ function AppRoutes() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/checkout/:carId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/verify" element={<ProtectedRoute><VerifyAccount /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/booking/:id/confirmation" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
             <Route path="/booking/:id/documents" element={<ProtectedRoute><DocumentUploadPage /></ProtectedRoute>} />
             <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
@@ -60,6 +64,8 @@ function AppRoutes() {
             <Route path="/admin/bookings" element={<AdminRoute><AdminBookings /></AdminRoute>} />
             <Route path="/admin/bookings/:id" element={<AdminRoute><AdminBookingDetail /></AdminRoute>} />
             <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
+            <Route path="/admin/sales" element={<AdminRoute><AdminSales /></AdminRoute>} />
+            <Route path="/admin/expenses" element={<AdminRoute><AdminExpenses /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
