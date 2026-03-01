@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Mail, Lock, AlertCircle, Car, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 
 export default function Login() {
   const { signIn, resetPassword, user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo') || '/';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +35,7 @@ export default function Login() {
     return () => clearInterval(interval);
   }, [lockedUntil]);
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={returnTo} replace />;
 
   async function handleSubmit(e) {
     e.preventDefault();
