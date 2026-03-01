@@ -33,6 +33,7 @@ const AdminExpenses = lazy(() => import('./pages/admin/Expenses'));
 const FleetSettings = lazy(() => import('./pages/admin/FleetSettings'));
 const GroupManagement = lazy(() => import('./pages/admin/GroupManagement'));
 const ChangeRequests = lazy(() => import('./pages/admin/ChangeRequests'));
+const GroupMembers = lazy(() => import('./pages/admin/GroupMembers'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
@@ -87,6 +88,7 @@ function AppRoutes() {
             <Route path="/admin/sales" element={<AdminRoute><AdminSales /></AdminRoute>} />
             <Route path="/admin/expenses" element={<AdminRoute><AdminExpenses /></AdminRoute>} />
             <Route path="/admin/fleet" element={<AdminRoute><FleetSettings /></AdminRoute>} />
+            <Route path="/admin/fleet/members" element={<AdminRoute><GroupMembers /></AdminRoute>} />
             <Route path="/admin/groups" element={<AdminRoute><GroupManagement /></AdminRoute>} />
             <Route path="/admin/change-requests" element={<AdminRoute><ChangeRequests /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />

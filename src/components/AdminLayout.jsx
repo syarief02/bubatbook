@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2, Shield, FileCheck, Eye } from 'lucide-react';
+import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2, Shield, FileCheck, Eye, Users2 } from 'lucide-react';
 import FleetSelector from './FleetSelector';
 import ViewAsSelector from './ViewAsSelector';
 import { useFleet } from '../hooks/useFleet';
@@ -14,6 +14,7 @@ const navItems = [
   { to: '/admin/sales', label: 'Sales', icon: DollarSign },
   { to: '/admin/expenses', label: 'Expenses', icon: Receipt },
   { to: '/admin/fleet', label: 'Fleet Settings', icon: Building2 },
+  { to: '/admin/fleet/members', label: 'Members', icon: Users2 },
 ];
 
 // Governance nav items — only visible to Super Group admins

@@ -15,8 +15,11 @@ export function useAdminStats(fleetId) {
     useEffect(() => {
         async function fetchStats() {
             try {
-                let bQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true });
+                // Total bookings: exclude EXPIRED and CANCELLED
+                let bQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true })
+                    .in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED']);
                 let bActiveQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP']);
+                let bExpiredQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).in('status', ['EXPIRED', 'CANCELLED']);
                 let cQuery = supabase.from('bubatrent_booking_cars').select('*', { count: 'exact', head: true });
                 let pendQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).eq('status', 'DEPOSIT_PAID');
                 let pQuery = supabase.from('bubatrent_booking_payments').select('amount').eq('status', 'completed');
@@ -24,6 +27,7 @@ export function useAdminStats(fleetId) {
                 // Scope to fleet
                 bQuery = scopeToFleet(bQuery, fleetId);
                 bActiveQuery = scopeToFleet(bActiveQuery, fleetId);
+                bExpiredQuery = scopeToFleet(bExpiredQuery, fleetId);
                 cQuery = scopeToFleet(cQuery, fleetId);
                 pendQuery = scopeToFleet(pendQuery, fleetId);
                 pQuery = scopeToFleet(pQuery, fleetId);
@@ -31,12 +35,14 @@ export function useAdminStats(fleetId) {
                 const [
                     { count: totalBookings },
                     { count: activeBookings },
+                    { count: expiredBookings },
                     { count: totalCars },
                     { count: pendingVerifications },
                     { count: totalCustomers },
                 ] = await Promise.all([
                     bQuery,
                     bActiveQuery,
+                    bExpiredQuery,
                     cQuery,
                     pendQuery,
                     supabase.from('bubatrent_booking_profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
@@ -48,6 +54,7 @@ export function useAdminStats(fleetId) {
                 setStats({
                     totalBookings: totalBookings || 0,
                     activeBookings: activeBookings || 0,
+                    expiredBookings: expiredBookings || 0,
                     totalCars: totalCars || 0,
                     pendingVerifications: pendingVerifications || 0,
                     totalRevenue,
