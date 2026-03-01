@@ -14,10 +14,10 @@ import {
 import { useToast } from '../../components/Toast';
 import { supabase } from '../../lib/supabase';
 
-const ROLE_OPTIONS = ['ALL', 'customer', 'admin'];
+const ROLE_OPTIONS = ['ALL', 'customer', 'admin', 'super_admin'];
 
 export default function Customers() {
-  const { user } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -62,7 +62,8 @@ export default function Customers() {
   }
 
   async function handleRoleChange(customerId, newRole) {
-    if (customerId === user?.id) return; // Can't change own role
+    if (customerId === user?.id) return;
+    if (!isSuperAdmin) return; // Only super admins can change roles
     setRoleChanging(customerId);
     try {
       await updateUserRole(customerId, newRole, user.id);
@@ -147,7 +148,9 @@ export default function Customers() {
               >
                 {/* Avatar */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                  customer.role === 'admin'
+                  customer.role === 'super_admin'
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-600'
+                    : customer.role === 'admin'
                     ? 'bg-gradient-to-br from-violet-500 to-indigo-600'
                     : 'bg-gradient-to-br from-slate-600 to-slate-700'
                 }`}>
@@ -163,11 +166,13 @@ export default function Customers() {
                       {customer.display_name || 'Unnamed'}
                     </span>
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      customer.role === 'admin'
+                      customer.role === 'super_admin'
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : customer.role === 'admin'
                         ? 'bg-violet-500/20 text-violet-300'
                         : 'bg-slate-700/50 text-slate-400'
                     }`}>
-                      {customer.role}
+                      {customer.role === 'super_admin' ? 'SUPER ADMIN' : customer.role}
                     </span>
                     {customer.is_verified ? (
                       <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 flex items-center gap-1">
@@ -219,20 +224,20 @@ export default function Customers() {
                     <div className="lg:w-64 shrink-0 space-y-4">
                       <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</h4>
 
-                      {/* Role toggle */}
+                      {/* Role management - Super Admin only */}
                       {customer.id === user?.id ? (
                         <p className="text-xs text-slate-500 italic">Cannot change your own role</p>
-                      ) : confirmRole === customer.id ? (
+                      ) : !isSuperAdmin ? (
+                        <p className="text-xs text-slate-500 italic">Only Super Admins can manage roles</p>
+                      ) : confirmRole?.id === customer.id ? (
                         <div className="glass-card !p-3 border border-yellow-500/20">
                           <div className="flex items-center gap-2 text-yellow-400 text-xs mb-2">
                             <AlertTriangle className="w-3.5 h-3.5" />
-                            <span className="font-medium">
-                              {customer.role === 'admin' ? 'Remove admin access?' : 'Grant admin access?'}
-                            </span>
+                            <span className="font-medium">Change role to: {confirmRole && confirmRole.newRole}</span>
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleRoleChange(customer.id, customer.role === 'admin' ? 'customer' : 'admin')}
+                              onClick={() => handleRoleChange(customer.id, confirmRole.newRole)}
                               disabled={roleChanging === customer.id}
                               className="btn-primary text-xs !py-1.5 !px-3 flex-1"
                             >
@@ -247,20 +252,40 @@ export default function Customers() {
                           </div>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => setConfirmRole(customer.id)}
-                          className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                            customer.role === 'admin'
-                              ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
-                              : 'bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/20'
-                          }`}
-                        >
-                          {customer.role === 'admin' ? (
-                            <><ShieldOff className="w-4 h-4" /> Remove Admin</>
-                          ) : (
-                            <><Shield className="w-4 h-4" /> Make Admin</>
+                        <div className="space-y-2">
+                          {customer.role !== 'super_admin' && (
+                            <button
+                              onClick={() => setConfirmRole({ id: customer.id, newRole: 'super_admin' })}
+                              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 transition-all"
+                            >
+                              <Shield className="w-4 h-4" /> Make Super Admin
+                            </button>
                           )}
-                        </button>
+                          {customer.role !== 'admin' && (
+                            <button
+                              onClick={() => setConfirmRole({ id: customer.id, newRole: customer.role === 'super_admin' ? 'admin' : 'admin' })}
+                              className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                                customer.role === 'super_admin'
+                                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
+                                  : 'bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/20'
+                              }`}
+                            >
+                              {customer.role === 'super_admin' ? (
+                                <><ShieldOff className="w-4 h-4" /> Demote to Admin</>
+                              ) : (
+                                <><Shield className="w-4 h-4" /> Make Admin</>
+                              )}
+                            </button>
+                          )}
+                          {customer.role !== 'customer' && (
+                            <button
+                              onClick={() => setConfirmRole({ id: customer.id, newRole: 'customer' })}
+                              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all"
+                            >
+                              <ShieldOff className="w-4 h-4" /> Remove All Admin Access
+                            </button>
+                          )}
+                        </div>
                       )}
 
                       {/* Verification toggle */}
