@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Car, Menu, X, User, LogOut, Shield, CalendarDays } from 'lucide-react';
+import { Car, Menu, X, User, LogOut, Shield, CalendarDays, AlertTriangle } from 'lucide-react';
 
 export default function Navbar() {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isVerified, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
@@ -69,6 +69,12 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
+            {user && !isVerified && !isAdmin && (
+              <Link to="/verify" className="text-yellow-400 hover:text-yellow-300 transition-colors text-sm font-medium flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                Verify
+              </Link>
+            )}
           </div>
 
           {/* Desktop Auth */}
@@ -86,6 +92,16 @@ export default function Navbar() {
                 </button>
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-48 glass-card rounded-xl py-2 animate-fade-in">
+                    {user && !isVerified && !isAdmin && (
+                      <Link
+                        to="/verify"
+                        onClick={() => setProfileOpen(false)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-yellow-400 hover:text-yellow-300 hover:bg-white/5 transition-colors"
+                      >
+                        <AlertTriangle className="w-4 h-4" />
+                        Verify Account
+                      </Link>
+                    )}
                     <button
                       onClick={handleSignOut}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
@@ -144,6 +160,16 @@ export default function Navbar() {
                   className="px-4 py-2 text-violet-400 hover:text-violet-300 hover:bg-white/5 rounded-xl transition-colors"
                 >
                   Admin Dashboard
+                </Link>
+              )}
+              {user && !isVerified && !isAdmin && (
+                <Link
+                  to="/verify"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-2 text-yellow-400 hover:text-yellow-300 hover:bg-white/5 rounded-xl transition-colors flex items-center gap-2"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Verify Account
                 </Link>
               )}
               <div className="border-t border-white/5 mt-2 pt-2">

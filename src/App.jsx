@@ -21,6 +21,7 @@ const AdminCars = lazy(() => import('./pages/admin/Cars'));
 const AdminBookings = lazy(() => import('./pages/admin/Bookings'));
 const AdminBookingDetail = lazy(() => import('./pages/admin/BookingDetail'));
 const AdminCustomers = lazy(() => import('./pages/admin/Customers'));
+const VerifyAccount = lazy(() => import('./pages/VerifyAccount'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
@@ -50,6 +51,7 @@ function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/checkout/:carId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+            <Route path="/verify" element={<ProtectedRoute><VerifyAccount /></ProtectedRoute>} />
             <Route path="/booking/:id/confirmation" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
             <Route path="/booking/:id/documents" element={<ProtectedRoute><DocumentUploadPage /></ProtectedRoute>} />
             <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />

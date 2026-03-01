@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useCar, checkAvailability } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
+import { AlertTriangle } from 'lucide-react';
 import DateRangePicker from '../components/DateRangePicker';
 import PriceCalculator from '../components/PriceCalculator';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,7 +16,7 @@ export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, isVerified } = useAuth();
   const { car, loading, error } = useCar(id);
   const [pickupDate, setPickupDate] = useState(searchParams.get('pickup') || '');
   const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
@@ -193,18 +194,33 @@ export default function CarDetail() {
                 </div>
               )}
 
-              <button
-                onClick={handleBookNow}
-                disabled={!pickupDate || !returnDate || days <= 0 || checkingAvailability || isAvailable === false}
-                className="btn-primary w-full !py-4 text-base"
-              >
-                {!user ? 'Sign in to Book' : checkingAvailability ? 'Checking...' : isAvailable === false ? 'Not Available' : days > 0 ? `Book Now · Pay ${formatMYR(deposit)} Deposit` : 'Select Dates'}
-              </button>
+              {user && !isVerified ? (
+                <div className="text-center">
+                  <div className="flex items-center gap-2 justify-center text-sm text-yellow-400 mb-3">
+                    <AlertTriangle className="w-4 h-4" />
+                    Account not verified
+                  </div>
+                  <p className="text-xs text-slate-500 mb-3">You need to verify your identity before booking.</p>
+                  <Link to="/verify" className="btn-primary w-full inline-block text-center">
+                    Verify Now
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={handleBookNow}
+                    disabled={!pickupDate || !returnDate || days <= 0 || checkingAvailability || isAvailable === false}
+                    className="btn-primary w-full !py-4 text-base"
+                  >
+                    {!user ? 'Sign in to Book' : checkingAvailability ? 'Checking...' : isAvailable === false ? 'Not Available' : days > 0 ? `Book Now · Pay ${formatMYR(deposit)} Deposit` : 'Select Dates'}
+                  </button>
 
-              {!user && (
-                <p className="text-xs text-slate-500 mt-2 text-center">
-                  You need to sign in before booking.
-                </p>
+                  {!user && (
+                    <p className="text-xs text-slate-500 mt-2 text-center">
+                      You need to sign in before booking.
+                    </p>
+                  )}
+                </>
               )}
             </div>
 

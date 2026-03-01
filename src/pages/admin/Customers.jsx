@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { useAdminCustomers, updateUserRole, getCustomerBookings } from '../../hooks/useAdmin';
+import { useAdminCustomers, updateUserRole, getCustomerBookings, verifyCustomer, unverifyCustomer } from '../../hooks/useAdmin';
 import AdminLayout from '../../components/AdminLayout';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -9,7 +9,7 @@ import { formatDate } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import {
   Search, Users, Shield, ShieldOff, Mail, Phone, CalendarDays,
-  ChevronDown, ChevronUp, X, AlertTriangle
+  ChevronDown, ChevronUp, X, AlertTriangle, CheckCircle, Clock, FileCheck
 } from 'lucide-react';
 import { useToast } from '../../components/Toast';
 
@@ -26,6 +26,7 @@ export default function Customers() {
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [roleChanging, setRoleChanging] = useState(null);
   const [confirmRole, setConfirmRole] = useState(null);
+  const [verifyChanging, setVerifyChanging] = useState(null);
 
   // Debounce search input
   useEffect(() => {
@@ -67,6 +68,24 @@ export default function Customers() {
       toast.error('Failed to update role: ' + err.message);
     } finally {
       setRoleChanging(null);
+    }
+  }
+
+  async function handleVerifyToggle(customerId, currentlyVerified) {
+    setVerifyChanging(customerId);
+    try {
+      if (currentlyVerified) {
+        await unverifyCustomer(customerId, user.id);
+        toast.success('Verification revoked');
+      } else {
+        await verifyCustomer(customerId, user.id);
+        toast.success('Customer verified!');
+      }
+      await refetch();
+    } catch (err) {
+      toast.error('Failed: ' + err.message);
+    } finally {
+      setVerifyChanging(null);
     }
   }
 
@@ -146,6 +165,15 @@ export default function Customers() {
                     }`}>
                       {customer.role}
                     </span>
+                    {customer.is_verified ? (
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Verified
+                      </span>
+                    ) : customer.ic_number ? (
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Pending
+                      </span>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
                     <span className="flex items-center gap-1 truncate">
@@ -229,6 +257,40 @@ export default function Customers() {
                             <><Shield className="w-4 h-4" /> Make Admin</>
                           )}
                         </button>
+                      )}
+
+                      {/* Verification toggle */}
+                      {customer.role !== 'admin' && (
+                        <>
+                          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">Verification</h4>
+                          {customer.ic_number || customer.licence_number ? (
+                            <div className="space-y-2">
+                              <div className="text-xs text-slate-400 space-y-1">
+                                {customer.ic_number && <p><span className="text-slate-500">IC:</span> {customer.ic_number}</p>}
+                                {customer.licence_number && <p><span className="text-slate-500">Licence:</span> {customer.licence_number}</p>}
+                                {customer.licence_expiry && <p><span className="text-slate-500">Expiry:</span> {formatDate(customer.licence_expiry)}</p>}
+                                {customer.phone && <p><span className="text-slate-500">Phone:</span> {customer.phone}</p>}
+                              </div>
+                              <button
+                                onClick={() => handleVerifyToggle(customer.id, customer.is_verified)}
+                                disabled={verifyChanging === customer.id}
+                                className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                                  customer.is_verified
+                                    ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
+                                    : 'bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20'
+                                }`}
+                              >
+                                {verifyChanging === customer.id ? 'Updating...' : customer.is_verified ? (
+                                  <><ShieldOff className="w-4 h-4" /> Revoke Verification</>
+                                ) : (
+                                  <><FileCheck className="w-4 h-4" /> Verify Customer</>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-slate-500 italic">No documents submitted yet</p>
+                          )}
+                        </>
                       )}
                     </div>
 

@@ -54,6 +54,10 @@ export function AuthProvider({ children }) {
         }
     }
 
+    async function refreshProfile() {
+        if (user?.id) await fetchProfile(user.id);
+    }
+
     async function signUp(email, password, displayName, phone) {
         const { data, error } = await supabase.auth.signUp({
             email,
@@ -99,10 +103,12 @@ export function AuthProvider({ children }) {
                 profile,
                 loading,
                 isAdmin: profile?.role === 'admin',
+                isVerified: profile?.is_verified === true,
                 signUp,
                 signIn,
                 signOut,
                 resetPassword,
+                refreshProfile,
             }}
         >
             {children}

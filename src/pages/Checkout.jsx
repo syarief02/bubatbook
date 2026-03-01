@@ -10,7 +10,7 @@ import { calculatePrice, formatMYR } from '../utils/pricing';
 import { formatDate, formatTimeRemaining } from '../utils/dates';
 import {
   ArrowLeft, Clock, CheckCircle, AlertTriangle, Shield,
-  ChevronRight
+  ChevronRight, FileCheck
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
@@ -20,7 +20,7 @@ export default function Checkout() {
   const { carId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isVerified } = useAuth();
   const toast = useToast();
   const { car, loading: carLoading } = useCar(carId);
 
@@ -80,6 +80,24 @@ export default function Checkout() {
       <div className="page-container text-center">
         <p className="text-red-400">Invalid checkout. Please select dates first.</p>
         <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">Back to fleet</Link>
+      </div>
+    );
+  }
+
+  // Block unverified users
+  if (!isVerified) {
+    return (
+      <div className="page-container max-w-lg mx-auto text-center">
+        <div className="glass-card">
+          <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
+            <FileCheck className="w-8 h-8 text-yellow-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Verification Required</h2>
+          <p className="text-sm text-slate-400 mb-6">You need to verify your identity before booking a car.</p>
+          <Link to="/verify" className="btn-primary inline-flex items-center gap-2">
+            Verify Now
+          </Link>
+        </div>
       </div>
     );
   }

@@ -304,3 +304,51 @@ export async function getCustomerBookings(userId) {
     return data || [];
 }
 
+export async function verifyCustomer(userId, adminId) {
+    await supabase.from('bubatrent_booking_audit_logs').insert({
+        admin_id: adminId,
+        action: 'VERIFY_CUSTOMER',
+        resource_type: 'profile',
+        resource_id: userId,
+        details: { timestamp: new Date().toISOString() },
+    });
+
+    const { data, error } = await supabase
+        .from('bubatrent_booking_profiles')
+        .update({
+            is_verified: true,
+            verified_at: new Date().toISOString(),
+            verified_by: adminId,
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+export async function unverifyCustomer(userId, adminId) {
+    await supabase.from('bubatrent_booking_audit_logs').insert({
+        admin_id: adminId,
+        action: 'UNVERIFY_CUSTOMER',
+        resource_type: 'profile',
+        resource_id: userId,
+        details: { timestamp: new Date().toISOString() },
+    });
+
+    const { data, error } = await supabase
+        .from('bubatrent_booking_profiles')
+        .update({
+            is_verified: false,
+            verified_at: null,
+            verified_by: null,
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
