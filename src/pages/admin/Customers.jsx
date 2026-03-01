@@ -9,7 +9,8 @@ import { formatDate } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import {
   Search, Users, Shield, ShieldOff, Mail, Phone, CalendarDays,
-  ChevronDown, ChevronUp, X, AlertTriangle, CheckCircle, Clock, FileCheck, Wallet
+  ChevronDown, ChevronUp, X, AlertTriangle, CheckCircle, Clock, FileCheck, Wallet,
+  Edit3, Upload, FileImage, Loader2
 } from 'lucide-react';
 import { useToast } from '../../components/Toast';
 import { supabase } from '../../lib/supabase';
@@ -31,6 +32,14 @@ export default function Customers() {
   const [deductAmount, setDeductAmount] = useState('');
   const [deductReason, setDeductReason] = useState('');
   const [deductingId, setDeductingId] = useState(null);
+
+  // Edit customer details
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editFiles, setEditFiles] = useState({ ic: null, licence: null });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const STATES = ['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Perak','Perlis','Pulau Pinang','Sabah','Sarawak','Selangor','Terengganu','W.P. Kuala Lumpur','W.P. Labuan','W.P. Putrajaya'];
 
   // Debounce search input
   useEffect(() => {
@@ -288,39 +297,176 @@ export default function Customers() {
                         </div>
                       )}
 
-                      {/* Verification toggle */}
-                      {customer.role !== 'admin' && (
-                        <>
-                          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">Verification</h4>
-                          {customer.ic_number || customer.licence_number ? (
-                            <div className="space-y-2">
-                              <div className="text-xs text-slate-400 space-y-1">
-                                {customer.ic_number && <p><span className="text-slate-500">IC:</span> {customer.ic_number}</p>}
-                                {customer.licence_expiry && <p><span className="text-slate-500">Expiry:</span> {formatDate(customer.licence_expiry)}</p>}
-                                {customer.phone && <p><span className="text-slate-500">Phone:</span> {customer.phone}</p>}
-                                {customer.address_line1 && <p><span className="text-slate-500">Address:</span> {customer.address_line1}, {customer.city} {customer.state}</p>}
-                              </div>
-                              <button
-                                onClick={() => handleVerifyToggle(customer.id, customer.is_verified)}
-                                disabled={verifyChanging === customer.id}
-                                className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                                  customer.is_verified
-                                    ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
-                                    : 'bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20'
-                                }`}
-                              >
-                                {verifyChanging === customer.id ? 'Updating...' : customer.is_verified ? (
-                                  <><ShieldOff className="w-4 h-4" /> Revoke Verification</>
-                                ) : (
-                                  <><FileCheck className="w-4 h-4" /> Verify Customer</>
-                                )}
-                              </button>
+                      {/* Verification & Details */}
+                      <>
+                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">Verification & Details</h4>
+                        {customer.ic_number || customer.licence_number ? (
+                          <div className="space-y-2">
+                            <div className="text-xs text-slate-400 space-y-1">
+                              {customer.ic_number && <p><span className="text-slate-500">IC:</span> {customer.ic_number}</p>}
+                              {customer.licence_expiry && <p><span className="text-slate-500">Expiry:</span> {formatDate(customer.licence_expiry)}</p>}
+                              {customer.phone && <p><span className="text-slate-500">Phone:</span> {customer.phone}</p>}
+                              {customer.address_line1 && <p><span className="text-slate-500">Address:</span> {customer.address_line1}, {customer.city} {customer.state}</p>}
                             </div>
-                          ) : (
-                            <p className="text-xs text-slate-500 italic">No documents submitted yet</p>
-                          )}
-                        </>
-                      )}
+                            <button
+                              onClick={() => handleVerifyToggle(customer.id, customer.is_verified)}
+                              disabled={verifyChanging === customer.id}
+                              className={`flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                                customer.is_verified
+                                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
+                                  : 'bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20'
+                              }`}
+                            >
+                              {verifyChanging === customer.id ? 'Updating...' : customer.is_verified ? (
+                                <><ShieldOff className="w-4 h-4" /> Revoke Verification</>
+                              ) : (
+                                <><FileCheck className="w-4 h-4" /> Verify Customer</>
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-500 italic">No documents submitted yet</p>
+                        )}
+
+                        {/* Edit Details Button */}
+                        {editingCustomer === customer.id ? (
+                          <div className="mt-3 space-y-3 glass-card !p-3 border border-violet-500/20">
+                            <div className="flex items-center justify-between">
+                              <h5 className="text-xs font-semibold text-violet-300 uppercase">Edit Details</h5>
+                              <button onClick={() => { setEditingCustomer(null); setEditFiles({ ic: null, licence: null }); }} className="text-slate-500 hover:text-white"><X className="w-4 h-4" /></button>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2">
+                              <input type="text" value={editForm.ic_number || ''} onChange={e => setEditForm(f => ({...f, ic_number: e.target.value}))} className="input-field !py-1.5 text-xs" placeholder="IC Number (e.g. 901234-14-5678)" />
+                              <input type="text" value={editForm.phone || ''} onChange={e => setEditForm(f => ({...f, phone: e.target.value}))} className="input-field !py-1.5 text-xs" placeholder="Phone (e.g. +60191234567)" />
+                              <div>
+                                <label className="text-[10px] text-slate-500 mb-1 block">Licence Expiry</label>
+                                <input type="date" value={editForm.licence_expiry || ''} onChange={e => setEditForm(f => ({...f, licence_expiry: e.target.value}))} className="input-field !py-1.5 text-xs" />
+                              </div>
+                              <input type="text" value={editForm.address_line1 || ''} onChange={e => setEditForm(f => ({...f, address_line1: e.target.value}))} className="input-field !py-1.5 text-xs" placeholder="Address Line 1" />
+                              <input type="text" value={editForm.address_line2 || ''} onChange={e => setEditForm(f => ({...f, address_line2: e.target.value}))} className="input-field !py-1.5 text-xs" placeholder="Address Line 2 (optional)" />
+                              <div className="grid grid-cols-2 gap-2">
+                                <input type="text" value={editForm.city || ''} onChange={e => setEditForm(f => ({...f, city: e.target.value}))} className="input-field !py-1.5 text-xs" placeholder="City" />
+                                <select value={editForm.state || ''} onChange={e => setEditForm(f => ({...f, state: e.target.value}))} className="input-field !py-1.5 text-xs">
+                                  <option value="">State</option>
+                                  {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                              </div>
+                              <input type="text" value={editForm.postcode || ''} onChange={e => setEditForm(f => ({...f, postcode: e.target.value}))} className="input-field !py-1.5 text-xs" placeholder="Postcode" />
+                            </div>
+
+                            {/* Document uploads */}
+                            <div className="space-y-2">
+                              <div>
+                                <label className="text-[10px] text-slate-500 mb-1 block">IC Image (auto-verified)</label>
+                                <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
+                                  <FileImage className="w-3.5 h-3.5 text-slate-400" />
+                                  <span className="text-slate-300 truncate">{editFiles.ic?.name || 'Choose IC image...'}</span>
+                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => setEditFiles(f => ({...f, ic: e.target.files[0]}))} />
+                                </label>
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-slate-500 mb-1 block">Licence Image (auto-verified)</label>
+                                <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
+                                  <FileImage className="w-3.5 h-3.5 text-slate-400" />
+                                  <span className="text-slate-300 truncate">{editFiles.licence?.name || 'Choose licence image...'}</span>
+                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => setEditFiles(f => ({...f, licence: e.target.files[0]}))} />
+                                </label>
+                              </div>
+                            </div>
+
+                            <button
+                              disabled={savingEdit}
+                              onClick={async () => {
+                                setSavingEdit(true);
+                                try {
+                                  const updates = {};
+                                  // Only include non-empty fields
+                                  if (editForm.ic_number) updates.ic_number = editForm.ic_number;
+                                  if (editForm.phone) updates.phone = editForm.phone;
+                                  if (editForm.licence_expiry) updates.licence_expiry = editForm.licence_expiry;
+                                  if (editForm.address_line1) updates.address_line1 = editForm.address_line1;
+                                  if (editForm.address_line2 !== undefined) updates.address_line2 = editForm.address_line2;
+                                  if (editForm.city) updates.city = editForm.city;
+                                  if (editForm.state) updates.state = editForm.state;
+                                  if (editForm.postcode) updates.postcode = editForm.postcode;
+
+                                  // Upload files if provided
+                                  if (editFiles.ic) {
+                                    const ext = editFiles.ic.name.split('.').pop();
+                                    const path = `${customer.id}/ic_admin_${Date.now()}.${ext}`;
+                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.ic);
+                                    if (upErr) throw upErr;
+                                    updates.ic_file_path = path;
+                                  }
+                                  if (editFiles.licence) {
+                                    const ext = editFiles.licence.name.split('.').pop();
+                                    const path = `${customer.id}/licence_admin_${Date.now()}.${ext}`;
+                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.licence);
+                                    if (upErr) throw upErr;
+                                    updates.licence_file_path = path;
+                                  }
+
+                                  // Admin uploads auto-verify
+                                  if (editFiles.ic || editFiles.licence) {
+                                    updates.is_verified = true;
+                                    updates.verified_at = new Date().toISOString();
+                                    updates.verified_by = user.id;
+                                  }
+
+                                  if (Object.keys(updates).length === 0) {
+                                    toast.error('No changes to save');
+                                    setSavingEdit(false);
+                                    return;
+                                  }
+
+                                  const { error } = await supabase.from('bubatrent_booking_profiles').update(updates).eq('id', customer.id);
+                                  if (error) throw error;
+
+                                  // Audit log
+                                  await supabase.from('bubatrent_booking_audit_logs').insert({
+                                    admin_id: user.id,
+                                    action: 'UPDATE_CUSTOMER',
+                                    resource_type: 'profile',
+                                    resource_id: customer.id,
+                                    details: { fields: Object.keys(updates), auto_verified: !!(editFiles.ic || editFiles.licence) },
+                                  });
+
+                                  toast.success('Customer details updated' + (editFiles.ic || editFiles.licence ? ' & auto-verified' : ''));
+                                  setEditingCustomer(null);
+                                  setEditFiles({ ic: null, licence: null });
+                                  refetch();
+                                } catch (err) {
+                                  toast.error(err.message);
+                                } finally {
+                                  setSavingEdit(false);
+                                }
+                              }}
+                              className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 border border-violet-500/30 transition-all"
+                            >
+                              {savingEdit ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Edit3 className="w-4 h-4" /> Save Changes</>}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setEditingCustomer(customer.id);
+                              setEditForm({
+                                ic_number: customer.ic_number || '',
+                                phone: customer.phone || '',
+                                licence_expiry: customer.licence_expiry || '',
+                                address_line1: customer.address_line1 || '',
+                                address_line2: customer.address_line2 || '',
+                                city: customer.city || '',
+                                state: customer.state || '',
+                                postcode: customer.postcode || '',
+                              });
+                            }}
+                            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 transition-all mt-2"
+                          >
+                            <Edit3 className="w-4 h-4" /> Edit Customer Details
+                          </button>
+                        )}
+                      </>
 
                       {/* Deposit Credit */}
                       {customer.role !== 'admin' && (
