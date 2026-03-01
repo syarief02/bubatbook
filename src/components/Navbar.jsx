@@ -161,13 +161,23 @@ export default function Navbar() {
                 Browse Cars
               </Link>
               {user && (
-                <Link
-                  to="/my-bookings"
-                  onClick={() => setMenuOpen(false)}
-                  className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                >
-                  My Bookings
-                </Link>
+                <>
+                  <Link
+                    to="/my-bookings"
+                    onClick={() => setMenuOpen(false)}
+                    className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                  >
+                    My Bookings
+                  </Link>
+                  <Link
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    My Profile
+                  </Link>
+                </>
               )}
               {isAdmin && (
                 <Link
