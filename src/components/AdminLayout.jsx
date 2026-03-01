@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2, Shield, FileCheck } from 'lucide-react';
+import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2, Shield, FileCheck, Eye } from 'lucide-react';
 import FleetSelector from './FleetSelector';
+import ViewAsSelector from './ViewAsSelector';
 import { useFleet } from '../hooks/useFleet';
 import { useAuth } from '../hooks/useAuth';
 
@@ -23,7 +25,8 @@ const governanceItems = [
 export default function AdminLayout({ children, title }) {
   const location = useLocation();
   const { isSuperGroup } = useFleet();
-  const { isSuperAdmin } = useAuth();
+  const { isSuperAdmin, realIsSuperAdmin } = useAuth();
+  const [showViewAs, setShowViewAs] = useState(false);
 
   const allItems = isSuperAdmin && isSuperGroup
     ? [...navItems, ...governanceItems]
@@ -71,6 +74,19 @@ export default function AdminLayout({ children, title }) {
                   <p className="px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Governance</p>
                 </div>
               )}
+
+              {/* View As — only for REAL super admin (not viewAs-overridden) */}
+              {realIsSuperAdmin && (
+                <div className="mt-3 pt-3 border-t border-white/5">
+                  <button
+                    onClick={() => setShowViewAs(true)}
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-amber-400 hover:bg-amber-500/10 transition-all"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View As...
+                  </button>
+                </div>
+              )}
             </div>
           </aside>
 
@@ -81,6 +97,9 @@ export default function AdminLayout({ children, title }) {
           </main>
         </div>
       </div>
+
+      {/* View As Modal */}
+      <ViewAsSelector isOpen={showViewAs} onClose={() => setShowViewAs(false)} />
     </div>
   );
 }

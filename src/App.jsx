@@ -1,8 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
+import { ViewAsProvider } from './hooks/ViewAsContext.jsx';
 import { FleetProvider } from './hooks/useFleet.jsx';
 import GroupStatusGuard from './components/GroupStatusGuard';
+import ViewAsBanner from './components/ViewAsBanner';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -61,6 +63,7 @@ function AdminRoute({ children }) {
 function AppRoutes() {
   return (
     <>
+      <ViewAsBanner />
       <Navbar />
       <ScrollToTop />
       <main className="min-h-screen pt-16">
@@ -99,11 +102,13 @@ function AppRoutes() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>
-          <AppRoutes />
-        </ToastProvider>
-      </AuthProvider>
+      <ViewAsProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
+        </AuthProvider>
+      </ViewAsProvider>
     </ErrorBoundary>
   );
 }

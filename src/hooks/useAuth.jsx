@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useViewAs } from './ViewAsContext';
 
 const AuthContext = createContext(undefined);
 
@@ -96,14 +97,36 @@ export function AuthProvider({ children }) {
         }
     }
 
+    const realIsAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
+    const realIsSuperAdmin = profile?.role === 'super_admin';
+
+    // ViewAs overrides
+    let viewAsContext;
+    try { viewAsContext = useViewAs(); } catch { viewAsContext = { isViewMode: false, viewAs: null }; }
+    const { isViewMode, viewAs } = viewAsContext;
+
+    let isAdmin = realIsAdmin;
+    let isSuperAdmin = realIsSuperAdmin;
+
+    if (isViewMode && viewAs) {
+        if (viewAs.role === 'customer') {
+            isAdmin = false;
+            isSuperAdmin = false;
+        } else if (viewAs.role === 'group_admin') {
+            isAdmin = true;
+            isSuperAdmin = false;
+        }
+    }
+
     return (
         <AuthContext.Provider
             value={{
                 user,
                 profile,
                 loading,
-                isAdmin: profile?.role === 'admin' || profile?.role === 'super_admin',
-                isSuperAdmin: profile?.role === 'super_admin',
+                isAdmin,
+                isSuperAdmin,
+                realIsSuperAdmin,
                 isVerified: profile?.is_verified === true && (!profile?.licence_expiry || new Date(profile.licence_expiry) >= new Date()),
                 signUp,
                 signIn,

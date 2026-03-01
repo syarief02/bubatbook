@@ -165,19 +165,27 @@ export default function FleetSettings() {
         </div>
       )}
 
-      {/* Register New Fleet */}
-      {isSuperAdmin && (
-        <div className="glass-card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Register New Fleet Group</h3>
-            {!showRegister && (
-              <button onClick={() => setShowRegister(true)} className="btn-primary flex items-center gap-2 text-sm">
-                <Plus className="w-4 h-4" /> New Fleet
-              </button>
-            )}
-          </div>
+      {/* Register New Fleet — accessible to all admins */}
+      <div className="glass-card">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Register New Fleet Group</h3>
+          {!showRegister && (
+            <button onClick={() => setShowRegister(true)} className="btn-primary flex items-center gap-2 text-sm">
+              <Plus className="w-4 h-4" /> New Fleet
+            </button>
+          )}
+        </div>
 
-          {showRegister && (
+        {fleets.length > 0 && !showRegister && !isSuperAdmin && (
+          <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 mb-3">
+            <p className="text-xs text-blue-300">
+              You already manage <strong>{fleets.map(f => f.name).join(', ')}</strong>.
+              Creating a new fleet will add it to your groups.
+            </p>
+          </div>
+        )}
+
+        {showRegister && (
             <form onSubmit={handleRegister} className="space-y-4 animate-fade-in">
               <div>
                 <label className="input-label">Fleet Name *</label>
@@ -207,7 +215,6 @@ export default function FleetSettings() {
             </form>
           )}
         </div>
-      )}
 
       {/* All Fleets (super admin only) */}
       {isSuperAdmin && fleets.length > 0 && (
