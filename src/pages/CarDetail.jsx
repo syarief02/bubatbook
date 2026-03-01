@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useCar, checkAvailability } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
 import DateRangePicker from '../components/DateRangePicker';
@@ -14,10 +14,11 @@ import {
 export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { car, loading, error } = useCar(id);
-  const [pickupDate, setPickupDate] = useState('');
-  const [returnDate, setReturnDate] = useState('');
+  const [pickupDate, setPickupDate] = useState(searchParams.get('pickup') || '');
+  const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
   const [isAvailable, setIsAvailable] = useState(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
 
