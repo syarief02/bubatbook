@@ -9,9 +9,10 @@ import { formatDate } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import {
   Search, Users, Shield, ShieldOff, Mail, Phone, CalendarDays,
-  ChevronDown, ChevronUp, X, AlertTriangle, CheckCircle, Clock, FileCheck
+  ChevronDown, ChevronUp, X, AlertTriangle, CheckCircle, Clock, FileCheck, Wallet
 } from 'lucide-react';
 import { useToast } from '../../components/Toast';
+import { supabase } from '../../lib/supabase';
 
 const ROLE_OPTIONS = ['ALL', 'customer', 'admin'];
 
@@ -27,6 +28,9 @@ export default function Customers() {
   const [roleChanging, setRoleChanging] = useState(null);
   const [confirmRole, setConfirmRole] = useState(null);
   const [verifyChanging, setVerifyChanging] = useState(null);
+  const [deductAmount, setDeductAmount] = useState('');
+  const [deductReason, setDeductReason] = useState('');
+  const [deductingId, setDeductingId] = useState(null);
 
   // Debounce search input
   useEffect(() => {
@@ -267,9 +271,9 @@ export default function Customers() {
                             <div className="space-y-2">
                               <div className="text-xs text-slate-400 space-y-1">
                                 {customer.ic_number && <p><span className="text-slate-500">IC:</span> {customer.ic_number}</p>}
-                                {customer.licence_number && <p><span className="text-slate-500">Licence:</span> {customer.licence_number}</p>}
                                 {customer.licence_expiry && <p><span className="text-slate-500">Expiry:</span> {formatDate(customer.licence_expiry)}</p>}
                                 {customer.phone && <p><span className="text-slate-500">Phone:</span> {customer.phone}</p>}
+                                {customer.address_line1 && <p><span className="text-slate-500">Address:</span> {customer.address_line1}, {customer.city} {customer.state}</p>}
                               </div>
                               <button
                                 onClick={() => handleVerifyToggle(customer.id, customer.is_verified)}
@@ -290,6 +294,53 @@ export default function Customers() {
                           ) : (
                             <p className="text-xs text-slate-500 italic">No documents submitted yet</p>
                           )}
+                        </>
+                      )}
+
+                      {/* Deposit Credit */}
+                      {customer.role !== 'admin' && (
+                        <>
+                          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">Deposit Credit</h4>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Wallet className="w-4 h-4 text-green-400" />
+                            <span className="text-sm text-white font-semibold">{formatMYR(customer.deposit_credit || 0)}</span>
+                          </div>
+                          <div className="space-y-2">
+                            <input type="number" min="0" step="0.01" value={deductAmount}
+                              onChange={e => setDeductAmount(e.target.value)}
+                              className="input-field !py-1.5 text-xs" placeholder="Amount to deduct" />
+                            <input type="text" value={deductReason}
+                              onChange={e => setDeductReason(e.target.value)}
+                              className="input-field !py-1.5 text-xs" placeholder="Reason (e.g. fine, damage)" />
+                            <button
+                              onClick={async () => {
+                                if (!deductAmount || Number(deductAmount) <= 0) { toast.error('Enter a valid amount'); return; }
+                                if (Number(deductAmount) > Number(customer.deposit_credit || 0)) { toast.error('Cannot deduct more than balance'); return; }
+                                setDeductingId(customer.id);
+                                try {
+                                  const newCredit = Number(customer.deposit_credit || 0) - Number(deductAmount);
+                                  const { error: upErr } = await supabase.from('bubatrent_booking_profiles')
+                                    .update({ deposit_credit: newCredit }).eq('id', customer.id);
+                                  if (upErr) throw upErr;
+                                  await supabase.from('bubatrent_booking_credit_transactions').insert({
+                                    user_id: customer.id,
+                                    amount: -Number(deductAmount),
+                                    type: 'deducted',
+                                    description: deductReason || 'Admin deduction',
+                                    admin_id: user.id,
+                                  });
+                                  toast.success(`Deducted ${formatMYR(deductAmount)}`);
+                                  setDeductAmount(''); setDeductReason('');
+                                  refetch();
+                                } catch (err) { toast.error(err.message); }
+                                finally { setDeductingId(null); }
+                              }}
+                              disabled={deductingId === customer.id}
+                              className="flex items-center gap-1 w-full px-3 py-2 rounded-xl text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all"
+                            >
+                              {deductingId === customer.id ? 'Deducting...' : 'Deduct Credit'}
+                            </button>
+                          </div>
                         </>
                       )}
                     </div>

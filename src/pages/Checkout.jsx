@@ -2,15 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useCar } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
-import { createHoldBooking, updateBookingCustomerInfo, simulatePayment, cancelBooking } from '../hooks/useBookings';
+import { createHoldBooking, updateBookingCustomerInfo, cancelBooking } from '../hooks/useBookings';
+import { supabase } from '../lib/supabase';
 import BookingForm from '../components/BookingForm';
-import PaymentSimulator from '../components/PaymentSimulator';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
 import { formatDate, formatTimeRemaining } from '../utils/dates';
 import {
   ArrowLeft, Clock, CheckCircle, AlertTriangle, Shield,
-  ChevronRight, FileCheck
+  ChevronRight, FileCheck, Upload, FileImage, Loader2, Wallet
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
@@ -20,7 +20,7 @@ export default function Checkout() {
   const { carId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, isVerified } = useAuth();
+  const { user, profile, isVerified, refreshProfile } = useAuth();
   const toast = useToast();
   const { car, loading: carLoading } = useCar(carId);
 
@@ -33,12 +33,23 @@ export default function Checkout() {
   const [holdError, setHoldError] = useState('');
   const [loading, setLoading] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const timerRef = useRef(null);
   const holdCreatedRef = useRef(false);
 
-  // Create hold on mount — guarded against React 18 StrictMode double-invoke
+  // 6-month advance booking limit
+  const sixMonthsFromNow = new Date();
+  sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+  const isTooFarAdvance = returnDate && new Date(returnDate) > sixMonthsFromNow;
+
+  // Deposit credit
+  const credit = Number(profile?.deposit_credit || 0);
+
+  // Create hold on mount
   useEffect(() => {
     if (!car || !user || !pickupDate || !returnDate || booking || holdCreatedRef.current) return;
+    if (isTooFarAdvance) return;
     holdCreatedRef.current = true;
     async function createHold() {
       try {
@@ -47,7 +58,7 @@ export default function Checkout() {
         const hold = await createHoldBooking(car.id, user.id, pickupDate, returnDate, total, deposit);
         setBooking(hold);
       } catch (err) {
-        holdCreatedRef.current = false; // Allow retry on error
+        holdCreatedRef.current = false;
         setHoldError(err.message || 'Unable to hold this booking. The dates may no longer be available.');
       } finally {
         setLoading(false);
@@ -64,7 +75,6 @@ export default function Checkout() {
       setTimeRemaining(remaining);
       if (remaining === 'Expired') {
         clearInterval(timerRef.current);
-        // Auto-expire the hold in the database
         cancelBooking(booking.id).catch(() => {});
       }
     }
@@ -94,9 +104,23 @@ export default function Checkout() {
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Verification Required</h2>
           <p className="text-sm text-slate-400 mb-6">You need to verify your identity before booking a car.</p>
-          <Link to="/verify" className="btn-primary inline-flex items-center gap-2">
-            Verify Now
-          </Link>
+          <Link to="/verify" className="btn-primary inline-flex items-center gap-2">Verify Now</Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Block too-far-advance bookings
+  if (isTooFarAdvance) {
+    return (
+      <div className="page-container max-w-lg mx-auto text-center">
+        <div className="glass-card">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Booking Too Far in Advance</h2>
+          <p className="text-sm text-slate-400 mb-6">You can only book up to 6 months in advance.</p>
+          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">Change Dates</Link>
         </div>
       </div>
     );
@@ -111,15 +135,15 @@ export default function Checkout() {
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Booking Unavailable</h2>
           <p className="text-sm text-slate-400 mb-6">{holdError}</p>
-          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">
-            Try Different Dates
-          </Link>
+          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">Try Different Dates</Link>
         </div>
       </div>
     );
   }
 
   const { days, total, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
+  const creditApplied = Math.min(credit, deposit);
+  const amountDue = deposit - creditApplied;
   const isExpired = timeRemaining === 'Expired';
 
   async function handleInfoSubmit(info) {
@@ -135,12 +159,80 @@ export default function Checkout() {
     }
   }
 
-  async function handlePaymentComplete() {
+  async function handleDepositPayment() {
+    if (amountDue > 0 && !receiptFile) {
+      toast.error('Please upload your payment receipt.');
+      return;
+    }
+    setUploading(true);
     try {
-      await simulatePayment(booking.id, deposit);
+      let receiptPath = null;
+
+      // Upload receipt if payment is required
+      if (receiptFile) {
+        const ext = receiptFile.name.split('.').pop();
+        const path = `receipts/${booking.id}/deposit_${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, receiptFile);
+        if (upErr) throw upErr;
+        receiptPath = path;
+      }
+
+      // Update booking with deposit info
+      const updateData = {
+        status: 'DEPOSIT_PAID',
+        deposit_status: amountDue > 0 ? 'uploaded' : 'verified', // Auto-verify if fully covered by credit
+        deposit_receipt_path: receiptPath,
+        credit_applied: creditApplied,
+        hold_expires_at: null,
+        full_payment_amount: total,
+      };
+      const { error: bookErr } = await supabase
+        .from('bubatrent_booking_bookings')
+        .update(updateData)
+        .eq('id', booking.id);
+      if (bookErr) throw bookErr;
+
+      // Create payment record
+      const { error: payErr } = await supabase
+        .from('bubatrent_booking_payments')
+        .insert({
+          booking_id: booking.id,
+          amount: deposit,
+          payment_method: 'bank_transfer',
+          status: amountDue > 0 ? 'pending' : 'completed',
+          simulated: false,
+          payment_type: 'deposit',
+          receipt_path: receiptPath,
+          reference_number: `DEP-${Date.now().toString(36).toUpperCase()}`,
+        });
+      if (payErr) throw payErr;
+
+      // Deduct credit if applied
+      if (creditApplied > 0) {
+        // Update profile credit
+        const { error: creditErr } = await supabase
+          .from('bubatrent_booking_profiles')
+          .update({ deposit_credit: credit - creditApplied })
+          .eq('id', user.id);
+        if (creditErr) throw creditErr;
+
+        // Create credit transaction record
+        await supabase.from('bubatrent_booking_credit_transactions').insert({
+          user_id: user.id,
+          booking_id: booking.id,
+          amount: -creditApplied,
+          type: 'applied',
+          description: `Credit applied to booking deposit`,
+        });
+
+        await refreshProfile();
+      }
+
       navigate(`/booking/${booking.id}/confirmation`);
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -165,9 +257,7 @@ export default function Checkout() {
       {isExpired && (
         <div className="glass-card !p-4 mb-6 border-red-500/20 text-center">
           <p className="text-red-400 font-medium">Your hold has expired. Please start over.</p>
-          <Link to={`/cars/${carId}`} className="text-violet-400 hover:underline text-sm mt-2 inline-block">
-            Go back
-          </Link>
+          <Link to={`/cars/${carId}`} className="text-violet-400 hover:underline text-sm mt-2 inline-block">Go back</Link>
         </div>
       )}
 
@@ -226,9 +316,7 @@ export default function Checkout() {
                   </div>
                 )}
                 <div className="border-t border-white/5 pt-4 flex gap-3">
-                  <button onClick={() => setStep(0)} className="btn-secondary flex-1">
-                    Edit Info
-                  </button>
+                  <button onClick={() => setStep(0)} className="btn-secondary flex-1">Edit Info</button>
                   <button onClick={() => setStep(2)} className="btn-primary flex-1" disabled={isExpired}>
                     Proceed to Payment
                   </button>
@@ -238,12 +326,75 @@ export default function Checkout() {
           )}
 
           {step === 2 && (
-            <div className="animate-fade-in">
-              <PaymentSimulator
-                depositAmount={deposit}
-                onPaymentComplete={handlePaymentComplete}
-                disabled={isExpired}
-              />
+            <div className="glass-card animate-fade-in">
+              <h2 className="text-lg font-semibold text-white mb-2">Deposit Payment</h2>
+              <p className="text-sm text-slate-400 mb-6">
+                Upload your payment receipt to secure this booking. Full rental payment is due at pickup.
+              </p>
+
+              {/* Credit applied */}
+              {creditApplied > 0 && (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 mb-4">
+                  <Wallet className="w-5 h-5 text-green-400" />
+                  <div>
+                    <p className="text-sm text-green-300 font-medium">Credit Applied: {formatMYR(creditApplied)}</p>
+                    <p className="text-xs text-green-400/70">Deducted from your deposit balance</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment breakdown */}
+              <div className="space-y-2 mb-6 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Deposit Required</span>
+                  <span className="text-white">{formatMYR(deposit)}</span>
+                </div>
+                {creditApplied > 0 && (
+                  <div className="flex justify-between text-green-400">
+                    <span>Credit Applied</span>
+                    <span>-{formatMYR(creditApplied)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-white/5 pt-2 font-semibold">
+                  <span className="text-white">Amount Due</span>
+                  <span className="text-violet-300">{formatMYR(amountDue)}</span>
+                </div>
+              </div>
+
+              {/* Receipt upload (if payment needed) */}
+              {amountDue > 0 ? (
+                <>
+                  <p className="text-xs text-slate-500 mb-3">
+                    Transfer <span className="text-white font-semibold">{formatMYR(amountDue)}</span> to our bank account, then upload the receipt below.
+                  </p>
+                  <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6">
+                    <FileImage className="w-6 h-6 text-slate-500" />
+                    <div>
+                      <p className="text-sm text-slate-300">{receiptFile ? receiptFile.name : 'Click to upload payment receipt'}</p>
+                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
+                    </div>
+                    <input type="file" accept="image/*,.pdf" onChange={e => setReceiptFile(e.target.files[0])}
+                      className="hidden" disabled={uploading} />
+                  </label>
+                </>
+              ) : (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 mb-6">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <p className="text-sm text-green-300">Deposit fully covered by your credit balance!</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleDepositPayment}
+                disabled={uploading || isExpired || (amountDue > 0 && !receiptFile)}
+                className="btn-primary w-full flex items-center justify-center gap-2"
+              >
+                {uploading ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+                ) : (
+                  <><Upload className="w-5 h-5" /> {amountDue > 0 ? 'Submit Deposit Payment' : 'Confirm Booking'}</>
+                )}
+              </button>
             </div>
           )}
         </div>
@@ -272,13 +423,14 @@ export default function Checkout() {
                 <span className="text-white">{days} day{days > 1 ? 's' : ''}</span>
               </div>
               <div className="border-t border-white/5 pt-3 flex justify-between">
-                <span className="text-slate-400">Total</span>
+                <span className="text-slate-400">Rental Total</span>
                 <span className="text-white font-semibold">{formatMYR(total)}</span>
               </div>
               <div className="flex justify-between bg-violet-500/10 rounded-xl px-3 py-2 -mx-1">
-                <span className="text-violet-300 text-sm">Deposit</span>
+                <span className="text-violet-300 text-sm">Deposit (Security)</span>
                 <span className="text-violet-300 font-bold">{formatMYR(deposit)}</span>
               </div>
+              <p className="text-xs text-slate-600 italic">Full rental payment ({formatMYR(total)}) due at pickup</p>
             </div>
 
             <div className="flex items-center gap-1.5 mt-4 text-xs text-slate-600">
