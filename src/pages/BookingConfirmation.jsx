@@ -59,7 +59,7 @@ export default function BookingConfirmation() {
 
   const car = booking.bubatrent_booking_cars;
   const payment = booking.bubatrent_booking_payments?.[0];
-  const canCancel = ['HOLD', 'PAID', 'CONFIRMED'].includes(booking.status);
+  const canCancel = ['HOLD', 'DEPOSIT_PAID'].includes(booking.status);
   const isCancelled = booking.status === 'CANCELLED';
 
   function copyBookingId() {
@@ -69,57 +69,82 @@ export default function BookingConfirmation() {
   }
 
   function downloadReceipt() {
-    const receiptLines = [
-      '═══════════════════════════════════════════',
-      '          RENT2GO BOOKING RECEIPT        ',
-      '═══════════════════════════════════════════',
-      '',
-      `Booking Ref:    ${booking.id.slice(0, 8).toUpperCase()}`,
-      `Full ID:        ${booking.id}`,
-      `Status:         ${booking.status}`,
-      `Date Issued:    ${new Date().toLocaleDateString('en-MY', { year: 'numeric', month: 'long', day: 'numeric' })}`,
-      '',
-      '───────────────────────────────────────────',
-      '  VEHICLE DETAILS',
-      '───────────────────────────────────────────',
-      `Car:            ${car?.name || 'N/A'}`,
-      `Brand/Model:    ${car?.brand || ''} ${car?.model || ''}`,
-      '',
-      '───────────────────────────────────────────',
-      '  RENTAL PERIOD',
-      '───────────────────────────────────────────',
-      `Pick-up:        ${formatDate(booking.pickup_date)}`,
-      `Return:         ${formatDate(booking.return_date)}`,
-      '',
-      '───────────────────────────────────────────',
-      '  PRICING',
-      '───────────────────────────────────────────',
-      `Total Price:    ${formatMYR(booking.total_price)}`,
-      `Deposit Paid:   ${formatMYR(booking.deposit_amount)}`,
-      `Balance Due:    ${formatMYR(booking.total_price - booking.deposit_amount)}`,
-      payment ? `Payment Ref:    ${payment.reference_number}` : '',
-      '',
-      '───────────────────────────────────────────',
-      '  CUSTOMER',
-      '───────────────────────────────────────────',
-      `Name:           ${booking.customer_name || 'N/A'}`,
-      `Email:          ${booking.customer_email || 'N/A'}`,
-      `Phone:          ${booking.customer_phone || 'N/A'}`,
-      '',
-      '═══════════════════════════════════════════',
-      '  Thank you for choosing Rent2Go!',
-      '  For support, contact us via WhatsApp.',
-      '═══════════════════════════════════════════',
-    ].filter(Boolean).join('\n');
-
-    const blob = new Blob([receiptLines], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Rent2Go-Receipt-${booking.id.slice(0, 8).toUpperCase()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Receipt downloaded!');
+    const creditApplied = Number(booking.credit_applied || 0);
+    const fullPayment = Number(booking.full_payment_amount || booking.total_price || 0);
+    const receiptHtml = `<!DOCTYPE html>
+<html><head><title>Rent2Go Receipt - ${booking.id.slice(0, 8).toUpperCase()}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8f9fa; padding: 20px; }
+  .receipt { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); overflow: hidden; }
+  .header { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; padding: 24px; text-align: center; }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 12px; opacity: 0.8; }
+  .body { padding: 24px; }
+  .ref { text-align: center; margin-bottom: 20px; }
+  .ref code { background: #f0f0f5; padding: 6px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #7c3aed; letter-spacing: 1px; }
+  .section { margin-bottom: 16px; }
+  .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 8px; font-weight: 600; }
+  .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
+  .row .label { color: #666; }
+  .row .value { color: #111; font-weight: 500; }
+  .divider { border-top: 1px dashed #e0e0e0; margin: 12px 0; }
+  .total-row { font-size: 15px; font-weight: 700; }
+  .total-row .value { color: #7c3aed; }
+  .credit-row .value { color: #16a34a; }
+  .footer { text-align: center; padding: 16px 24px 24px; font-size: 11px; color: #999; }
+  .print-bar { text-align: center; margin-bottom: 16px; }
+  .print-bar button { background: #7c3aed; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+  @media print { .print-bar { display: none; } body { padding: 0; background: white; } .receipt { box-shadow: none; } }
+</style></head><body>
+<div class="print-bar"><button onclick="window.print()">🖨️ Print Receipt</button></div>
+<div class="receipt">
+  <div class="header">
+    <h1>Rent2Go</h1>
+    <p>Premium Car Rental Malaysia</p>
+  </div>
+  <div class="body">
+    <div class="ref"><code>${booking.id.slice(0, 8).toUpperCase()}</code></div>
+    <div class="row"><span class="label">Date Issued</span><span class="value">${new Date().toLocaleDateString('en-MY', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+    <div class="row"><span class="label">Status</span><span class="value">${booking.status}</span></div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="section-title">Vehicle</div>
+      <div class="row"><span class="label">Car</span><span class="value">${car?.name || 'N/A'}</span></div>
+      <div class="row"><span class="label">Brand / Model</span><span class="value">${car?.brand || ''} ${car?.model || ''}</span></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Rental Period</div>
+      <div class="row"><span class="label">Pick-up</span><span class="value">${formatDate(booking.pickup_date)}</span></div>
+      <div class="row"><span class="label">Return</span><span class="value">${formatDate(booking.return_date)}</span></div>
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="section-title">Payment</div>
+      <div class="row"><span class="label">Rental Total</span><span class="value">${formatMYR(booking.total_price)}</span></div>
+      <div class="row"><span class="label">Deposit</span><span class="value">${formatMYR(booking.deposit_amount)}</span></div>
+      ${creditApplied > 0 ? `<div class="row credit-row"><span class="label">Credit Applied</span><span class="value">-${formatMYR(creditApplied)}</span></div>` : ''}
+      <div class="row"><span class="label">Full Payment</span><span class="value">${formatMYR(fullPayment)}</span></div>
+      ${payment ? `<div class="row"><span class="label">Payment Ref</span><span class="value">${payment.reference_number}</span></div>` : ''}
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="section-title">Customer</div>
+      <div class="row"><span class="label">Name</span><span class="value">${booking.customer_name || 'N/A'}</span></div>
+      <div class="row"><span class="label">Email</span><span class="value">${booking.customer_email || 'N/A'}</span></div>
+      <div class="row"><span class="label">Phone</span><span class="value">${booking.customer_phone || 'N/A'}</span></div>
+    </div>
+  </div>
+  <div class="footer">
+    Thank you for choosing Rent2Go!<br/>
+    For support: bubatresources@gmail.com · +60 16-256 9733
+  </div>
+</div>
+</body></html>`;
+    const win = window.open('', '_blank');
+    win.document.write(receiptHtml);
+    win.document.close();
+    toast.success('Receipt opened — you can print it!');
   }
 
   return (
@@ -200,17 +225,22 @@ export default function BookingConfirmation() {
         </div>
 
         {payment && (
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-slate-500">Payment Ref: {payment.reference_number}</span>
-            {!isCancelled && (
-              <button
-                onClick={downloadReceipt}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download Receipt
-              </button>
-            )}
+          <p className="mt-4 text-xs text-slate-500">Payment Ref: {payment.reference_number}</p>
+        )}
+
+        {Number(booking.credit_applied || 0) > 0 && (
+          <p className="mt-2 text-xs text-green-400">Credit applied: {formatMYR(booking.credit_applied)}</p>
+        )}
+
+        {!isCancelled && (
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={downloadReceipt}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Print Receipt
+            </button>
           </div>
         )}
 
