@@ -73,29 +73,37 @@ export default function BookingConfirmation() {
     const fullPayment = Number(booking.full_payment_amount || booking.total_price || 0);
     const receiptHtml = `<!DOCTYPE html>
 <html><head><title>Rent2Go Receipt - ${booking.id.slice(0, 8).toUpperCase()}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8f9fa; padding: 20px; }
-  .receipt { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); overflow: hidden; }
-  .header { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; padding: 24px; text-align: center; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8f9fa; padding: 16px; }
+  .receipt { width: 100%; max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); overflow: hidden; }
+  .header { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; padding: 20px 16px; text-align: center; }
   .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
   .header p { font-size: 12px; opacity: 0.8; }
-  .body { padding: 24px; }
-  .ref { text-align: center; margin-bottom: 20px; }
-  .ref code { background: #f0f0f5; padding: 6px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #7c3aed; letter-spacing: 1px; }
-  .section { margin-bottom: 16px; }
-  .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 8px; font-weight: 600; }
-  .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
-  .row .label { color: #666; }
-  .row .value { color: #111; font-weight: 500; }
-  .divider { border-top: 1px dashed #e0e0e0; margin: 12px 0; }
+  .body { padding: 16px; }
+  .ref { text-align: center; margin-bottom: 16px; }
+  .ref code { background: #f0f0f5; padding: 6px 14px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #7c3aed; letter-spacing: 1px; display: inline-block; }
+  .section { margin-bottom: 14px; }
+  .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 6px; font-weight: 600; }
+  .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; gap: 8px; }
+  .row .label { color: #666; white-space: nowrap; }
+  .row .value { color: #111; font-weight: 500; text-align: right; word-break: break-all; }
+  .divider { border-top: 1px dashed #e0e0e0; margin: 10px 0; }
   .total-row { font-size: 15px; font-weight: 700; }
   .total-row .value { color: #7c3aed; }
   .credit-row .value { color: #16a34a; }
-  .footer { text-align: center; padding: 16px 24px 24px; font-size: 11px; color: #999; }
-  .print-bar { text-align: center; margin-bottom: 16px; }
-  .print-bar button { background: #7c3aed; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-  @media print { .print-bar { display: none; } body { padding: 0; background: white; } .receipt { box-shadow: none; } }
+  .footer { text-align: center; padding: 14px 16px 20px; font-size: 11px; color: #999; }
+  .print-bar { text-align: center; margin-bottom: 12px; }
+  .print-bar button { background: #7c3aed; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; width: 100%; max-width: 300px; }
+  @media (min-width: 480px) {
+    body { padding: 20px; }
+    .header { padding: 24px; }
+    .body { padding: 24px; }
+    .row { font-size: 14px; }
+    .print-bar button { width: auto; }
+  }
+  @media print { .print-bar { display: none; } body { padding: 0; background: white; } .receipt { box-shadow: none; border-radius: 0; } }
 </style></head><body>
 <div class="print-bar"><button onclick="window.print()">🖨️ Print Receipt</button></div>
 <div class="receipt">
