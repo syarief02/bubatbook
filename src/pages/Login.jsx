@@ -87,7 +87,7 @@ export default function Login() {
             {forgotMode ? 'Reset Password' : 'Welcome back'}
           </h1>
           <p className="text-sm text-slate-400">
-            {forgotMode ? 'Enter your email to receive a reset link' : 'Sign in to your BubatRent account'}
+            {forgotMode ? 'Enter your email to receive a reset link' : 'Sign in to your Rent2Go account'}
           </p>
         </div>
 

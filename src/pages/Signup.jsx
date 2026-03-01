@@ -96,7 +96,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await signUp(email, password, displayName, phone.trim());
-      toast.success('Account created successfully! Welcome to BubatRent.');
+      toast.success('Account created successfully! Welcome to Rent2Go.');
       navigate('/');
     } catch (err) {
       const newAttempts = attempts + 1;
@@ -118,7 +118,7 @@ export default function Signup() {
             <Car className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">Create your account</h1>
-          <p className="text-sm text-slate-400">Join BubatRent to start booking</p>
+          <p className="text-sm text-slate-400">Join Rent2Go to start booking</p>
         </div>
 
         <div className="glass-card">

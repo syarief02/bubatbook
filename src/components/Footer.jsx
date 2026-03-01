@@ -12,7 +12,7 @@ export default function Footer() {
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
                 <Car className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-bold gradient-text">BubatRent</span>
+              <span className="text-lg font-bold gradient-text">Rent2Go</span>
             </Link>
             <p className="text-sm text-slate-500 leading-relaxed">
               Premium car rental in Malaysia. Browse our fleet, pick your dates, and book instantly with secure deposit payment.
@@ -45,7 +45,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-sm text-slate-400">
                 <Mail className="w-4 h-4 text-violet-400" />
-                <span>hello@bubatrent.my</span>
+                <span>hello@rent2go.my</span>
               </li>
             </ul>
             <div className="mt-4 flex items-center gap-2 text-xs text-slate-600">
@@ -57,7 +57,7 @@ export default function Footer() {
 
         <div className="border-t border-white/5 mt-8 pt-8 text-center">
           <p className="text-xs text-slate-600">
-            © {new Date().getFullYear()} BubatRent. All rights reserved.
+            © {new Date().getFullYear()} Rent2Go. All rights reserved.
           </p>
         </div>
       </div>

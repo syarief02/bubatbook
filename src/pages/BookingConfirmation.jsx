@@ -71,7 +71,7 @@ export default function BookingConfirmation() {
   function downloadReceipt() {
     const receiptLines = [
       '═══════════════════════════════════════════',
-      '          BUBATRENT BOOKING RECEIPT        ',
+      '          RENT2GO BOOKING RECEIPT        ',
       '═══════════════════════════════════════════',
       '',
       `Booking Ref:    ${booking.id.slice(0, 8).toUpperCase()}`,
@@ -107,7 +107,7 @@ export default function BookingConfirmation() {
       `Phone:          ${booking.customer_phone || 'N/A'}`,
       '',
       '═══════════════════════════════════════════',
-      '  Thank you for choosing BubatRent!',
+      '  Thank you for choosing Rent2Go!',
       '  For support, contact us via WhatsApp.',
       '═══════════════════════════════════════════',
     ].filter(Boolean).join('\n');
@@ -116,7 +116,7 @@ export default function BookingConfirmation() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `BubatRent-Receipt-${booking.id.slice(0, 8).toUpperCase()}.txt`;
+    a.download = `Rent2Go-Receipt-${booking.id.slice(0, 8).toUpperCase()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Receipt downloaded!');

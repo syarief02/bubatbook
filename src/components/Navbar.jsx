@@ -49,7 +49,7 @@ export default function Navbar() {
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center transition-transform group-hover:scale-110">
               <Car className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-bold gradient-text">BubatRent</span>
+            <span className="text-lg font-bold gradient-text">Rent2Go</span>
           </Link>
 
           {/* Desktop Nav */}
