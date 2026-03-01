@@ -6,29 +6,22 @@ async function run() {
     const c = new Client('postgresql://postgres:Ssy%40rief.1234@db.blqsgijvdvzwnqeltoje.supabase.co:5432/postgres');
     await c.connect();
 
-    const sql = fs.readFileSync(path.join(__dirname, 'migrations', 'add_fleet_groups.sql'), 'utf8');
+    const sql = fs.readFileSync(path.join(__dirname, 'migrations', 'add_governance.sql'), 'utf8');
 
     try {
         await c.query(sql);
-        console.log('✓ Migration completed successfully');
+        console.log('✓ Governance migration completed');
     } catch (err) {
         console.error('✗ Migration failed:', err.message);
-        console.error('Detail:', err.detail || 'none');
     }
 
     // Verify
     try {
-        const { rows: fg } = await c.query('SELECT id, name, slug FROM bubatrent_booking_fleet_groups');
-        console.log('\nFleet groups:', fg);
+        const { rows } = await c.query("SELECT id, name, is_super_group, status FROM bubatrent_booking_fleet_groups");
+        console.log('\nFleet groups:', rows);
 
-        const { rows: fm } = await c.query('SELECT user_id, fleet_group_id, role FROM bubatrent_booking_fleet_memberships');
-        console.log('Fleet memberships:', fm);
-
-        const { rows: cars } = await c.query("SELECT COUNT(*) as c FROM bubatrent_booking_cars WHERE fleet_group_id IS NOT NULL");
-        console.log('Cars with fleet:', cars[0].c);
-
-        const { rows: bookings } = await c.query("SELECT COUNT(*) as c FROM bubatrent_booking_bookings WHERE fleet_group_id IS NOT NULL");
-        console.log('Bookings with fleet:', bookings[0].c);
+        const { rows: cols } = await c.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'bubatrent_booking_change_requests' ORDER BY ordinal_position");
+        console.log('Change requests columns:', cols.map(c => c.column_name));
     } catch (err) {
         console.error('Verify failed:', err.message);
     }

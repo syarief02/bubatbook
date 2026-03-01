@@ -20,7 +20,7 @@ const ROLE_OPTIONS = ['ALL', 'customer', 'admin', 'super_admin'];
 
 export default function Customers() {
   const { user, isSuperAdmin } = useAuth();
-  const { activeFleetId } = useFleet();
+  const { activeFleetId, isSuperGroup, canAccessSensitiveData, canWrite } = useFleet();
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -401,18 +401,21 @@ export default function Customers() {
                             <button
                               disabled={savingEdit}
                               onClick={async () => {
-                                setSavingEdit(true);
+                              setSavingEdit(true);
                                 try {
-                                  const updates = {};
-                                  // Only include non-empty fields
-                                  if (editForm.ic_number) updates.ic_number = editForm.ic_number;
-                                  if (editForm.phone) updates.phone = editForm.phone;
-                                  if (editForm.licence_expiry) updates.licence_expiry = editForm.licence_expiry;
-                                  if (editForm.address_line1) updates.address_line1 = editForm.address_line1;
-                                  if (editForm.address_line2 !== undefined) updates.address_line2 = editForm.address_line2;
-                                  if (editForm.city) updates.city = editForm.city;
-                                  if (editForm.state) updates.state = editForm.state;
-                                  if (editForm.postcode) updates.postcode = editForm.postcode;
+                                  const SENSITIVE_FIELDS = ['ic_number', 'address_line1', 'address_line2', 'city', 'state', 'postcode', 'licence_expiry'];
+
+                                  const directUpdates = {};
+                                  const sensitiveChanges = {};
+
+                                  // Categorize changes into sensitive vs non-sensitive
+                                  if (editForm.phone && editForm.phone !== (customer.phone || '')) directUpdates.phone = editForm.phone;
+
+                                  SENSITIVE_FIELDS.forEach(field => {
+                                    if (editForm[field] !== undefined && editForm[field] !== (customer[field] || '')) {
+                                      sensitiveChanges[field] = { old: customer[field] || null, new: editForm[field] };
+                                    }
+                                  });
 
                                   // Upload files if provided
                                   if (editFiles.ic) {
@@ -420,42 +423,74 @@ export default function Customers() {
                                     const path = `${customer.id}/ic_admin_${Date.now()}.${ext}`;
                                     const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.ic);
                                     if (upErr) throw upErr;
-                                    updates.ic_file_path = path;
+                                    sensitiveChanges.ic_file_path = { old: customer.ic_file_path || null, new: path };
                                   }
                                   if (editFiles.licence) {
                                     const ext = editFiles.licence.name.split('.').pop();
                                     const path = `${customer.id}/licence_admin_${Date.now()}.${ext}`;
                                     const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.licence);
                                     if (upErr) throw upErr;
-                                    updates.licence_file_path = path;
+                                    sensitiveChanges.licence_file_path = { old: customer.licence_file_path || null, new: path };
                                   }
 
-                                  // Admin uploads auto-verify
-                                  if (editFiles.ic || editFiles.licence) {
-                                    updates.is_verified = true;
-                                    updates.verified_at = new Date().toISOString();
-                                    updates.verified_by = user.id;
+                                  // Auto-verify if docs uploaded AND group is Super Group
+                                  if ((editFiles.ic || editFiles.licence) && isSuperGroup) {
+                                    directUpdates.is_verified = true;
+                                    directUpdates.verified_at = new Date().toISOString();
+                                    directUpdates.verified_by = user.id;
                                   }
 
-                                  if (Object.keys(updates).length === 0) {
+                                  if (Object.keys(directUpdates).length === 0 && Object.keys(sensitiveChanges).length === 0) {
                                     toast.error('No changes to save');
                                     setSavingEdit(false);
                                     return;
                                   }
 
-                                  const { error } = await supabase.from('bubatrent_booking_profiles').update(updates).eq('id', customer.id);
-                                  if (error) throw error;
+                                  let messages = [];
+
+                                  // Super Group bypasses approval for everything
+                                  if (isSuperGroup) {
+                                    // Apply all changes directly
+                                    const allUpdates = { ...directUpdates };
+                                    Object.keys(sensitiveChanges).forEach(f => { allUpdates[f] = sensitiveChanges[f].new; });
+                                    const { error } = await supabase.from('bubatrent_booking_profiles').update(allUpdates).eq('id', customer.id);
+                                    if (error) throw error;
+                                    messages.push('Changes applied directly (Super Group)');
+                                  } else {
+                                    // Apply non-sensitive directly
+                                    if (Object.keys(directUpdates).length > 0) {
+                                      const { error } = await supabase.from('bubatrent_booking_profiles').update(directUpdates).eq('id', customer.id);
+                                      if (error) throw error;
+                                      messages.push(`${Object.keys(directUpdates).length} field(s) updated`);
+                                    }
+
+                                    // Create change request for sensitive fields
+                                    if (Object.keys(sensitiveChanges).length > 0) {
+                                      const { error: crErr } = await supabase.from('bubatrent_booking_change_requests').insert({
+                                        fleet_group_id: activeFleetId,
+                                        customer_id: customer.id,
+                                        requested_by: user.id,
+                                        changes: sensitiveChanges,
+                                      });
+                                      if (crErr) throw crErr;
+                                      messages.push(`${Object.keys(sensitiveChanges).length} sensitive field(s) sent for Super Group approval`);
+                                    }
+                                  }
 
                                   // Audit log
                                   await supabase.from('bubatrent_booking_audit_logs').insert({
                                     admin_id: user.id,
-                                    action: 'UPDATE_CUSTOMER',
+                                    action: isSuperGroup ? 'UPDATE_CUSTOMER' : 'REQUEST_CUSTOMER_CHANGE',
                                     resource_type: 'profile',
                                     resource_id: customer.id,
-                                    details: { fields: Object.keys(updates), auto_verified: !!(editFiles.ic || editFiles.licence) },
+                                    details: {
+                                      direct_fields: Object.keys(directUpdates),
+                                      sensitive_fields: Object.keys(sensitiveChanges),
+                                      is_super_group: isSuperGroup,
+                                    },
                                   });
 
-                                  toast.success('Customer details updated' + (editFiles.ic || editFiles.licence ? ' & auto-verified' : ''));
+                                  toast.success(messages.join(' • '));
                                   setEditingCustomer(null);
                                   setEditFiles({ ic: null, licence: null });
                                   refetch();

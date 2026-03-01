@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
 import { FleetProvider } from './hooks/useFleet.jsx';
+import GroupStatusGuard from './components/GroupStatusGuard';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -28,6 +29,8 @@ const Profile = lazy(() => import('./pages/Profile'));
 const AdminSales = lazy(() => import('./pages/admin/Sales'));
 const AdminExpenses = lazy(() => import('./pages/admin/Expenses'));
 const FleetSettings = lazy(() => import('./pages/admin/FleetSettings'));
+const GroupManagement = lazy(() => import('./pages/admin/GroupManagement'));
+const ChangeRequests = lazy(() => import('./pages/admin/ChangeRequests'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
@@ -48,7 +51,9 @@ function AdminRoute({ children }) {
   if (!isAdmin) return <Navigate to="/" replace />;
   return (
     <FleetProvider userId={user.id} isSuperAdmin={isSuperAdmin}>
-      {children}
+      <GroupStatusGuard>
+        {children}
+      </GroupStatusGuard>
     </FleetProvider>
   );
 }
@@ -79,6 +84,8 @@ function AppRoutes() {
             <Route path="/admin/sales" element={<AdminRoute><AdminSales /></AdminRoute>} />
             <Route path="/admin/expenses" element={<AdminRoute><AdminExpenses /></AdminRoute>} />
             <Route path="/admin/fleet" element={<AdminRoute><FleetSettings /></AdminRoute>} />
+            <Route path="/admin/groups" element={<AdminRoute><GroupManagement /></AdminRoute>} />
+            <Route path="/admin/change-requests" element={<AdminRoute><ChangeRequests /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

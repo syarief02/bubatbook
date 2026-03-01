@@ -57,6 +57,14 @@ export function FleetProvider({ userId, isSuperAdmin, children }) {
 
   const activeFleet = fleets.find(f => f.id === activeFleetId) || null;
 
+  // Governance status flags
+  const groupStatus = activeFleet?.status || 'PENDING_VERIFICATION';
+  const isGroupVerified = groupStatus === 'VERIFIED';
+  const isGroupSuspended = groupStatus === 'SUSPENDED';
+  const isSuperGroup = activeFleet?.is_super_group === true;
+  const canAccessSensitiveData = isGroupVerified && !isGroupSuspended;
+  const canWrite = isGroupVerified && !isGroupSuspended;
+
   return (
     <FleetContext.Provider value={{
       fleets,
@@ -66,6 +74,13 @@ export function FleetProvider({ userId, isSuperAdmin, children }) {
       setActiveFleetId,
       loading,
       refetchFleets: fetchFleetData,
+      // Governance
+      groupStatus,
+      isGroupVerified,
+      isGroupSuspended,
+      isSuperGroup,
+      canAccessSensitiveData,
+      canWrite,
     }}>
       {children}
     </FleetContext.Provider>

@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2 } from 'lucide-react';
+import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2, Shield, FileCheck } from 'lucide-react';
 import FleetSelector from './FleetSelector';
+import { useFleet } from '../hooks/useFleet';
+import { useAuth } from '../hooks/useAuth';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -12,8 +14,20 @@ const navItems = [
   { to: '/admin/fleet', label: 'Fleet Settings', icon: Building2 },
 ];
 
+// Governance nav items — only visible to Super Group admins
+const governanceItems = [
+  { to: '/admin/groups', label: 'Groups', icon: Shield },
+  { to: '/admin/change-requests', label: 'Change Requests', icon: FileCheck },
+];
+
 export default function AdminLayout({ children, title }) {
   const location = useLocation();
+  const { isSuperGroup } = useFleet();
+  const { isSuperAdmin } = useAuth();
+
+  const allItems = isSuperAdmin && isSuperGroup
+    ? [...navItems, ...governanceItems]
+    : [...navItems, { to: '/admin/change-requests', label: 'My Requests', icon: FileCheck }];
 
   return (
     <div className="min-h-screen">
@@ -32,7 +46,7 @@ export default function AdminLayout({ children, title }) {
                 <FleetSelector />
               </div>
               <nav className="space-y-1">
-                {navItems.map(({ to, label, icon: Icon }) => {
+                {allItems.map(({ to, label, icon: Icon }) => {
                   const active = location.pathname === to;
                   return (
                     <Link
@@ -50,6 +64,13 @@ export default function AdminLayout({ children, title }) {
                   );
                 })}
               </nav>
+
+              {/* Governance separator for super group */}
+              {isSuperAdmin && isSuperGroup && (
+                <div className="mt-3 pt-3 border-t border-white/5">
+                  <p className="px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Governance</p>
+                </div>
+              )}
             </div>
           </aside>
 
