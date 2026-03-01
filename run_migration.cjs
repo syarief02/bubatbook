@@ -1,40 +1,39 @@
-// Run database migration using DATABASE_URL from .env.local
+const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
-const { Client } = require('pg');
-
-// Load .env.local
-const envPath = path.join(__dirname, '.env.local');
-const envContent = fs.readFileSync(envPath, 'utf8');
-const envVars = {};
-envContent.split('\n').forEach(line => {
-    const [key, ...rest] = line.split('=');
-    if (key && rest.length) envVars[key.trim()] = rest.join('=').trim();
-});
-
-const DATABASE_URL = envVars.DATABASE_URL;
-if (!DATABASE_URL) {
-    console.error('DATABASE_URL not found in .env.local');
-    process.exit(1);
-}
-
-// Read migration file
-const migrationFile = process.argv[2] || 'migration_overhaul.sql';
-const sql = fs.readFileSync(path.join(__dirname, migrationFile), 'utf8');
 
 async function run() {
-    const client = new Client({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
+    const c = new Client('postgresql://postgres:Ssy%40rief.1234@db.blqsgijvdvzwnqeltoje.supabase.co:5432/postgres');
+    await c.connect();
+
+    const sql = fs.readFileSync(path.join(__dirname, 'migrations', 'add_fleet_groups.sql'), 'utf8');
+
     try {
-        await client.connect();
-        console.log('Connected to database.');
-        await client.query(sql);
-        console.log('Migration completed successfully!');
+        await c.query(sql);
+        console.log('✓ Migration completed successfully');
     } catch (err) {
-        console.error('Migration error:', err.message);
-        process.exit(1);
-    } finally {
-        await client.end();
+        console.error('✗ Migration failed:', err.message);
+        console.error('Detail:', err.detail || 'none');
     }
+
+    // Verify
+    try {
+        const { rows: fg } = await c.query('SELECT id, name, slug FROM bubatrent_booking_fleet_groups');
+        console.log('\nFleet groups:', fg);
+
+        const { rows: fm } = await c.query('SELECT user_id, fleet_group_id, role FROM bubatrent_booking_fleet_memberships');
+        console.log('Fleet memberships:', fm);
+
+        const { rows: cars } = await c.query("SELECT COUNT(*) as c FROM bubatrent_booking_cars WHERE fleet_group_id IS NOT NULL");
+        console.log('Cars with fleet:', cars[0].c);
+
+        const { rows: bookings } = await c.query("SELECT COUNT(*) as c FROM bubatrent_booking_bookings WHERE fleet_group_id IS NOT NULL");
+        console.log('Bookings with fleet:', bookings[0].c);
+    } catch (err) {
+        console.error('Verify failed:', err.message);
+    }
+
+    await c.end();
 }
 
-run();
+run().catch(e => { console.error('FATAL:', e.message); process.exit(1); });

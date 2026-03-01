@@ -1,13 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
-export function useAdminStats() {
+// ─── Fleet-scoped helper ───
+// Applies fleet_group_id filter unless null (super admin "All Fleets" view)
+function scopeToFleet(query, fleetId) {
+    if (fleetId) return query.eq('fleet_group_id', fleetId);
+    return query;
+}
+
+export function useAdminStats(fleetId) {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function fetchStats() {
             try {
+                let bQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true });
+                let bActiveQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP']);
+                let cQuery = supabase.from('bubatrent_booking_cars').select('*', { count: 'exact', head: true });
+                let pendQuery = supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).eq('status', 'DEPOSIT_PAID');
+                let pQuery = supabase.from('bubatrent_booking_payments').select('amount').eq('status', 'completed');
+
+                // Scope to fleet
+                bQuery = scopeToFleet(bQuery, fleetId);
+                bActiveQuery = scopeToFleet(bActiveQuery, fleetId);
+                cQuery = scopeToFleet(cQuery, fleetId);
+                pendQuery = scopeToFleet(pendQuery, fleetId);
+                pQuery = scopeToFleet(pQuery, fleetId);
+
                 const [
                     { count: totalBookings },
                     { count: activeBookings },
@@ -15,19 +35,14 @@ export function useAdminStats() {
                     { count: pendingVerifications },
                     { count: totalCustomers },
                 ] = await Promise.all([
-                    supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }),
-                    supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP']),
-                    supabase.from('bubatrent_booking_cars').select('*', { count: 'exact', head: true }),
-                    supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).eq('status', 'DEPOSIT_PAID'),
-                    supabase.from('bubatrent_booking_profiles').select('*', { count: 'exact', head: true }),
+                    bQuery,
+                    bActiveQuery,
+                    cQuery,
+                    pendQuery,
+                    supabase.from('bubatrent_booking_profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
                 ]);
 
-                // Calculate revenue from completed payments
-                const { data: payments } = await supabase
-                    .from('bubatrent_booking_payments')
-                    .select('amount')
-                    .eq('status', 'completed');
-
+                const { data: payments } = await pQuery;
                 const totalRevenue = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
 
                 setStats({
@@ -45,7 +60,7 @@ export function useAdminStats() {
             }
         }
         fetchStats();
-    }, []);
+    }, [fleetId]);
 
     return { stats, loading };
 }
@@ -63,6 +78,9 @@ export function useAdminBookings(filters = {}) {
                 .select('*, bubatrent_booking_cars(name, brand, model, image_url)')
                 .order('created_at', { ascending: false });
 
+            // Fleet scope
+            query = scopeToFleet(query, filters.fleetId);
+
             if (filters.status) {
                 query = query.eq('status', filters.status);
             }
@@ -78,7 +96,7 @@ export function useAdminBookings(filters = {}) {
         } finally {
             setLoading(false);
         }
-    }, [filters.status, filters.carId]);
+    }, [filters.status, filters.carId, filters.fleetId]);
 
     useEffect(() => {
         fetchBookings();
@@ -87,7 +105,7 @@ export function useAdminBookings(filters = {}) {
     return { bookings, loading, error, refetch: fetchBookings };
 }
 
-export function useAdminCars() {
+export function useAdminCars(fleetId) {
     const [cars, setCars] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -95,11 +113,14 @@ export function useAdminCars() {
     const fetchCars = useCallback(async () => {
         try {
             setLoading(true);
-            const { data, error: fetchError } = await supabase
+            let query = supabase
                 .from('bubatrent_booking_cars')
                 .select('*')
                 .order('created_at', { ascending: false });
 
+            query = scopeToFleet(query, fleetId);
+
+            const { data, error: fetchError } = await query;
             if (fetchError) throw fetchError;
             setCars(data || []);
         } catch (err) {
@@ -107,7 +128,7 @@ export function useAdminCars() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [fleetId]);
 
     useEffect(() => {
         fetchCars();
@@ -161,7 +182,6 @@ export async function updateBookingStatus(bookingId, status) {
 }
 
 export async function getBookingDocuments(bookingId, adminId) {
-    // Log the admin access
     await supabase.from('bubatrent_booking_audit_logs').insert({
         admin_id: adminId,
         action: 'VIEW_DOCUMENTS',
@@ -212,6 +232,13 @@ export async function getAuditLogs(bookingId) {
 
 // ─── Customer Management ───
 
+/**
+ * Fetches customer list.
+ * - Default (role='ALL'): only shows customers (excludes admin/super_admin)
+ * - Specific role filter: shows that role
+ * - Verification filter: 'verified', 'not_verified', 'pending'
+ * - Booking counts scoped to fleet when fleetId provided
+ */
 export function useAdminCustomers(filters = {}) {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -225,36 +252,74 @@ export function useAdminCustomers(filters = {}) {
                 .select('*')
                 .order('created_at', { ascending: false });
 
+            // Role filter — BUG FIX: 'ALL' now means 'all customers only'
             if (filters.role && filters.role !== 'ALL') {
                 query = query.eq('role', filters.role.toLowerCase());
+            } else {
+                // Default: exclude admin and super_admin from customer list
+                query = query.eq('role', 'customer');
             }
+
+            // Search filter
             if (filters.search) {
-                // Sanitize: strip PostgREST special chars to prevent filter injection
                 const safe = filters.search.replace(/[.,%()]/g, '').trim();
                 if (safe) {
                     query = query.or(`display_name.ilike.%${safe}%,username.ilike.%${safe}%,phone.ilike.%${safe}%`);
                 }
             }
 
+            // Verification filter
+            if (filters.verification === 'verified') {
+                query = query.eq('is_verified', true);
+            } else if (filters.verification === 'not_verified') {
+                query = query.eq('is_verified', false).is('ic_number', null);
+            } else if (filters.verification === 'pending') {
+                query = query.eq('is_verified', false).not('ic_number', 'is', null);
+            }
+
             const { data, error: fetchError } = await query;
             if (fetchError) throw fetchError;
 
-            // Get booking counts for each customer
-            const customerIds = (data || []).map(c => c.id);
+            // Filter out expired-licence "verified" customers if needed
+            let filtered = data || [];
+            if (filters.verification === 'verified') {
+                filtered = filtered.filter(c =>
+                    !c.licence_expiry || new Date(c.licence_expiry) >= new Date()
+                );
+            }
+
+            // Get booking counts — fleet-scoped
+            const customerIds = filtered.map(c => c.id);
             let bookingCounts = {};
             if (customerIds.length > 0) {
-                const { data: bookings } = await supabase
+                let bQuery = supabase
                     .from('bubatrent_booking_bookings')
                     .select('user_id, id')
                     .in('user_id', customerIds);
+                bQuery = scopeToFleet(bQuery, filters.fleetId);
+                const { data: bookings } = await bQuery;
                 (bookings || []).forEach(b => {
                     bookingCounts[b.user_id] = (bookingCounts[b.user_id] || 0) + 1;
                 });
             }
 
-            const enriched = (data || []).map(c => ({
+            // Get fleet-scoped credit for each customer
+            let creditByUser = {};
+            if (customerIds.length > 0 && filters.fleetId) {
+                const { data: txns } = await supabase
+                    .from('bubatrent_booking_credit_transactions')
+                    .select('user_id, amount')
+                    .in('user_id', customerIds)
+                    .eq('fleet_group_id', filters.fleetId);
+                (txns || []).forEach(t => {
+                    creditByUser[t.user_id] = (creditByUser[t.user_id] || 0) + Number(t.amount);
+                });
+            }
+
+            const enriched = filtered.map(c => ({
                 ...c,
                 booking_count: bookingCounts[c.id] || 0,
+                fleet_credit: creditByUser[c.id] || 0,
             }));
 
             setCustomers(enriched);
@@ -263,7 +328,7 @@ export function useAdminCustomers(filters = {}) {
         } finally {
             setLoading(false);
         }
-    }, [filters.role, filters.search]);
+    }, [filters.role, filters.search, filters.fleetId, filters.verification]);
 
     useEffect(() => {
         fetchCustomers();
@@ -273,7 +338,6 @@ export function useAdminCustomers(filters = {}) {
 }
 
 export async function updateUserRole(userId, newRole, adminId) {
-    // Log the role change
     await supabase.from('bubatrent_booking_audit_logs').insert({
         admin_id: adminId,
         action: 'CHANGE_ROLE',
@@ -293,13 +357,16 @@ export async function updateUserRole(userId, newRole, adminId) {
     return data;
 }
 
-export async function getCustomerBookings(userId) {
-    const { data, error } = await supabase
+export async function getCustomerBookings(userId, fleetId) {
+    let query = supabase
         .from('bubatrent_booking_bookings')
         .select('*, bubatrent_booking_cars(name, brand, model, image_url)')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
+    query = scopeToFleet(query, fleetId);
+
+    const { data, error } = await query;
     if (error) throw error;
     return data || [];
 }
@@ -351,4 +418,3 @@ export async function unverifyCustomer(userId, adminId) {
     if (error) throw error;
     return data;
 }
-

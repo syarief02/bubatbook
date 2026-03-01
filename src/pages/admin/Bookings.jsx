@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminBookings, updateBookingStatus } from '../../hooks/useAdmin';
+import { useFleet } from '../../hooks/useFleet';
 import { useToast } from '../../components/Toast';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -14,10 +15,11 @@ const STATUSES = ['ALL', 'HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNE
 
 export default function AdminBookings() {
   const toast = useToast();
+  const { activeFleetId } = useFleet();
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [customerSearch, setCustomerSearch] = useState('');
   const { bookings, loading, error, refetch } = useAdminBookings(
-    statusFilter === 'ALL' ? {} : { status: statusFilter }
+    { ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}), fleetId: activeFleetId }
   );
 
   // Client-side filter by customer name/email

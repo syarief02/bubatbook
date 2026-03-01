@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
+import { useFleet } from '../../hooks/useFleet';
 import { formatMYR } from '../../utils/pricing';
 import { formatDate } from '../../utils/dates';
 import { DollarSign, TrendingUp, Car, Calendar, Filter } from 'lucide-react';
 
 export default function AdminSales() {
+  const { activeFleetId } = useFleet();
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   const [cars, setCars] = useState([]);
@@ -14,17 +16,20 @@ export default function AdminSales() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [activeFleetId]);
 
   async function fetchData() {
     setLoading(true);
-    const [{ data: bData }, { data: cData }] = await Promise.all([
-      supabase.from('bubatrent_booking_bookings')
-        .select('*, bubatrent_booking_cars(id, name, brand, model)')
-        .in('status', ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'])
-        .order('created_at', { ascending: false }),
-      supabase.from('bubatrent_booking_cars').select('*'),
-    ]);
+    let bQuery = supabase.from('bubatrent_booking_bookings')
+      .select('*, bubatrent_booking_cars(id, name, brand, model)')
+      .in('status', ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'])
+      .order('created_at', { ascending: false });
+    let cQuery = supabase.from('bubatrent_booking_cars').select('*');
+    if (activeFleetId) {
+      bQuery = bQuery.eq('fleet_group_id', activeFleetId);
+      cQuery = cQuery.eq('fleet_group_id', activeFleetId);
+    }
+    const [{ data: bData }, { data: cData }] = await Promise.all([bQuery, cQuery]);
     setBookings(bData || []);
     setCars(cData || []);
     setLoading(false);

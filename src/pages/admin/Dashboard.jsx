@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminStats } from '../../hooks/useAdmin';
+import { useFleet } from '../../hooks/useFleet';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { formatMYR } from '../../utils/pricing';
 import { CalendarDays, Car, DollarSign, FileCheck, TrendingUp, Users, Receipt } from 'lucide-react';
@@ -23,7 +24,8 @@ const textColorMap = {
 };
 
 export default function AdminDashboard() {
-  const { stats, loading } = useAdminStats();
+  const { activeFleetId, activeFleet } = useFleet();
+  const { stats, loading } = useAdminStats(activeFleetId);
 
   if (loading) return <AdminLayout title="Dashboard"><LoadingSpinner /></AdminLayout>;
 

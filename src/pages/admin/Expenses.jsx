@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useAuth } from '../../hooks/useAuth';
+import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/Toast';
 import { formatMYR } from '../../utils/pricing';
@@ -13,6 +14,7 @@ import {
 
 export default function AdminExpenses() {
   const { user } = useAuth();
+  const { activeFleetId } = useFleet();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [claims, setClaims] = useState([]);
@@ -34,16 +36,19 @@ export default function AdminExpenses() {
   const [receiptFile, setReceiptFile] = useState(null);
   const [completingId, setCompletingId] = useState(null);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [activeFleetId]);
 
   async function fetchData() {
     setLoading(true);
-    const [{ data: claimsData }, { data: carsData }] = await Promise.all([
-      supabase.from('bubatrent_booking_expense_claims')
-        .select('*, bubatrent_booking_cars(name), bubatrent_booking_expense_images(*)')
-        .order('created_at', { ascending: false }),
-      supabase.from('bubatrent_booking_cars').select('id, name'),
-    ]);
+    let claimsQ = supabase.from('bubatrent_booking_expense_claims')
+      .select('*, bubatrent_booking_cars(name), bubatrent_booking_expense_images(*)')
+      .order('created_at', { ascending: false });
+    let carsQ = supabase.from('bubatrent_booking_cars').select('id, name');
+    if (activeFleetId) {
+      claimsQ = claimsQ.eq('fleet_group_id', activeFleetId);
+      carsQ = carsQ.eq('fleet_group_id', activeFleetId);
+    }
+    const [{ data: claimsData }, { data: carsData }] = await Promise.all([claimsQ, carsQ]);
     setClaims(claimsData || []);
     setCars(carsData || []);
     setLoading(false);
@@ -66,6 +71,7 @@ export default function AdminExpenses() {
           expense_date: formDate,
           description: formDesc.trim(),
           total_amount: formAmount ? parseFloat(formAmount) : null,
+          fleet_group_id: activeFleetId,
         })
         .select().single();
       if (claimErr) throw claimErr;

@@ -55,7 +55,7 @@ export default function Checkout() {
       try {
         setLoading(true);
         const { days, total, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
-        const hold = await createHoldBooking(car.id, user.id, pickupDate, returnDate, total, deposit);
+        const hold = await createHoldBooking(car.id, user.id, pickupDate, returnDate, total, deposit, car.fleet_group_id);
         setBooking(hold);
       } catch (err) {
         holdCreatedRef.current = false;

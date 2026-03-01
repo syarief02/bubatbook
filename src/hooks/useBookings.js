@@ -46,7 +46,7 @@ export async function expireOldHolds() {
         .lt('hold_expires_at', now);
 }
 
-export async function createHoldBooking(carId, userId, pickupDate, returnDate, totalPrice, depositAmount) {
+export async function createHoldBooking(carId, userId, pickupDate, returnDate, totalPrice, depositAmount, fleetGroupId) {
     // Clean up expired holds first so exclusion constraint doesn't block valid bookings
     await expireOldHolds();
 
@@ -63,6 +63,7 @@ export async function createHoldBooking(carId, userId, pickupDate, returnDate, t
             deposit_amount: depositAmount,
             status: 'HOLD',
             hold_expires_at: holdExpiresAt,
+            fleet_group_id: fleetGroupId,
         })
         .select()
         .single();

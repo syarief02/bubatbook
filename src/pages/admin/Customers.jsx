@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useFleet } from '../../hooks/useFleet';
 import { useAdminCustomers, updateUserRole, getCustomerBookings, verifyCustomer, unverifyCustomer } from '../../hooks/useAdmin';
 import AdminLayout from '../../components/AdminLayout';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
@@ -19,9 +20,11 @@ const ROLE_OPTIONS = ['ALL', 'customer', 'admin', 'super_admin'];
 
 export default function Customers() {
   const { user, isSuperAdmin } = useAuth();
+  const { activeFleetId } = useFleet();
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
+  const [verificationFilter, setVerificationFilter] = useState('ALL');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -54,6 +57,8 @@ export default function Customers() {
   const { customers, loading, refetch } = useAdminCustomers({
     search: debouncedSearch,
     role: roleFilter,
+    fleetId: activeFleetId,
+    verification: verificationFilter !== 'ALL' ? verificationFilter : undefined,
   });
 
   async function handleExpand(customerId) {
@@ -121,7 +126,7 @@ export default function Customers() {
             className="input-field !pl-10"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {ROLE_OPTIONS.map(role => (
             <button
               key={role}
@@ -132,7 +137,22 @@ export default function Customers() {
                   : 'glass-card text-slate-400 hover:text-white'
               }`}
             >
-              {role === 'ALL' ? 'All' : role === 'admin' ? '🛡️ Admin' : '👤 Customer'}
+              {role === 'ALL' ? 'Customers' : role === 'admin' ? '🛡️ Admin' : role === 'super_admin' ? '🟠 Super Admin' : '👤 Customer'}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {['ALL','verified','not_verified','pending'].map(v => (
+            <button
+              key={v}
+              onClick={() => setVerificationFilter(v)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                verificationFilter === v
+                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                  : 'glass-card text-slate-400 hover:text-white'
+              }`}
+            >
+              {v === 'ALL' ? 'All Status' : v === 'verified' ? '✅ Verified' : v === 'not_verified' ? '❌ Not Verified' : '⏳ Pending'}
             </button>
           ))}
         </div>

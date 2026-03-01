@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminCars, createCar, updateCar, deleteCar } from '../../hooks/useAdmin';
+import { useFleet } from '../../hooks/useFleet';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
@@ -18,7 +19,8 @@ const EMPTY_CAR = {
 
 export default function AdminCars() {
   const toast = useToast();
-  const { cars, loading, error, refetch } = useAdminCars();
+  const { activeFleetId } = useFleet();
+  const { cars, loading, error, refetch } = useAdminCars(activeFleetId);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_CAR);
@@ -70,6 +72,7 @@ export default function AdminCars() {
       if (editing) {
         await updateCar(editing, data);
       } else {
+        data.fleet_group_id = activeFleetId;
         await createCar(data);
       }
       setShowForm(false);
