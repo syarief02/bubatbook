@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTriangle, Download } from 'lucide-react';
+import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTriangle, Download, Clock } from 'lucide-react';
 
 export default function BookingConfirmation() {
   const { id } = useParams();
@@ -61,6 +61,8 @@ export default function BookingConfirmation() {
   const payment = booking.bubatrent_booking_payments?.[0];
   const canCancel = ['HOLD', 'DEPOSIT_PAID'].includes(booking.status);
   const isCancelled = booking.status === 'CANCELLED';
+  const isHold = booking.status === 'HOLD';
+  const hasPaid = ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status);
 
   function copyBookingId() {
     navigator.clipboard.writeText(booking.id);
@@ -166,13 +168,27 @@ export default function BookingConfirmation() {
             <h1 className="text-2xl font-bold text-white mb-2">Booking Cancelled</h1>
             <p className="text-slate-400">This booking has been cancelled.</p>
           </>
+        ) : isHold ? (
+          <>
+            <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-10 h-10 text-yellow-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Booking on Hold</h1>
+            <p className="text-slate-400">Please upload your deposit receipt to secure this booking. Hold expires in 10 minutes.</p>
+          </>
         ) : (
           <>
             <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-10 h-10 text-green-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Booking Confirmed!</h1>
-            <p className="text-slate-400">Your deposit has been received and your booking is secured.</p>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              {booking.status === 'DEPOSIT_PAID' ? 'Deposit Received!' : 'Booking Confirmed!'}
+            </h1>
+            <p className="text-slate-400">
+              {booking.status === 'DEPOSIT_PAID'
+                ? 'Your deposit has been uploaded. Awaiting admin verification.'
+                : 'Your booking is secured and confirmed.'}
+            </p>
           </>
         )}
       </div>
@@ -219,8 +235,8 @@ export default function BookingConfirmation() {
             <p className="text-white font-semibold">{formatMYR(booking.total_price)}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Deposit Paid</p>
-            <p className="text-green-400 font-semibold">{formatMYR(booking.deposit_amount)}</p>
+            <p className="text-xs text-slate-500 mb-1">{isHold ? 'Deposit Required' : 'Deposit Paid'}</p>
+            <p className={`font-semibold ${isHold ? 'text-yellow-400' : 'text-green-400'}`}>{formatMYR(booking.deposit_amount)}</p>
           </div>
         </div>
 
@@ -240,7 +256,7 @@ export default function BookingConfirmation() {
           <p className="mt-2 text-xs text-green-400">Credit applied: {formatMYR(booking.credit_applied)}</p>
         )}
 
-        {!isCancelled && (
+        {hasPaid && (
           <div className="mt-4 flex justify-end">
             <button
               onClick={downloadReceipt}
