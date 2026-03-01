@@ -61,6 +61,7 @@ export default function BookingConfirmation() {
   const payment = booking.bubatrent_booking_payments?.[0];
   const canCancel = ['HOLD', 'DEPOSIT_PAID'].includes(booking.status);
   const isCancelled = booking.status === 'CANCELLED';
+  const isExpired = booking.status === 'EXPIRED';
   const isHold = booking.status === 'HOLD';
   const hasPaid = ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status);
 
@@ -160,13 +161,19 @@ export default function BookingConfirmation() {
   return (
     <div className="page-container max-w-2xl mx-auto">
       <div className="text-center mb-8 animate-fade-in">
-        {isCancelled ? (
+        {isCancelled || isExpired ? (
           <>
-            <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-              <XCircle className="w-10 h-10 text-red-400" />
+            <div className={`w-20 h-20 rounded-full ${isExpired ? 'bg-slate-500/10' : 'bg-red-500/10'} flex items-center justify-center mx-auto mb-4`}>
+              {isExpired ? <Clock className="w-10 h-10 text-slate-400" /> : <XCircle className="w-10 h-10 text-red-400" />}
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Booking Cancelled</h1>
-            <p className="text-slate-400">This booking has been cancelled.</p>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              {isExpired ? 'Booking Expired' : 'Booking Cancelled'}
+            </h1>
+            <p className="text-slate-400">
+              {isExpired
+                ? 'This booking has expired. The hold time ran out before payment was received.'
+                : 'This booking has been cancelled.'}
+            </p>
           </>
         ) : isHold ? (
           <>
