@@ -59,12 +59,13 @@ export default function CarDetail() {
   const { days, total, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
 
   function handleBookNow() {
+    if (!pickupDate || !returnDate || days <= 0 || !isAvailable) return;
+    const checkoutUrl = `/checkout/${car.id}?pickup=${pickupDate}&return=${returnDate}`;
     if (!user) {
-      navigate(`/login`);
+      navigate(`/login?returnTo=${encodeURIComponent(checkoutUrl)}`);
       return;
     }
-    if (!pickupDate || !returnDate || days <= 0 || !isAvailable) return;
-    navigate(`/checkout/${car.id}?pickup=${pickupDate}&return=${returnDate}`);
+    navigate(checkoutUrl);
   }
 
   const features = car.features || [];
