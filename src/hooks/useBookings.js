@@ -88,35 +88,6 @@ export async function updateBookingCustomerInfo(bookingId, customerInfo) {
     return data;
 }
 
-export async function simulatePayment(bookingId, amount) {
-    // Create simulated payment record
-    const { error: payError } = await supabase
-        .from('bubatrent_booking_payments')
-        .insert({
-            booking_id: bookingId,
-            amount,
-            payment_method: 'simulated',
-            status: 'completed',
-            simulated: true,
-            reference_number: `SIM-${Date.now().toString(36).toUpperCase()}`,
-        });
-
-    if (payError) throw payError;
-
-    // Update booking status to PAID
-    const { data, error } = await supabase
-        .from('bubatrent_booking_bookings')
-        .update({
-            status: 'PAID',
-            hold_expires_at: null,
-        })
-        .eq('id', bookingId)
-        .select()
-        .single();
-
-    if (error) throw error;
-    return data;
-}
 
 export async function getBooking(bookingId) {
     const { data, error } = await supabase

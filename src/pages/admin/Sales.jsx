@@ -21,7 +21,7 @@ export default function AdminSales() {
     const [{ data: bData }, { data: cData }] = await Promise.all([
       supabase.from('bubatrent_booking_bookings')
         .select('*, bubatrent_booking_cars(id, name, brand, model)')
-        .in('status', ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED', 'PAID'])
+        .in('status', ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'])
         .order('created_at', { ascending: false }),
       supabase.from('bubatrent_booking_cars').select('*'),
     ]);

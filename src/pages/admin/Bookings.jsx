@@ -10,7 +10,7 @@ import { formatDate } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import { CalendarDays, ExternalLink, Filter, Search, Hash } from 'lucide-react';
 
-const STATUSES = ['ALL', 'HOLD', 'PAID', 'CONFIRMED', 'CANCELLED', 'EXPIRED'];
+const STATUSES = ['ALL', 'HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED', 'CANCELLED', 'EXPIRED'];
 
 export default function AdminBookings() {
   const toast = useToast();
@@ -129,7 +129,7 @@ export default function AdminBookings() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0">
-                    {booking.status === 'PAID' && (
+                    {booking.status === 'DEPOSIT_PAID' && (
                       <button
                         onClick={() => handleStatusChange(booking.id, 'CONFIRMED')}
                         className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
@@ -137,7 +137,7 @@ export default function AdminBookings() {
                         Confirm
                       </button>
                     )}
-                    {(booking.status === 'HOLD' || booking.status === 'PAID') && (
+                    {(booking.status === 'HOLD' || booking.status === 'DEPOSIT_PAID') && (
                       <button
                         onClick={() => handleStatusChange(booking.id, 'CANCELLED')}
                         className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"

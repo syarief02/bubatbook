@@ -16,9 +16,9 @@ export function useAdminStats() {
                     { count: totalCustomers },
                 ] = await Promise.all([
                     supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }),
-                    supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).in('status', ['HOLD', 'PAID', 'CONFIRMED']),
+                    supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP']),
                     supabase.from('bubatrent_booking_cars').select('*', { count: 'exact', head: true }),
-                    supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).eq('status', 'PAID'),
+                    supabase.from('bubatrent_booking_bookings').select('*', { count: 'exact', head: true }).eq('status', 'DEPOSIT_PAID'),
                     supabase.from('bubatrent_booking_profiles').select('*', { count: 'exact', head: true }),
                 ]);
 

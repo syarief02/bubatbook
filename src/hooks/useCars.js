@@ -91,7 +91,7 @@ export async function checkAvailability(carId, pickupDate, returnDate) {
         .from('bubatrent_booking_bookings')
         .select('id')
         .eq('car_id', carId)
-        .in('status', ['HOLD', 'PAID', 'CONFIRMED'])
+        .in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'])
         .lte('pickup_date', returnDate)
         .gte('return_date', pickupDate);
 
