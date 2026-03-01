@@ -206,7 +206,7 @@ export default function Navbar() {
                   Verify Account
                 </Link>
               )}
-              {user && !isAdmin && creditBalance > 0 && (
+              {user && (
                 <div className="px-4 py-2 flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-green-400" />
                   <span className="text-sm text-green-400 font-medium">Credit: {formatMYR(creditBalance)}</span>
