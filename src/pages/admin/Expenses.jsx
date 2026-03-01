@@ -61,7 +61,7 @@ export default function AdminExpenses() {
       const { data: claim, error: claimErr } = await supabase
         .from('bubatrent_booking_expense_claims')
         .insert({
-          car_id: formCarId,
+          car_id: formCarId === 'others' ? null : formCarId,
           submitted_by: user.id,
           expense_date: formDate,
           description: formDesc.trim(),
@@ -122,7 +122,8 @@ export default function AdminExpenses() {
   const filteredClaims = claims.filter(c => {
     if (tab === 'pending' && c.status !== 'pending') return false;
     if (tab === 'completed' && c.status !== 'completed') return false;
-    if (carFilter !== 'all' && c.car_id !== carFilter) return false;
+    if (carFilter === 'others' && c.car_id !== null) return false;
+    if (carFilter !== 'all' && carFilter !== 'others' && c.car_id !== carFilter) return false;
     return true;
   });
 
@@ -159,6 +160,7 @@ export default function AdminExpenses() {
                 <select value={formCarId} onChange={e => setFormCarId(e.target.value)} className="input-field">
                   <option value="">Select car</option>
                   {cars.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="others">Others (General)</option>
                 </select>
               </div>
               <div>
@@ -205,6 +207,7 @@ export default function AdminExpenses() {
           className="ml-auto input-field !py-1.5 !px-3 text-xs w-40">
           <option value="all">All Cars</option>
           {cars.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          <option value="others">Others (General)</option>
         </select>
       </div>
 
@@ -222,7 +225,7 @@ export default function AdminExpenses() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white truncate">{claim.description}</p>
                   <p className="text-xs text-slate-500">
-                    {claim.bubatrent_booking_cars?.name || 'Unknown car'} · {formatDate(claim.expense_date)}
+                    {claim.bubatrent_booking_cars?.name || 'Others (General)'} · {formatDate(claim.expense_date)}
                     {claim.total_amount && ` · ${formatMYR(claim.total_amount)}`}
                   </p>
                 </div>
