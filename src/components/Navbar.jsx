@@ -91,7 +91,7 @@ export default function Navbar() {
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <span className="text-sm text-slate-300">{user.email?.split('@')[0]}</span>
-                  {creditBalance > 0 && (
+                  {user && (
                     <span className="flex items-center gap-1 text-xs font-medium text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
                       <Wallet className="w-3 h-3" />
                       {formatMYR(creditBalance)}
