@@ -39,6 +39,10 @@ export default function Customers() {
   const [editFiles, setEditFiles] = useState({ ic: null, licence: null });
   const [savingEdit, setSavingEdit] = useState(false);
 
+  // Add credit
+  const [addCreditForm, setAddCreditForm] = useState({});
+  const [addingCredit, setAddingCredit] = useState(null);
+
   const STATES = ['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Perak','Perlis','Pulau Pinang','Sabah','Sarawak','Selangor','Terengganu','W.P. Kuala Lumpur','W.P. Labuan','W.P. Putrajaya'];
 
   // Debounce search input
@@ -469,14 +473,93 @@ export default function Customers() {
                       </>
 
                       {/* Deposit Credit */}
-                      {customer.role !== 'admin' && (
-                        <>
-                          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">Deposit Credit</h4>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Wallet className="w-4 h-4 text-green-400" />
-                            <span className="text-sm text-white font-semibold">{formatMYR(customer.deposit_credit || 0)}</span>
+                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">Deposit Credit</h4>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Wallet className="w-4 h-4 text-green-400" />
+                          <span className="text-sm text-white font-semibold">{formatMYR(customer.deposit_credit || 0)}</span>
+                        </div>
+                        <div className="space-y-2">
+                          {/* Add Credit */}
+                          <div className="glass-card !p-3 border border-green-500/20 space-y-2">
+                            <h5 className="text-[10px] font-semibold text-green-300 uppercase">Add Credit</h5>
+                            <input type="number" min="0" step="0.01"
+                              value={expandedId === customer.id ? (addCreditForm.amount || '') : ''}
+                              onChange={e => setAddCreditForm(f => ({...f, amount: e.target.value}))}
+                              className="input-field !py-1.5 text-xs" placeholder="Amount (RM)" />
+                            <input type="text"
+                              value={expandedId === customer.id ? (addCreditForm.reason || '') : ''}
+                              onChange={e => setAddCreditForm(f => ({...f, reason: e.target.value}))}
+                              className="input-field !py-1.5 text-xs" placeholder="Reason (e.g. manual payment)" />
+                            <div>
+                              <label className="text-[10px] text-slate-500 mb-1 block">Transaction Date *</label>
+                              <input type="date"
+                                value={expandedId === customer.id ? (addCreditForm.txDate || '') : ''}
+                                onChange={e => setAddCreditForm(f => ({...f, txDate: e.target.value}))}
+                                className="input-field !py-1.5 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-slate-500 mb-1 block">Transfer Receipt (proof) *</label>
+                              <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
+                                <FileImage className="w-3.5 h-3.5 text-slate-400" />
+                                <span className="text-slate-300 truncate">{addCreditForm.receipt?.name || 'Upload receipt...'}</span>
+                                <input type="file" accept="image/*,.pdf" className="hidden"
+                                  onChange={e => setAddCreditForm(f => ({...f, receipt: e.target.files[0]}))} />
+                              </label>
+                            </div>
+                            <button
+                              disabled={addingCredit === customer.id}
+                              onClick={async () => {
+                                const amt = Number(addCreditForm.amount);
+                                if (!amt || amt <= 0) { toast.error('Enter a valid amount'); return; }
+                                if (!addCreditForm.txDate) { toast.error('Transaction date is required'); return; }
+                                if (!addCreditForm.receipt) { toast.error('Transfer receipt is required as proof'); return; }
+                                setAddingCredit(customer.id);
+                                try {
+                                  // Upload receipt
+                                  const ext = addCreditForm.receipt.name.split('.').pop();
+                                  const receiptPath = `${customer.id}/credit_receipt_${Date.now()}.${ext}`;
+                                  const { error: upErr } = await supabase.storage.from('customer-documents').upload(receiptPath, addCreditForm.receipt);
+                                  if (upErr) throw upErr;
+
+                                  // Update credit balance
+                                  const newCredit = Number(customer.deposit_credit || 0) + amt;
+                                  const { error: dbErr } = await supabase.from('bubatrent_booking_profiles')
+                                    .update({ deposit_credit: newCredit }).eq('id', customer.id);
+                                  if (dbErr) throw dbErr;
+
+                                  // Log transaction
+                                  await supabase.from('bubatrent_booking_credit_transactions').insert({
+                                    user_id: customer.id,
+                                    amount: amt,
+                                    type: 'added',
+                                    description: addCreditForm.reason || 'Manual credit (admin)',
+                                    admin_id: user.id,
+                                  });
+
+                                  // Audit log
+                                  await supabase.from('bubatrent_booking_audit_logs').insert({
+                                    admin_id: user.id,
+                                    action: 'ADD_CREDIT',
+                                    resource_type: 'profile',
+                                    resource_id: customer.id,
+                                    details: { amount: amt, tx_date: addCreditForm.txDate, receipt_path: receiptPath },
+                                  });
+
+                                  toast.success(`Added ${formatMYR(amt)} credit`);
+                                  setAddCreditForm({});
+                                  refetch();
+                                } catch (err) { toast.error(err.message); }
+                                finally { setAddingCredit(null); }
+                              }}
+                              className="flex items-center gap-1 w-full px-3 py-2 rounded-xl text-xs font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 transition-all"
+                            >
+                              {addingCredit === customer.id ? 'Adding...' : '+ Add Credit'}
+                            </button>
                           </div>
+
+                          {/* Deduct Credit */}
                           <div className="space-y-2">
+                            <h5 className="text-[10px] font-semibold text-red-300 uppercase">Deduct Credit</h5>
                             <input type="number" min="0" step="0.01" value={deductAmount}
                               onChange={e => setDeductAmount(e.target.value)}
                               className="input-field !py-1.5 text-xs" placeholder="Amount to deduct" />
@@ -512,8 +595,7 @@ export default function Customers() {
                               {deductingId === customer.id ? 'Deducting...' : 'Deduct Credit'}
                             </button>
                           </div>
-                        </>
-                      )}
+                        </div>
                     </div>
 
                     {/* Booking history */}
