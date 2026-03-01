@@ -149,9 +149,9 @@ export default function BookingConfirmation() {
   </div>
 </div>
 </body></html>`;
-    const win = window.open('', '_blank');
-    win.document.write(receiptHtml);
-    win.document.close();
+    const blob = new Blob([receiptHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
     toast.success('Receipt opened — you can print it!');
   }
 
