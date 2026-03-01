@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Car, Menu, X, User, LogOut, Shield, CalendarDays, AlertTriangle } from 'lucide-react';
+import { Car, Menu, X, User, LogOut, Shield, CalendarDays, AlertTriangle, Wallet } from 'lucide-react';
+import { formatMYR } from '../utils/pricing';
 
 export default function Navbar() {
-  const { user, isAdmin, isVerified, signOut } = useAuth();
+  const { user, profile, isAdmin, isVerified, signOut } = useAuth();
+  const creditBalance = Number(profile?.deposit_credit || 0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
@@ -89,6 +91,12 @@ export default function Navbar() {
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <span className="text-sm text-slate-300">{user.email?.split('@')[0]}</span>
+                  {!isAdmin && creditBalance > 0 && (
+                    <span className="flex items-center gap-1 text-xs font-medium text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
+                      <Wallet className="w-3 h-3" />
+                      {formatMYR(creditBalance)}
+                    </span>
+                  )}
                 </button>
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-48 glass-card rounded-xl py-2 animate-fade-in">
@@ -197,6 +205,12 @@ export default function Navbar() {
                   <AlertTriangle className="w-4 h-4" />
                   Verify Account
                 </Link>
+              )}
+              {user && !isAdmin && creditBalance > 0 && (
+                <div className="px-4 py-2 flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-green-400" />
+                  <span className="text-sm text-green-400 font-medium">Credit: {formatMYR(creditBalance)}</span>
+                </div>
               )}
               <div className="border-t border-white/5 mt-2 pt-2">
                 {user ? (
