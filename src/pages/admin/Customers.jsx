@@ -561,57 +561,56 @@ export default function Customers() {
                                   // Upload files if provided
                                   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB for mobile camera photos
 
-                                  // XHR Upload: bypasses Supabase JS fetch() which hangs on Android Chrome
-                                  async function xhrUpload(file, storagePath) {
-                                    const { data: { session } } = await supabase.auth.getSession();
-                                    if (!session) throw new Error('Not authenticated. Please log in again.');
-                                    const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/customer-documents/${storagePath}`;
+                                  // Helper: Read file fully into memory as ArrayBuffer
+                                  // This bypasses Android Chrome's broken File streaming implementation
+                                  async function getFileBytes(file) {
                                     return new Promise((resolve, reject) => {
-                                      const xhr = new XMLHttpRequest();
-                                      xhr.open('POST', url, true);
-                                      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-                                      xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_ANON_KEY);
-                                      xhr.setRequestHeader('x-upsert', 'true');
-                                      xhr.timeout = 120000; // 2 min timeout
-                                      xhr.onload = () => {
-                                        if (xhr.status >= 200 && xhr.status < 300) {
-                                          console.log('[EditSave] XHR upload success:', xhr.status);
-                                          resolve({ error: null });
-                                        } else {
-                                          console.error('[EditSave] XHR upload error:', xhr.status, xhr.responseText);
-                                          resolve({ error: { message: `Upload failed (${xhr.status}): ${xhr.responseText}` } });
-                                        }
-                                      };
-                                      xhr.onerror = () => {
-                                        console.error('[EditSave] XHR network error');
-                                        resolve({ error: { message: 'Network error during upload' } });
-                                      };
-                                      xhr.ontimeout = () => {
-                                        console.error('[EditSave] XHR timeout');
-                                        resolve({ error: { message: 'Upload timed out (2 min)' } });
-                                      };
-                                      // Use FormData — most reliable method across all browsers/devices
-                                      xhr.send(file);
+                                      const reader = new FileReader();
+                                      reader.onload = () => resolve(reader.result);
+                                      reader.onerror = () => reject(new Error('Failed to read file from disk'));
+                                      reader.readAsArrayBuffer(file);
                                     });
                                   }
 
                                   if (editFiles.ic) {
                                     if (editFiles.ic.size > MAX_FILE_SIZE) throw new Error(`IC file too large (${(editFiles.ic.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
-                                    console.log('[EditSave] Uploading IC via XHR...', editFiles.ic.name, editFiles.ic.size, editFiles.ic.type);
+                                    console.log('[EditSave] Reading IC file into memory...');
+                                    const arrayBuffer = await getFileBytes(editFiles.ic);
+                                    console.log('[EditSave] Uploading IC bytes...', arrayBuffer.byteLength);
+                                    
                                     const ext = editFiles.ic.name.split('.').pop()?.toLowerCase() || 'jpg';
                                     const path = `${customer.id}/ic_admin_${Date.now()}.${ext}`;
-                                    const { error: upErr } = await xhrUpload(editFiles.ic, path);
+                                    
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, arrayBuffer, { 
+                                      upsert: true, 
+                                      contentType: editFiles.ic.type || 'image/jpeg' 
+                                    });
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    
+                                    const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
                                     if (upErr) { console.error('[EditSave] IC upload failed:', upErr); throw new Error(`IC upload failed: ${upErr.message}`); }
+                                    
                                     console.log('[EditSave] IC uploaded to:', path);
                                     sensitiveChanges.ic_file_path = { old: customer.ic_file_path || null, new: path };
                                   }
                                   if (editFiles.licence) {
                                     if (editFiles.licence.size > MAX_FILE_SIZE) throw new Error(`Licence file too large (${(editFiles.licence.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
-                                    console.log('[EditSave] Uploading licence via XHR...', editFiles.licence.name, editFiles.licence.size, editFiles.licence.type);
+                                    console.log('[EditSave] Reading licence file into memory...');
+                                    const arrayBuffer = await getFileBytes(editFiles.licence);
+                                    console.log('[EditSave] Uploading licence bytes...', arrayBuffer.byteLength);
+                                    
                                     const ext = editFiles.licence.name.split('.').pop()?.toLowerCase() || 'jpg';
                                     const path = `${customer.id}/licence_admin_${Date.now()}.${ext}`;
-                                    const { error: upErr } = await xhrUpload(editFiles.licence, path);
+                                    
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, arrayBuffer, { 
+                                      upsert: true, 
+                                      contentType: editFiles.licence.type || 'image/jpeg' 
+                                    });
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    
+                                    const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
                                     if (upErr) { console.error('[EditSave] Licence upload failed:', upErr); throw new Error(`Licence upload failed: ${upErr.message}`); }
+                                    
                                     console.log('[EditSave] Licence uploaded to:', path);
                                     sensitiveChanges.licence_file_path = { old: customer.licence_file_path || null, new: path };
                                   }
