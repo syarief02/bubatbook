@@ -541,6 +541,7 @@ export default function Customers() {
                               disabled={savingEdit}
                               onClick={async () => {
                               setSavingEdit(true);
+                              console.log('[EditSave] Starting save...');
                                 try {
                                   const SENSITIVE_FIELDS = ['ic_number', 'address_line1', 'address_line2', 'city', 'state', 'postcode', 'licence_expiry'];
 
@@ -555,20 +556,25 @@ export default function Customers() {
                                       sensitiveChanges[field] = { old: customer[field] || null, new: editForm[field] };
                                     }
                                   });
+                                  console.log('[EditSave] Direct updates:', Object.keys(directUpdates), 'Sensitive:', Object.keys(sensitiveChanges));
 
                                   // Upload files if provided
                                   if (editFiles.ic) {
+                                    console.log('[EditSave] Uploading IC image...');
                                     const ext = editFiles.ic.name.split('.').pop();
                                     const path = `${customer.id}/ic_admin_${Date.now()}.${ext}`;
-                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.ic);
-                                    if (upErr) throw upErr;
+                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.ic, { upsert: true });
+                                    if (upErr) { console.error('[EditSave] IC upload failed:', upErr); throw upErr; }
+                                    console.log('[EditSave] IC uploaded to:', path);
                                     sensitiveChanges.ic_file_path = { old: customer.ic_file_path || null, new: path };
                                   }
                                   if (editFiles.licence) {
+                                    console.log('[EditSave] Uploading licence image...');
                                     const ext = editFiles.licence.name.split('.').pop();
                                     const path = `${customer.id}/licence_admin_${Date.now()}.${ext}`;
-                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.licence);
-                                    if (upErr) throw upErr;
+                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.licence, { upsert: true });
+                                    if (upErr) { console.error('[EditSave] Licence upload failed:', upErr); throw upErr; }
+                                    console.log('[EditSave] Licence uploaded to:', path);
                                     sensitiveChanges.licence_file_path = { old: customer.licence_file_path || null, new: path };
                                   }
 
@@ -577,6 +583,7 @@ export default function Customers() {
                                     directUpdates.is_verified = true;
                                     directUpdates.verified_at = new Date().toISOString();
                                     directUpdates.verified_by = user.id;
+                                    console.log('[EditSave] Auto-verify (Super Group)');
                                   }
 
                                   if (Object.keys(directUpdates).length === 0 && Object.keys(sensitiveChanges).length === 0) {
@@ -589,34 +596,41 @@ export default function Customers() {
 
                                   // Super Group bypasses approval for everything
                                   if (isSuperGroup) {
+                                    console.log('[EditSave] Super Group: applying all changes directly');
                                     // Apply all changes directly
                                     const allUpdates = { ...directUpdates };
                                     Object.keys(sensitiveChanges).forEach(f => { allUpdates[f] = sensitiveChanges[f].new; });
+                                    console.log('[EditSave] Updating profile with:', Object.keys(allUpdates));
                                     const { error } = await supabase.from('bubatrent_booking_profiles').update(allUpdates).eq('id', customer.id);
-                                    if (error) throw error;
+                                    if (error) { console.error('[EditSave] Profile update failed:', error); throw error; }
+                                    console.log('[EditSave] Profile updated successfully');
                                     messages.push('Changes applied directly (Super Group)');
                                   } else {
                                     // Apply non-sensitive directly
                                     if (Object.keys(directUpdates).length > 0) {
+                                      console.log('[EditSave] Updating non-sensitive fields');
                                       const { error } = await supabase.from('bubatrent_booking_profiles').update(directUpdates).eq('id', customer.id);
-                                      if (error) throw error;
+                                      if (error) { console.error('[EditSave] Non-sensitive update failed:', error); throw error; }
                                       messages.push(`${Object.keys(directUpdates).length} field(s) updated`);
                                     }
 
                                     // Create change request for sensitive fields
                                     if (Object.keys(sensitiveChanges).length > 0) {
+                                      console.log('[EditSave] Creating change request for sensitive fields, fleetId:', activeFleetId);
                                       const { error: crErr } = await supabase.from('bubatrent_booking_change_requests').insert({
                                         fleet_group_id: activeFleetId,
                                         customer_id: customer.id,
                                         requested_by: user.id,
                                         changes: sensitiveChanges,
                                       });
-                                      if (crErr) throw crErr;
+                                      if (crErr) { console.error('[EditSave] Change request failed:', crErr); throw crErr; }
+                                      console.log('[EditSave] Change request created');
                                       messages.push(`${Object.keys(sensitiveChanges).length} sensitive field(s) sent for Super Group approval`);
                                     }
                                   }
 
                                   // Audit log
+                                  console.log('[EditSave] Creating audit log');
                                   await supabase.from('bubatrent_booking_audit_logs').insert({
                                     admin_id: user.id,
                                     action: isSuperGroup ? 'UPDATE_CUSTOMER' : 'REQUEST_CUSTOMER_CHANGE',
@@ -629,12 +643,14 @@ export default function Customers() {
                                     },
                                   });
 
+                                  console.log('[EditSave] Done!', messages);
                                   toast.success(messages.join(' • '));
                                   setEditingCustomer(null);
                                   setEditFiles({ ic: null, licence: null });
                                   refetch();
                                 } catch (err) {
-                                  toast.error(err.message);
+                                  console.error('[EditSave] Error caught:', err);
+                                  toast.error(err.message || 'Save failed');
                                 } finally {
                                   setSavingEdit(false);
                                 }
