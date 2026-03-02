@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBooking, cancelBooking } from '../hooks/useBookings';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import { useToast } from '../components/Toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
