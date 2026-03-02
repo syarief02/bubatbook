@@ -341,7 +341,68 @@ export default function Customers() {
                               {customer.licence_expiry && <p><span className="text-slate-500">Expiry:</span> {formatDate(customer.licence_expiry)}</p>}
                               {customer.phone && <p><span className="text-slate-500">Phone:</span> {customer.phone}</p>}
                               {customer.address_line1 && <p><span className="text-slate-500">Address:</span> {customer.address_line1}, {customer.city} {customer.state}</p>}
+                              {customer.gdl_license && customer.gdl_license !== 'NONE' && (
+                                <p><span className="text-slate-500">License Type:</span> <span className="text-amber-400">{customer.gdl_license}</span></p>
+                              )}
                             </div>
+
+                            {/* Verification Documents */}
+                            <div className="mt-3">
+                              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Verification Documents</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {/* IC Document */}
+                                <div className={`rounded-xl border p-2 ${customer.ic_file_path ? 'border-green-500/20 bg-green-500/5' : 'border-red-500/20 bg-red-500/5'}`}>
+                                  <p className="text-[10px] text-slate-500 mb-1">IC Image</p>
+                                  {customer.ic_file_path ? (
+                                    <a
+                                      href={supabase.storage.from('customer-documents').getPublicUrl(customer.ic_file_path).data.publicUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block"
+                                    >
+                                      <img
+                                        src={supabase.storage.from('customer-documents').getPublicUrl(customer.ic_file_path).data.publicUrl}
+                                        alt="IC Document"
+                                        className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
+                                        onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }}
+                                      />
+                                      <p className="hidden text-[10px] text-slate-400 mt-1">Click to view</p>
+                                    </a>
+                                  ) : (
+                                    <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Missing</p>
+                                  )}
+                                </div>
+                                {/* Licence Document */}
+                                <div className={`rounded-xl border p-2 ${customer.licence_file_path ? 'border-green-500/20 bg-green-500/5' : 'border-red-500/20 bg-red-500/5'}`}>
+                                  <p className="text-[10px] text-slate-500 mb-1">Driving Licence</p>
+                                  {customer.licence_file_path ? (
+                                    <a
+                                      href={supabase.storage.from('customer-documents').getPublicUrl(customer.licence_file_path).data.publicUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block"
+                                    >
+                                      <img
+                                        src={supabase.storage.from('customer-documents').getPublicUrl(customer.licence_file_path).data.publicUrl}
+                                        alt="Licence Document"
+                                        className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
+                                        onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }}
+                                      />
+                                      <p className="hidden text-[10px] text-slate-400 mt-1">Click to view</p>
+                                    </a>
+                                  ) : (
+                                    <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Missing</p>
+                                  )}
+                                </div>
+                              </div>
+                              {(!customer.ic_file_path || !customer.licence_file_path) && (
+                                <p className="text-[10px] text-amber-400 mt-1.5 flex items-center gap-1">
+                                  <AlertTriangle className="w-3 h-3" />
+                                  Some documents are missing. Use "Edit Customer Details" to upload.
+                                </p>
+                              )}
+                            </div>
+
                             <button
                               onClick={() => handleVerifyToggle(customer.id, customer.is_verified)}
                               disabled={verifyChanging === customer.id}

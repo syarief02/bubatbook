@@ -345,6 +345,8 @@ export function useAdminCustomers(filters = {}) {
 }
 
 export async function updateUserRole(userId, newRole, adminId) {
+    console.log('[updateUserRole] userId:', userId, 'newRole:', newRole, 'by:', adminId);
+
     await supabase.from('bubatrent_booking_audit_logs').insert({
         admin_id: adminId,
         action: 'CHANGE_ROLE',
@@ -353,15 +355,17 @@ export async function updateUserRole(userId, newRole, adminId) {
         details: { new_role: newRole, timestamp: new Date().toISOString() },
     });
 
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('bubatrent_booking_profiles')
         .update({ role: newRole })
-        .eq('id', userId)
-        .select()
-        .single();
+        .eq('id', userId);
 
-    if (error) throw error;
-    return data;
+    if (error) {
+        console.error('[updateUserRole] Update failed:', error);
+        throw error;
+    }
+    console.log('[updateUserRole] Success');
+    return { ok: true };
 }
 
 export async function getCustomerBookings(userId, fleetId) {
@@ -379,6 +383,8 @@ export async function getCustomerBookings(userId, fleetId) {
 }
 
 export async function verifyCustomer(userId, adminId) {
+    console.log('[verifyCustomer] userId:', userId, 'by:', adminId);
+
     await supabase.from('bubatrent_booking_audit_logs').insert({
         admin_id: adminId,
         action: 'VERIFY_CUSTOMER',
@@ -387,22 +393,26 @@ export async function verifyCustomer(userId, adminId) {
         details: { timestamp: new Date().toISOString() },
     });
 
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('bubatrent_booking_profiles')
         .update({
             is_verified: true,
             verified_at: new Date().toISOString(),
             verified_by: adminId,
         })
-        .eq('id', userId)
-        .select()
-        .single();
+        .eq('id', userId);
 
-    if (error) throw error;
-    return data;
+    if (error) {
+        console.error('[verifyCustomer] Failed:', error);
+        throw error;
+    }
+    console.log('[verifyCustomer] Success');
+    return { ok: true };
 }
 
 export async function unverifyCustomer(userId, adminId) {
+    console.log('[unverifyCustomer] userId:', userId, 'by:', adminId);
+
     await supabase.from('bubatrent_booking_audit_logs').insert({
         admin_id: adminId,
         action: 'UNVERIFY_CUSTOMER',
@@ -411,17 +421,19 @@ export async function unverifyCustomer(userId, adminId) {
         details: { timestamp: new Date().toISOString() },
     });
 
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('bubatrent_booking_profiles')
         .update({
             is_verified: false,
             verified_at: null,
             verified_by: null,
         })
-        .eq('id', userId)
-        .select()
-        .single();
+        .eq('id', userId);
 
-    if (error) throw error;
-    return data;
+    if (error) {
+        console.error('[unverifyCustomer] Failed:', error);
+        throw error;
+    }
+    console.log('[unverifyCustomer] Success');
+    return { ok: true };
 }
