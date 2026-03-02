@@ -44,7 +44,7 @@ export default function GroupMembers() {
     setLoading(true);
     const { data, error } = await supabase
       .from('bubatrent_booking_fleet_memberships')
-      .select('*, bubatrent_booking_profiles(id, display_name, username, email, avatar_url, role)')
+      .select('*, bubatrent_booking_profiles(id, display_name, username, role)')
       .eq('fleet_group_id', activeFleetId)
       .order('created_at');
     if (error) console.error('Error fetching members:', error);
@@ -59,8 +59,8 @@ export default function GroupMembers() {
     // Search profiles by display_name, username, or email
     const { data } = await supabase
       .from('bubatrent_booking_profiles')
-      .select('id, display_name, username, email, avatar_url, role')
-      .or(`display_name.ilike.%${q}%,username.ilike.%${q}%,email.ilike.%${q}%`)
+      .select('id, display_name, username, role')
+      .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
       .in('role', ['admin', 'super_admin'])
       .limit(10);
     // Filter out already-members
@@ -216,7 +216,7 @@ export default function GroupMembers() {
                       </div>
                       <div>
                         <p className="text-sm text-white font-medium">{u.display_name || u.username}</p>
-                        <p className="text-[10px] text-slate-500">{u.email} • {u.role}</p>
+                        <p className="text-[10px] text-slate-500">{u.username} • {u.role}</p>
                       </div>
                     </button>
                   ))}
@@ -237,7 +237,7 @@ export default function GroupMembers() {
                       </div>
                       <div>
                         <p className="text-sm text-white font-medium">{selectedUser.display_name || selectedUser.username}</p>
-                        <p className="text-[10px] text-slate-500">{selectedUser.email}</p>
+                        <p className="text-[10px] text-slate-500">{selectedUser.username}</p>
                       </div>
                     </div>
                     <button onClick={() => setSelectedUser(null)} className="text-slate-500 hover:text-white">
@@ -306,7 +306,7 @@ export default function GroupMembers() {
                         <span className="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 font-semibold">You</span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-500 truncate">{profile?.email}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{profile?.username}</p>
                   </div>
                 </div>
 
