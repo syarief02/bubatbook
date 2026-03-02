@@ -117,7 +117,7 @@ export default function AdminBookForCustomer() {
       let receiptUrl = null;
       if (depositReceipt) {
         const rPath = `receipts/admin_${Date.now()}.${depositReceipt.name.split('.').pop()}`;
-        await supabase.storage.from('documents').upload(rPath, depositReceipt);
+        await supabase.storage.from('customer-documents').upload(rPath, depositReceipt);
         receiptUrl = rPath;
       }
 
