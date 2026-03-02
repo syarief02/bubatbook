@@ -524,7 +524,7 @@ export default function Customers() {
                                 <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
                                   <FileImage className="w-3.5 h-3.5 text-slate-400" />
                                   <span className="text-slate-300 truncate">{editFiles.ic?.name || 'Choose IC image...'}</span>
-                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => setEditFiles(f => ({...f, ic: e.target.files[0]}))} />
+                                  <input type="file" accept="image/*,.pdf,.heic,.heif" className="hidden" onChange={e => setEditFiles(f => ({...f, ic: e.target.files[0]}))} />
                                 </label>
                               </div>
                               <div>
@@ -532,7 +532,7 @@ export default function Customers() {
                                 <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
                                   <FileImage className="w-3.5 h-3.5 text-slate-400" />
                                   <span className="text-slate-300 truncate">{editFiles.licence?.name || 'Choose licence image...'}</span>
-                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => setEditFiles(f => ({...f, licence: e.target.files[0]}))} />
+                                  <input type="file" accept="image/*,.pdf,.heic,.heif" className="hidden" onChange={e => setEditFiles(f => ({...f, licence: e.target.files[0]}))} />
                                 </label>
                               </div>
                             </div>
@@ -559,32 +559,29 @@ export default function Customers() {
                                   console.log('[EditSave] Direct updates:', Object.keys(directUpdates), 'Sensitive:', Object.keys(sensitiveChanges));
 
                                   // Upload files if provided
-                                  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-                                  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+                                  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB for mobile camera photos
 
                                   if (editFiles.ic) {
-                                    if (editFiles.ic.size > MAX_FILE_SIZE) throw new Error(`IC file too large (${(editFiles.ic.size / 1024 / 1024).toFixed(1)}MB). Max 5MB.`);
-                                    if (!ALLOWED_TYPES.includes(editFiles.ic.type)) throw new Error(`IC file type "${editFiles.ic.type}" not allowed. Use JPEG, PNG, WebP, or PDF.`);
+                                    if (editFiles.ic.size > MAX_FILE_SIZE) throw new Error(`IC file too large (${(editFiles.ic.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
                                     console.log('[EditSave] Uploading IC image...', editFiles.ic.name, editFiles.ic.size, editFiles.ic.type);
-                                    const ext = editFiles.ic.name.split('.').pop();
+                                    const ext = editFiles.ic.name.split('.').pop()?.toLowerCase() || 'jpg';
                                     const path = `${customer.id}/ic_admin_${Date.now()}.${ext}`;
-                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, editFiles.ic, { upsert: true });
-                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, editFiles.ic, { upsert: true, contentType: editFiles.ic.type || 'image/jpeg' });
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 60s. Check your connection.')), 60000));
                                     const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
-                                    if (upErr) { console.error('[EditSave] IC upload failed:', upErr); throw upErr; }
+                                    if (upErr) { console.error('[EditSave] IC upload failed:', upErr); throw new Error(`IC upload failed: ${upErr.message || JSON.stringify(upErr)}`); }
                                     console.log('[EditSave] IC uploaded to:', path);
                                     sensitiveChanges.ic_file_path = { old: customer.ic_file_path || null, new: path };
                                   }
                                   if (editFiles.licence) {
-                                    if (editFiles.licence.size > MAX_FILE_SIZE) throw new Error(`Licence file too large (${(editFiles.licence.size / 1024 / 1024).toFixed(1)}MB). Max 5MB.`);
-                                    if (!ALLOWED_TYPES.includes(editFiles.licence.type)) throw new Error(`Licence file type "${editFiles.licence.type}" not allowed. Use JPEG, PNG, WebP, or PDF.`);
+                                    if (editFiles.licence.size > MAX_FILE_SIZE) throw new Error(`Licence file too large (${(editFiles.licence.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
                                     console.log('[EditSave] Uploading licence image...', editFiles.licence.name, editFiles.licence.size, editFiles.licence.type);
-                                    const ext = editFiles.licence.name.split('.').pop();
+                                    const ext = editFiles.licence.name.split('.').pop()?.toLowerCase() || 'jpg';
                                     const path = `${customer.id}/licence_admin_${Date.now()}.${ext}`;
-                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, editFiles.licence, { upsert: true });
-                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, editFiles.licence, { upsert: true, contentType: editFiles.licence.type || 'image/jpeg' });
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 60s. Check your connection.')), 60000));
                                     const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
-                                    if (upErr) { console.error('[EditSave] Licence upload failed:', upErr); throw upErr; }
+                                    if (upErr) { console.error('[EditSave] Licence upload failed:', upErr); throw new Error(`Licence upload failed: ${upErr.message || JSON.stringify(upErr)}`); }
                                     console.log('[EditSave] Licence uploaded to:', path);
                                     sensitiveChanges.licence_file_path = { old: customer.licence_file_path || null, new: path };
                                   }
