@@ -437,3 +437,39 @@ export async function unverifyCustomer(userId, adminId) {
     console.log('[unverifyCustomer] Success');
     return { ok: true };
 }
+
+/**
+ * Reject a pending verification — clears all docs and IC fields,
+ * forcing the customer to re-submit from scratch.
+ */
+export async function rejectVerification(userId, adminId, reason = '') {
+    console.log('[rejectVerification] userId:', userId, 'by:', adminId, 'reason:', reason);
+
+    await supabase.from('bubatrent_booking_audit_logs').insert({
+        admin_id: adminId,
+        action: 'REJECT_VERIFICATION',
+        resource_type: 'profile',
+        resource_id: userId,
+        details: { reason, timestamp: new Date().toISOString() },
+    });
+
+    const { error } = await supabase
+        .from('bubatrent_booking_profiles')
+        .update({
+            ic_number: null,
+            ic_file_path: null,
+            licence_file_path: null,
+            licence_expiry: null,
+            is_verified: false,
+            verified_at: null,
+            verified_by: null,
+        })
+        .eq('id', userId);
+
+    if (error) {
+        console.error('[rejectVerification] Failed:', error);
+        throw error;
+    }
+    console.log('[rejectVerification] Success');
+    return { ok: true };
+}

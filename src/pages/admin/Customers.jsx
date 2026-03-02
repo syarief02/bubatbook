@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
-import { useAdminCustomers, updateUserRole, getCustomerBookings, verifyCustomer, unverifyCustomer } from '../../hooks/useAdmin';
+import { useAdminCustomers, updateUserRole, getCustomerBookings, verifyCustomer, unverifyCustomer, rejectVerification } from '../../hooks/useAdmin';
 import AdminLayout from '../../components/AdminLayout';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -32,6 +32,9 @@ export default function Customers() {
   const [roleChanging, setRoleChanging] = useState(null);
   const [confirmRole, setConfirmRole] = useState(null);
   const [verifyChanging, setVerifyChanging] = useState(null);
+  const [rejectingId, setRejectingId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectConfirm, setShowRejectConfirm] = useState(null);
   const [deductAmount, setDeductAmount] = useState('');
   const [deductReason, setDeductReason] = useState('');
   const [deductingId, setDeductingId] = useState(null);
@@ -109,6 +112,21 @@ export default function Customers() {
       toast.error('Failed: ' + err.message);
     } finally {
       setVerifyChanging(null);
+    }
+  }
+
+  async function handleRejectVerification(customerId) {
+    setRejectingId(customerId);
+    try {
+      await rejectVerification(customerId, user.id, rejectReason || 'Documents rejected by admin');
+      toast.success('Verification rejected — customer must re-upload documents');
+      await refetch();
+      setShowRejectConfirm(null);
+      setRejectReason('');
+    } catch (err) {
+      toast.error('Failed to reject: ' + err.message);
+    } finally {
+      setRejectingId(null);
     }
   }
 
@@ -434,6 +452,44 @@ export default function Customers() {
                                 <><FileCheck className="w-4 h-4" /> Verify Customer</>
                               )}
                             </button>
+
+                            {/* Reject Verification — only for pending (not verified, docs exist) */}
+                            {!customer.is_verified && customer.ic_number && customer.ic_file_path && (
+                              showRejectConfirm === customer.id ? (
+                                <div className="glass-card !p-3 border border-red-500/20 mt-2 space-y-2">
+                                  <p className="text-xs text-red-400 font-medium">Reject verification? Customer must re-upload all documents.</p>
+                                  <input
+                                    type="text"
+                                    placeholder="Reason (optional, e.g. blurry IC)"
+                                    value={rejectReason}
+                                    onChange={e => setRejectReason(e.target.value)}
+                                    className="input-field !py-1.5 text-xs w-full"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleRejectVerification(customer.id)}
+                                      disabled={rejectingId === customer.id}
+                                      className="btn-primary text-xs !py-1.5 !px-3 flex-1 !bg-red-600 hover:!bg-red-700"
+                                    >
+                                      {rejectingId === customer.id ? 'Rejecting...' : 'Confirm Reject'}
+                                    </button>
+                                    <button
+                                      onClick={() => { setShowRejectConfirm(null); setRejectReason(''); }}
+                                      className="btn-secondary text-xs !py-1.5 !px-3"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setShowRejectConfirm(customer.id)}
+                                  className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all mt-2"
+                                >
+                                  <ShieldOff className="w-4 h-4" /> Reject & Re-submit
+                                </button>
+                              )
+                            )}
                           </div>
                         ) : (
                           <p className="text-xs text-slate-500 italic">No documents submitted yet</p>
