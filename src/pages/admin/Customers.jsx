@@ -559,20 +559,31 @@ export default function Customers() {
                                   console.log('[EditSave] Direct updates:', Object.keys(directUpdates), 'Sensitive:', Object.keys(sensitiveChanges));
 
                                   // Upload files if provided
+                                  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+                                  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
                                   if (editFiles.ic) {
-                                    console.log('[EditSave] Uploading IC image...');
+                                    if (editFiles.ic.size > MAX_FILE_SIZE) throw new Error(`IC file too large (${(editFiles.ic.size / 1024 / 1024).toFixed(1)}MB). Max 5MB.`);
+                                    if (!ALLOWED_TYPES.includes(editFiles.ic.type)) throw new Error(`IC file type "${editFiles.ic.type}" not allowed. Use JPEG, PNG, WebP, or PDF.`);
+                                    console.log('[EditSave] Uploading IC image...', editFiles.ic.name, editFiles.ic.size, editFiles.ic.type);
                                     const ext = editFiles.ic.name.split('.').pop();
                                     const path = `${customer.id}/ic_admin_${Date.now()}.${ext}`;
-                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.ic, { upsert: true });
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, editFiles.ic, { upsert: true });
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
                                     if (upErr) { console.error('[EditSave] IC upload failed:', upErr); throw upErr; }
                                     console.log('[EditSave] IC uploaded to:', path);
                                     sensitiveChanges.ic_file_path = { old: customer.ic_file_path || null, new: path };
                                   }
                                   if (editFiles.licence) {
-                                    console.log('[EditSave] Uploading licence image...');
+                                    if (editFiles.licence.size > MAX_FILE_SIZE) throw new Error(`Licence file too large (${(editFiles.licence.size / 1024 / 1024).toFixed(1)}MB). Max 5MB.`);
+                                    if (!ALLOWED_TYPES.includes(editFiles.licence.type)) throw new Error(`Licence file type "${editFiles.licence.type}" not allowed. Use JPEG, PNG, WebP, or PDF.`);
+                                    console.log('[EditSave] Uploading licence image...', editFiles.licence.name, editFiles.licence.size, editFiles.licence.type);
                                     const ext = editFiles.licence.name.split('.').pop();
                                     const path = `${customer.id}/licence_admin_${Date.now()}.${ext}`;
-                                    const { error: upErr } = await supabase.storage.from('customer-documents').upload(path, editFiles.licence, { upsert: true });
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, editFiles.licence, { upsert: true });
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
                                     if (upErr) { console.error('[EditSave] Licence upload failed:', upErr); throw upErr; }
                                     console.log('[EditSave] Licence uploaded to:', path);
                                     sensitiveChanges.licence_file_path = { old: customer.licence_file_path || null, new: path };
