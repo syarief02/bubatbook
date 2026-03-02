@@ -60,12 +60,46 @@ export function AuthProvider({ children }) {
     }
 
     async function signUp(email, password, displayName, phone) {
+        const { normalizePhone } = await import('../utils/phoneUtils');
+        const normalizedPhone = normalizePhone(phone);
+
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
-            options: { data: { display_name: displayName, phone } },
+            options: { data: { display_name: displayName, phone: normalizedPhone } },
         });
         if (error) throw error;
+
+        // Feature C: check if a manual customer profile exists with same phone
+        if (data?.user?.id && normalizedPhone) {
+            try {
+                const { data: existing } = await supabase
+                    .from('bubatrent_booking_profiles')
+                    .select('id, phone, created_by_admin, is_verified')
+                    .eq('phone', normalizedPhone)
+                    .not('created_by_admin', 'is', null)
+                    .limit(2);
+
+                if (existing && existing.length === 1) {
+                    // Link: update the manual profile's id to this auth user
+                    const manualProfile = existing[0];
+                    await supabase
+                        .from('bubatrent_booking_profiles')
+                        .update({
+                            id: data.user.id,
+                            email: email,
+                            display_name: displayName,
+                        })
+                        .eq('id', manualProfile.id);
+                    console.log('Linked signup to existing manual customer profile');
+                } else if (existing && existing.length > 1) {
+                    console.warn('Multiple manual profiles with same phone — admin needs to resolve duplicates');
+                }
+            } catch (linkErr) {
+                console.warn('Phone linking check failed (non-blocking):', linkErr.message);
+            }
+        }
+
         return data;
     }
 

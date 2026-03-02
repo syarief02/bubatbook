@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTriangle, Download, Clock } from 'lucide-react';
+import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTriangle, Download, Clock, MessageCircle } from 'lucide-react';
 
 export default function BookingConfirmation() {
   const { id } = useParams();
@@ -18,6 +18,7 @@ export default function BookingConfirmation() {
   const [copied, setCopied] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [fleetGroup, setFleetGroup] = useState(null);
 
   useEffect(() => {
     async function fetchBooking() {
@@ -32,6 +33,17 @@ export default function BookingConfirmation() {
     }
     fetchBooking();
   }, [id]);
+
+  // Fetch fleet group for WhatsApp button
+  useEffect(() => {
+    if (!booking?.fleet_group_id) return;
+    supabase
+      .from('bubatrent_booking_fleet_groups')
+      .select('name, support_whatsapp, support_phone')
+      .eq('id', booking.fleet_group_id)
+      .single()
+      .then(({ data }) => setFleetGroup(data));
+  }, [booking?.fleet_group_id]);
 
   async function handleCancel() {
     try {
@@ -257,6 +269,27 @@ export default function BookingConfirmation() {
 
         {payment && (
           <p className="mt-4 text-xs text-slate-500">Payment Ref: {payment.reference_number}</p>
+        )}
+
+        {/* WhatsApp Payment Button */}
+        {fleetGroup?.support_whatsapp && !isCancelled && !isExpired && (
+          <a
+            href={`https://wa.me/${fleetGroup.support_whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
+              `Hi, I'd like to make payment for my booking:\n\n` +
+              `📋 Booking ID: ${booking.id.slice(0, 8).toUpperCase()}\n` +
+              `👤 Name: ${booking.customer_name || 'N/A'}\n` +
+              `🚗 Car: ${car?.name || car?.brand + ' ' + car?.model}\n` +
+              `📅 Dates: ${booking.pickup_date} → ${booking.return_date}\n` +
+              `💰 ${isHold ? 'Deposit Due' : 'Amount'}: RM${isHold ? booking.deposit_amount : booking.total_price}\n\n` +
+              `I will upload my receipt after payment. Thank you!`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full mt-4 px-4 py-3 rounded-xl text-sm font-medium bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/20 transition-all"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Contact {fleetGroup.name} for Payment (WhatsApp)
+          </a>
         )}
 
         {Number(booking.credit_applied || 0) > 0 && (

@@ -34,6 +34,8 @@ const FleetSettings = lazy(() => import('./pages/admin/FleetSettings'));
 const GroupManagement = lazy(() => import('./pages/admin/GroupManagement'));
 const ChangeRequests = lazy(() => import('./pages/admin/ChangeRequests'));
 const GroupMembers = lazy(() => import('./pages/admin/GroupMembers'));
+const CreateCustomer = lazy(() => import('./pages/admin/CreateCustomer'));
+const AdminBookForCustomer = lazy(() => import('./pages/admin/AdminBookForCustomer'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
@@ -85,6 +87,8 @@ function AppRoutes() {
             <Route path="/admin/bookings" element={<AdminRoute><AdminBookings /></AdminRoute>} />
             <Route path="/admin/bookings/:id" element={<AdminRoute><AdminBookingDetail /></AdminRoute>} />
             <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
+            <Route path="/admin/customers/create" element={<AdminRoute><CreateCustomer /></AdminRoute>} />
+            <Route path="/admin/bookings/create" element={<AdminRoute><AdminBookForCustomer /></AdminRoute>} />
             <Route path="/admin/sales" element={<AdminRoute><AdminSales /></AdminRoute>} />
             <Route path="/admin/expenses" element={<AdminRoute><AdminExpenses /></AdminRoute>} />
             <Route path="/admin/fleet" element={<AdminRoute><FleetSettings /></AdminRoute>} />

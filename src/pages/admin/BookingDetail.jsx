@@ -25,7 +25,7 @@ const STATUS_FLOW = {
   PICKUP: ['RETURNED'],
   RETURNED: [],
   CANCELLED: [],
-  EXPIRED: [],
+  EXPIRED: ['DEPOSIT_PAID', 'CONFIRMED'],
 };
 
 export default function AdminBookingDetail() {
@@ -41,6 +41,9 @@ export default function AdminBookingDetail() {
   const [editingDates, setEditingDates] = useState(false);
   const [editPickup, setEditPickup] = useState('');
   const [editReturn, setEditReturn] = useState('');
+  const [reactivateReason, setReactivateReason] = useState('');
+  const [showReactivate, setShowReactivate] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
   const [savingDates, setSavingDates] = useState(false);
 
   // Full payment receipt upload
@@ -227,14 +230,17 @@ export default function AdminBookingDetail() {
         </div>
         <div className="flex gap-2">
           {nextStatuses.map(ns => (
-            <button key={ns} onClick={() => handleStatusChange(ns)}
+            <button key={ns} onClick={() => {
+              if (booking.status === 'EXPIRED') { setShowReactivate(true); return; }
+              handleStatusChange(ns);
+            }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 ns === 'CANCELLED' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' :
                 ns === 'RETURNED' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' :
                 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
               }`}>
-              {ns === 'DEPOSIT_PAID' ? 'Mark Deposit Paid' :
-               ns === 'CONFIRMED' ? 'Confirm' :
+              {ns === 'DEPOSIT_PAID' ? (booking.status === 'EXPIRED' ? 'Reactivate → Deposit Paid' : 'Mark Deposit Paid') :
+               ns === 'CONFIRMED' ? (booking.status === 'EXPIRED' ? 'Reactivate → Confirmed' : 'Confirm') :
                ns === 'PICKUP' ? 'Mark Picked Up' :
                ns === 'RETURNED' ? 'Mark Returned' :
                ns === 'CANCELLED' ? 'Cancel' : ns}
@@ -242,6 +248,78 @@ export default function AdminBookingDetail() {
           ))}
         </div>
       </div>
+
+      {/* Reactivation Modal */}
+      {showReactivate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowReactivate(false)}>
+          <div className="glass-card w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-white mb-2">Reactivate Expired Booking</h3>
+            <p className="text-sm text-slate-400 mb-4">This booking expired. Provide a reason for reactivation:</p>
+            <textarea
+              value={reactivateReason}
+              onChange={e => setReactivateReason(e.target.value)}
+              className="input-field mb-4"
+              rows={3}
+              placeholder="Reason for reactivation (required)..."
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setShowReactivate(false)} className="btn-secondary flex-1">Cancel</button>
+              {nextStatuses.filter(s => s !== 'CANCELLED').map(ns => (
+                <button
+                  key={ns}
+                  disabled={!reactivateReason.trim() || reactivating}
+                  onClick={async () => {
+                    setReactivating(true);
+                    try {
+                      // Check date overlap
+                      const { data: overlapping } = await supabase
+                        .from('bubatrent_booking_bookings')
+                        .select('id')
+                        .eq('car_id', booking.car_id)
+                        .in('status', ['HOLD','DEPOSIT_PAID','CONFIRMED','PICKUP'])
+                        .lte('pickup_date', booking.return_date)
+                        .gte('return_date', booking.pickup_date)
+                        .neq('id', booking.id)
+                        .limit(1);
+                      if (overlapping?.length > 0) {
+                        toast.error('Cannot reactivate: date overlap with another booking. Edit dates first.');
+                        setReactivating(false);
+                        return;
+                      }
+                      await supabase.from('bubatrent_booking_bookings')
+                        .update({
+                          status: ns,
+                          reactivated_by: user.id,
+                          reactivated_at: new Date().toISOString(),
+                          reactivation_reason: reactivateReason,
+                        })
+                        .eq('id', booking.id);
+                      await supabase.from('bubatrent_booking_audit_logs').insert({
+                        admin_id: user.id,
+                        action: 'REACTIVATE_EXPIRED',
+                        resource_type: 'booking',
+                        resource_id: booking.id,
+                        details: { new_status: ns, reason: reactivateReason },
+                      });
+                      setBooking(prev => ({ ...prev, status: ns }));
+                      toast.success(`Booking reactivated → ${ns}`);
+                      setShowReactivate(false);
+                      setReactivateReason('');
+                    } catch (err) {
+                      toast.error(err.message);
+                    } finally {
+                      setReactivating(false);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/20 transition-all disabled:opacity-30"
+                >
+                  {reactivating ? 'Activating...' : `→ ${ns === 'DEPOSIT_PAID' ? 'Deposit Paid' : 'Confirmed'}`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main info */}

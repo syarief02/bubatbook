@@ -11,7 +11,7 @@ import { formatMYR } from '../../utils/pricing';
 import {
   Search, Users, Shield, ShieldOff, Mail, Phone, CalendarDays,
   ChevronDown, ChevronUp, X, AlertTriangle, CheckCircle, Clock, FileCheck, Wallet,
-  Edit3, Upload, FileImage, Loader2
+  Edit3, Upload, FileImage, Loader2, UserPlus
 } from 'lucide-react';
 import { useToast } from '../../components/Toast';
 import { supabase } from '../../lib/supabase';
@@ -158,11 +158,21 @@ export default function Customers() {
         </div>
       </div>
 
-      {/* Stats bar */}
-      <div className="flex gap-4 mb-6 text-sm text-slate-400">
-        <span>{customers.length} user{customers.length !== 1 ? 's' : ''} found</span>
-        <span>•</span>
-        <span>{customers.filter(c => c.role === 'admin').length} admin{customers.filter(c => c.role === 'admin').length !== 1 ? 's' : ''}</span>
+      {/* Stats bar + Action buttons */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-4 text-sm text-slate-400">
+          <span>{customers.length} user{customers.length !== 1 ? 's' : ''} found</span>
+          <span>•</span>
+          <span>{customers.filter(c => c.role === 'admin').length} admin{customers.filter(c => c.role === 'admin').length !== 1 ? 's' : ''}</span>
+        </div>
+        <div className="flex gap-2">
+          <a href="/admin/customers/create" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 border border-violet-500/30 transition-all">
+            <UserPlus className="w-3.5 h-3.5" /> Create Customer
+          </a>
+          <a href="/admin/bookings/create" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30 transition-all">
+            <CalendarDays className="w-3.5 h-3.5" /> Book for Customer
+          </a>
+        </div>
       </div>
 
       {/* Customer List */}
