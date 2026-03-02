@@ -561,55 +561,99 @@ export default function Customers() {
                                   // Upload files if provided
                                   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB for mobile camera photos
 
-                                  // Helper: Read file fully into memory as ArrayBuffer
-                                  // This bypasses Android Chrome's broken File streaming implementation
-                                  async function getFileBytes(file) {
+                                  // Ultimate Mobile Fix: Use HTML5 Canvas to aggressively read, resize, and convert to JPEG
+                                  // This bypasses Android Chrome's File/Blob reading bugs completely because the native Image()
+                                  // object handles the file URI, and canvas exports a clean, standard base64 string.
+                                  async function processAndCompressImage(file) {
                                     return new Promise((resolve, reject) => {
+                                      // Special case for PDF: don't compress, just use original file
+                                      if (file.type === 'application/pdf') return resolve(file);
+
                                       const reader = new FileReader();
-                                      reader.onload = () => resolve(reader.result);
-                                      reader.onerror = () => reject(new Error('Failed to read file from disk'));
-                                      reader.readAsArrayBuffer(file);
+                                      reader.onerror = () => reject(new Error('Browser failed to read file. Try a different photo.'));
+                                      reader.onload = (e) => {
+                                        const img = new Image();
+                                        img.onerror = () => reject(new Error('Failed to load image into memory.'));
+                                        img.onload = () => {
+                                          const canvas = document.createElement('canvas');
+                                          // Max dimensions roughly equivalent to 1080p
+                                          const MAX_WIDTH = 1920;
+                                          const MAX_HEIGHT = 1920;
+                                          let width = img.width;
+                                          let height = img.height;
+
+                                          if (width > height && width > MAX_WIDTH) {
+                                            height *= MAX_WIDTH / width;
+                                            width = MAX_WIDTH;
+                                          } else if (height > MAX_HEIGHT) {
+                                            width *= MAX_HEIGHT / height;
+                                            height = MAX_HEIGHT;
+                                          }
+
+                                          canvas.width = width;
+                                          canvas.height = height;
+                                          const ctx = canvas.getContext('2d');
+                                          ctx.drawImage(img, 0, 0, width, height);
+                                          
+                                          // Export as highly compatible JPEG (80% quality)
+                                          // This strips EXIF and standardizes the format, fixing HEIC/Android issues natively
+                                          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                                          
+                                          // Convert base64 to Blob for Supabase
+                                          const arr = dataUrl.split(',');
+                                          const bstr = atob(arr[1]);
+                                          let n = bstr.length;
+                                          const u8arr = new Uint8Array(n);
+                                          while (n--) {
+                                            u8arr[n] = bstr.charCodeAt(n);
+                                          }
+                                          resolve(new Blob([u8arr], { type: 'image/jpeg' }));
+                                        };
+                                        img.src = e.target.result;
+                                      };
+                                      reader.readAsDataURL(file); // readAsDataURL avoids ArrayBuffer crashes on some Androids
                                     });
                                   }
 
                                   if (editFiles.ic) {
                                     if (editFiles.ic.size > MAX_FILE_SIZE) throw new Error(`IC file too large (${(editFiles.ic.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
-                                    console.log('[EditSave] Reading IC file into memory...');
-                                    const arrayBuffer = await getFileBytes(editFiles.ic);
-                                    console.log('[EditSave] Uploading IC bytes...', arrayBuffer.byteLength);
+                                    console.log('[EditSave] Processing IC image (Canvas compression)...');
+                                    const processedBlob = await processAndCompressImage(editFiles.ic);
                                     
-                                    const ext = editFiles.ic.name.split('.').pop()?.toLowerCase() || 'jpg';
+                                    const ext = processedBlob.type === 'application/pdf' ? 'pdf' : 'jpg';
                                     const path = `${customer.id}/ic_admin_${Date.now()}.${ext}`;
                                     
-                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, arrayBuffer, { 
+                                    console.log('[EditSave] Uploading processed IC...');
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, processedBlob, { 
                                       upsert: true, 
-                                      contentType: editFiles.ic.type || 'image/jpeg' 
+                                      contentType: processedBlob.type 
                                     });
-                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out. Check your connection.')), 45000));
                                     
                                     const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
-                                    if (upErr) { console.error('[EditSave] IC upload failed:', upErr); throw new Error(`IC upload failed: ${upErr.message}`); }
+                                    if (upErr) throw new Error(`IC upload failed: ${upErr.message}`);
                                     
                                     console.log('[EditSave] IC uploaded to:', path);
                                     sensitiveChanges.ic_file_path = { old: customer.ic_file_path || null, new: path };
                                   }
+                                  
                                   if (editFiles.licence) {
                                     if (editFiles.licence.size > MAX_FILE_SIZE) throw new Error(`Licence file too large (${(editFiles.licence.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`);
-                                    console.log('[EditSave] Reading licence file into memory...');
-                                    const arrayBuffer = await getFileBytes(editFiles.licence);
-                                    console.log('[EditSave] Uploading licence bytes...', arrayBuffer.byteLength);
+                                    console.log('[EditSave] Processing licence image (Canvas compression)...');
+                                    const processedBlob = await processAndCompressImage(editFiles.licence);
                                     
-                                    const ext = editFiles.licence.name.split('.').pop()?.toLowerCase() || 'jpg';
+                                    const ext = processedBlob.type === 'application/pdf' ? 'pdf' : 'jpg';
                                     const path = `${customer.id}/licence_admin_${Date.now()}.${ext}`;
                                     
-                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, arrayBuffer, { 
+                                    console.log('[EditSave] Uploading processed licence...');
+                                    const uploadPromise = supabase.storage.from('customer-documents').upload(path, processedBlob, { 
                                       upsert: true, 
-                                      contentType: editFiles.licence.type || 'image/jpeg' 
+                                      contentType: processedBlob.type 
                                     });
-                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out after 30s. Check your connection.')), 30000));
+                                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timed out. Check your connection.')), 45000));
                                     
                                     const { error: upErr } = await Promise.race([uploadPromise, timeoutPromise]);
-                                    if (upErr) { console.error('[EditSave] Licence upload failed:', upErr); throw new Error(`Licence upload failed: ${upErr.message}`); }
+                                    if (upErr) throw new Error(`Licence upload failed: ${upErr.message}`);
                                     
                                     console.log('[EditSave] Licence uploaded to:', path);
                                     sensitiveChanges.licence_file_path = { old: customer.licence_file_path || null, new: path };
