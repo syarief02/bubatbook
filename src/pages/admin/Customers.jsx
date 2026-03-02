@@ -384,14 +384,12 @@ export default function Customers() {
                                         className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
                                         onError={e => {
                                           e.target.style.display='none';
-                                          const errEl = e.target.parentElement.querySelector('.doc-error');
-                                          if (errEl) errEl.style.display='flex';
-                                          console.error('[DocViewer] IC image failed to load. Path:', customer.ic_file_path, 'URL:', e.target.src);
+                                          const fallback = e.target.parentElement.querySelector('.doc-fallback');
+                                          if (fallback) fallback.style.display='flex';
                                         }}
                                       />
-                                      <div className="doc-error hidden flex-col gap-1 p-1.5 rounded-lg bg-red-500/10 text-[9px] text-red-400">
-                                        <span>⚠ Document unavailable</span>
-                                        <span className="text-slate-600 break-all">Bucket may not exist. Check Supabase Storage.</span>
+                                      <div className="doc-fallback hidden items-center justify-center gap-1 h-20 rounded-lg bg-green-500/10 text-xs text-green-400 hover:bg-green-500/20 transition-colors cursor-pointer">
+                                        <FileImage className="w-4 h-4" /> Click to view
                                       </div>
                                     </a>
                                   ) : (
@@ -414,14 +412,12 @@ export default function Customers() {
                                         className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
                                         onError={e => {
                                           e.target.style.display='none';
-                                          const errEl = e.target.parentElement.querySelector('.doc-error');
-                                          if (errEl) errEl.style.display='flex';
-                                          console.error('[DocViewer] Licence image failed to load. Path:', customer.licence_file_path, 'URL:', e.target.src);
+                                          const fallback = e.target.parentElement.querySelector('.doc-fallback');
+                                          if (fallback) fallback.style.display='flex';
                                         }}
                                       />
-                                      <div className="doc-error hidden flex-col gap-1 p-1.5 rounded-lg bg-red-500/10 text-[9px] text-red-400">
-                                        <span>⚠ Document unavailable</span>
-                                        <span className="text-slate-600 break-all">Bucket may not exist. Check Supabase Storage.</span>
+                                      <div className="doc-fallback hidden items-center justify-center gap-1 h-20 rounded-lg bg-green-500/10 text-xs text-green-400 hover:bg-green-500/20 transition-colors cursor-pointer">
+                                        <FileImage className="w-4 h-4" /> Click to view
                                       </div>
                                     </a>
                                   ) : (
