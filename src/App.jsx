@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
-import { ViewAsProvider } from './hooks/ViewAsContext.jsx';
+import { ViewAsProvider, useViewAs } from './hooks/ViewAsContext.jsx';
 import { FleetProvider } from './hooks/useFleet.jsx';
 import GroupStatusGuard from './components/GroupStatusGuard';
 import ViewAsBanner from './components/ViewAsBanner';
@@ -64,12 +64,14 @@ function AdminRoute({ children }) {
 }
 
 function AppRoutes() {
+  const { isViewMode } = useViewAs();
+
   return (
     <>
       <ViewAsBanner />
       <Navbar />
       <ScrollToTop />
-      <main className="min-h-screen pt-16">
+      <main className={`min-h-screen ${isViewMode ? 'pt-[6.5rem]' : 'pt-16'}`}>
         <Suspense fallback={<LoadingSpinner fullScreen />}>
           <Routes>
             <Route path="/" element={<Home />} />

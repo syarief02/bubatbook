@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Car, Menu, X, User, LogOut, Shield, CalendarDays, AlertTriangle, Wallet } from 'lucide-react';
 import { formatMYR } from '../utils/pricing';
+import { useViewAs } from '../hooks/ViewAsContext';
 
 export default function Navbar() {
   const { user, profile, isAdmin, isVerified, signOut } = useAuth();
@@ -11,6 +12,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
   const profileRef = useRef(null);
+  const { isViewMode } = useViewAs();
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
+    <nav className={`fixed left-0 right-0 z-50 glass border-b border-white/5 transition-all ${isViewMode ? 'top-10' : 'top-0'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

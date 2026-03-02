@@ -3,9 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { getBooking } from '../../hooks/useBookings';
 import { updateBookingStatus, getBookingDocuments, verifyDocument, getAuditLogs } from '../../hooks/useAdmin';
 import { useAuth } from '../../hooks/useAuth';
+import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/Toast';
 import { formatDate, formatDateTime } from '../../utils/dates';
@@ -31,11 +31,13 @@ const STATUS_FLOW = {
 export default function AdminBookingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { activeFleetId } = useFleet();
   const toast = useToast();
   const [booking, setBooking] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   // Date editing
   const [editingDates, setEditingDates] = useState(false);
@@ -53,26 +55,48 @@ export default function AdminBookingDetail() {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [bookingData, docsData, logsData] = await Promise.all([
-          getBooking(id),
+        console.log('[BookingDetail] Fetching booking:', id, 'activeFleetId:', activeFleetId);
+
+        // Admin-direct query: fetch by ID without user_id filter
+        // RLS on bookings may restrict to user_id = auth.uid() for customers.
+        // Admin access should be broader — query directly.
+        const { data: bookingData, error: bookingErr } = await supabase
+          .from('bubatrent_booking_bookings')
+          .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (bookingErr) {
+          console.error('[BookingDetail] Query error:', bookingErr);
+          throw bookingErr;
+        }
+        if (!bookingData) {
+          console.warn('[BookingDetail] No booking found for id:', id);
+          setNotFound(true);
+          return;
+        }
+
+        console.log('[BookingDetail] Booking loaded:', bookingData.id, 'status:', bookingData.status);
+        setBooking(bookingData);
+        setEditPickup(bookingData.pickup_date);
+        setEditReturn(bookingData.return_date);
+
+        // Fetch docs and logs in parallel
+        const [docsData, logsData] = await Promise.all([
           getBookingDocuments(id, user.id),
           getAuditLogs(id),
         ]);
-        setBooking(bookingData);
         setDocuments(docsData);
         setAuditLogs(logsData);
-        if (bookingData) {
-          setEditPickup(bookingData.pickup_date);
-          setEditReturn(bookingData.return_date);
-        }
       } catch (err) {
-        console.error('Error:', err);
+        console.error('[BookingDetail] Error fetching booking:', err);
+        setNotFound(true);
       } finally {
         setLoading(false);
       }
     }
     fetchAll();
-  }, [id, user.id]);
+  }, [id, user.id, activeFleetId]);
 
   async function handleStatusChange(newStatus) {
     try {
@@ -209,7 +233,13 @@ export default function AdminBookingDetail() {
   }
 
   if (loading) return <AdminLayout><LoadingSpinner fullScreen /></AdminLayout>;
-  if (!booking) return <AdminLayout><p className="text-red-400">Booking not found.</p></AdminLayout>;
+  if (notFound || !booking) return (
+    <AdminLayout>
+      <p className="text-red-400">Booking not found or you don't have access.</p>
+      <p className="text-xs text-slate-500 mt-1">ID: {id}</p>
+      <Link to="/admin/bookings" className="text-violet-400 text-sm mt-3 inline-block hover:underline">← Back to Bookings</Link>
+    </AdminLayout>
+  );
 
   const car = booking.bubatrent_booking_cars;
   const payment = booking.bubatrent_booking_payments?.[0];
