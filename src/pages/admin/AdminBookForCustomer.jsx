@@ -65,7 +65,7 @@ export default function AdminBookForCustomer() {
         .from('bubatrent_booking_cars')
         .select('*')
         .eq('fleet_group_id', activeFleetId)
-        .eq('available', true)
+        .eq('is_available', true)
         .order('name')
         .then(({ data }) => { setCars(data || []); setCarsLoading(false); });
     }
@@ -137,7 +137,7 @@ export default function AdminBookForCustomer() {
           fleet_group_id: activeFleetId,
           created_by_admin: user.id,
           customer_name: selectedCust.display_name || '',
-          customer_email: selectedCust.email || '',
+          customer_email: selectedCust.username || '',
           customer_phone: selectedCust.phone || '',
         })
         .select()
@@ -217,7 +217,7 @@ export default function AdminBookForCustomer() {
                 <User className="w-4 h-4 text-violet-400" />
                 <div>
                   <p className="text-sm text-white font-medium">{selectedCust.display_name || selectedCust.ic_number}</p>
-                  <p className="text-[10px] text-slate-500">{selectedCust.phone} {selectedCust.email ? `• ${selectedCust.email}` : ''}</p>
+                  <p className="text-[10px] text-slate-500">{selectedCust.phone} {selectedCust.username ? `• ${selectedCust.username}` : ''}</p>
                 </div>
               </div>
               <button onClick={() => setSelectedCust(null)} className="text-slate-500 text-xs hover:text-white">Change</button>
@@ -230,7 +230,7 @@ export default function AdminBookForCustomer() {
                   <User className="w-4 h-4 text-slate-400" />
                   <div>
                     <p className="text-sm text-white">{c.display_name || c.ic_number || 'Unknown'}</p>
-                    <p className="text-[10px] text-slate-500">{c.phone} {c.email ? `• ${c.email}` : ''} {c.is_verified ? '✓ Verified' : ''}</p>
+                    <p className="text-[10px] text-slate-500">{c.phone} {c.username ? `• ${c.username}` : ''} {c.is_verified ? '✓ Verified' : ''}</p>
                   </div>
                 </button>
               ))}
