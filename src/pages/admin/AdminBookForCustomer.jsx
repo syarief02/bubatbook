@@ -9,7 +9,7 @@ import { useToast } from '../../components/Toast';
 import { normalizePhone } from '../../utils/phoneUtils';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
-  Search, User, Car, CalendarDays, Wallet, FileImage, Loader2, ArrowLeft, Shield, Check
+  Search, User, Car, CalendarDays, Wallet, FileImage, Loader2, ArrowLeft, Shield, Check, AlertTriangle
 } from 'lucide-react';
 
 export default function AdminBookForCustomer() {
@@ -35,6 +35,8 @@ export default function AdminBookForCustomer() {
   const [pickupDate, setPickupDate] = useState('');
   const [returnDate, setReturnDate] = useState('');
   const [dateError, setDateError] = useState('');
+  const [existingBookings, setExistingBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
 
   // Step 4: Config
   const [depositAmount, setDepositAmount] = useState(100);
@@ -57,6 +59,9 @@ export default function AdminBookForCustomer() {
     setSearching(false);
   }
 
+  // Confirmed statuses that block dates (HOLD does NOT block)
+  const BLOCKING_STATUSES = ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'];
+
   // Fetch cars when step 2
   useEffect(() => {
     if (step === 2 && activeFleetId) {
@@ -71,6 +76,30 @@ export default function AdminBookForCustomer() {
     }
   }, [step, activeFleetId]);
 
+  // Fetch existing bookings for selected car when entering Step 3
+  useEffect(() => {
+    if (step === 3 && selectedCar) {
+      setLoadingBookings(true);
+      supabase
+        .from('bubatrent_booking_bookings')
+        .select('id, pickup_date, return_date, status, customer_name')
+        .eq('car_id', selectedCar.id)
+        .in('status', [...BLOCKING_STATUSES, 'HOLD'])
+        .gte('return_date', new Date().toISOString().split('T')[0])
+        .order('pickup_date')
+        .then(({ data }) => { setExistingBookings(data || []); setLoadingBookings(false); });
+    }
+  }, [step, selectedCar]);
+
+  // Check if selected dates overlap with confirmed bookings
+  function getOverlap() {
+    if (!pickupDate || !returnDate) return null;
+    return existingBookings.find(b =>
+      BLOCKING_STATUSES.includes(b.status) &&
+      b.pickup_date <= returnDate && b.return_date >= pickupDate
+    );
+  }
+
   // Validate dates
   function validateDates() {
     if (!pickupDate || !returnDate) { setDateError('Dates are required'); return false; }
@@ -80,6 +109,8 @@ export default function AdminBookForCustomer() {
     const sixMonths = new Date();
     sixMonths.setMonth(sixMonths.getMonth() + 6);
     if (pickup > sixMonths) { setDateError('Pickup must be within 6 months'); return false; }
+    const overlap = getOverlap();
+    if (overlap) { setDateError(`Dates overlap with a ${overlap.status} booking (${overlap.pickup_date} → ${overlap.return_date})`); return false; }
     setDateError('');
     return true;
   }
@@ -97,17 +128,17 @@ export default function AdminBookForCustomer() {
     setCreating(true);
 
     try {
-      // Overlap check
+      // Overlap check — only block for confirmed statuses, not HOLD
       const { data: overlapping } = await supabase
         .from('bubatrent_booking_bookings')
         .select('id')
         .eq('car_id', selectedCar.id)
-        .in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'])
+        .in('status', BLOCKING_STATUSES)
         .lte('pickup_date', returnDate)
         .gte('return_date', pickupDate)
         .limit(1);
       if (overlapping?.length > 0) {
-        toast.error('Date overlap with existing booking');
+        toast.error('Date overlap with a confirmed booking');
         setCreating(false);
         return;
       }
@@ -274,6 +305,38 @@ export default function AdminBookForCustomer() {
       {step === 3 && (
         <div className="glass-card max-w-2xl">
           <h3 className="text-sm font-semibold text-white mb-3">Dates & Deposit</h3>
+
+          {/* Existing bookings for this car */}
+          {existingBookings.length > 0 && (
+            <div className="mb-4 rounded-xl border border-white/10 overflow-hidden">
+              <div className="px-3 py-2 bg-white/5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Existing bookings for {selectedCar?.name}</div>
+              <div className="divide-y divide-white/5 max-h-36 overflow-y-auto">
+                {existingBookings.map(b => (
+                  <div key={b.id} className={`px-3 py-2 flex items-center justify-between text-xs ${
+                    BLOCKING_STATUSES.includes(b.status) ? 'bg-red-500/5' : 'bg-yellow-500/5'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        BLOCKING_STATUSES.includes(b.status) ? 'bg-red-400' : 'bg-yellow-400'
+                      }`} />
+                      <span className="text-slate-300">{b.pickup_date} → {b.return_date}</span>
+                      {b.customer_name && <span className="text-slate-500">({b.customer_name})</span>}
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                      BLOCKING_STATUSES.includes(b.status)
+                        ? 'bg-red-500/20 text-red-300'
+                        : 'bg-yellow-500/20 text-yellow-300'
+                    }`}>{b.status}{b.status === 'HOLD' ? ' (available)' : ''}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="px-3 py-1.5 bg-white/[0.02] text-[10px] text-slate-500 flex items-center gap-3">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-400" /> Blocks dates</span>
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400" /> HOLD (still available)</span>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
               <label className="input-label">Pickup Date *</label>
@@ -286,8 +349,15 @@ export default function AdminBookForCustomer() {
                 min={pickupDate || new Date().toISOString().split('T')[0]} className="input-field" />
             </div>
           </div>
-          {dateError && <p className="text-xs text-red-400 mb-2">{dateError}</p>}
-          {pickupDate && returnDate && selectedCar && (
+          {dateError && <p className="text-xs text-red-400 mb-2 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> {dateError}</p>}
+          {/* Real-time overlap warning */}
+          {pickupDate && returnDate && getOverlap() && !dateError && (
+            <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2 mb-3">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span>These dates overlap with a <strong>{getOverlap().status}</strong> booking ({getOverlap().pickup_date} → {getOverlap().return_date}). You won't be able to proceed.</span>
+            </div>
+          )}
+          {pickupDate && returnDate && selectedCar && !getOverlap() && (
             <div className="bg-white/5 rounded-xl p-3 mb-3">
               <p className="text-sm text-white">Total: <strong>RM {calcTotal().toFixed(2)}</strong> ({Math.ceil((new Date(returnDate) - new Date(pickupDate)) / 86400000)} days × RM{selectedCar.price_per_day})</p>
             </div>
@@ -317,7 +387,8 @@ export default function AdminBookForCustomer() {
           <div className="flex gap-2">
             <button onClick={() => setStep(2)} className="btn-secondary flex-1">Back</button>
             <button onClick={() => { if (validateDates()) setStep(4); }}
-              className="btn-primary flex-1">Review & Confirm</button>
+              disabled={!!getOverlap()}
+              className="btn-primary flex-1 disabled:opacity-30">Review & Confirm</button>
           </div>
         </div>
       )}
