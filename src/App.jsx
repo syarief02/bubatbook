@@ -71,7 +71,7 @@ function AppRoutes() {
       <ViewAsBanner />
       <Navbar />
       <ScrollToTop />
-      <main className={`min-h-screen ${isViewMode ? 'pt-[6.5rem]' : 'pt-16'}`}>
+      <main className={`min-h-screen ${isViewMode ? 'pt-[7rem]' : 'pt-16'}`}>
         <Suspense fallback={<LoadingSpinner fullScreen />}>
           <Routes>
             <Route path="/" element={<Home />} />

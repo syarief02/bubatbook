@@ -59,8 +59,6 @@ export default function AdminBookingDetail() {
         console.log('[BookingDetail] Fetching booking:', id, 'activeFleetId:', activeFleetId);
 
         // Admin-direct query: fetch by ID without user_id filter
-        // RLS on bookings may restrict to user_id = auth.uid() for customers.
-        // Admin access should be broader — query directly.
         const { data: bookingData, error: bookingErr } = await supabase
           .from('bubatrent_booking_bookings')
           .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
@@ -82,13 +80,17 @@ export default function AdminBookingDetail() {
         setEditPickup(bookingData.pickup_date);
         setEditReturn(bookingData.return_date);
 
-        // Fetch docs and logs in parallel
-        const [docsData, logsData] = await Promise.all([
-          getBookingDocuments(id, user.id),
-          getAuditLogs(id),
-        ]);
-        setDocuments(docsData);
-        setAuditLogs(logsData);
+        // Fetch docs and logs in parallel — don't fail the whole page if these error
+        try {
+          const [docsData, logsData] = await Promise.all([
+            getBookingDocuments(id, user.id).catch(err => { console.warn('[BookingDetail] Docs error:', err); return []; }),
+            getAuditLogs(id).catch(err => { console.warn('[BookingDetail] Logs error:', err); return []; }),
+          ]);
+          setDocuments(docsData);
+          setAuditLogs(logsData);
+        } catch (subErr) {
+          console.warn('[BookingDetail] Error fetching docs/logs:', subErr);
+        }
       } catch (err) {
         console.error('[BookingDetail] Error fetching booking:', err);
         setNotFound(true);
