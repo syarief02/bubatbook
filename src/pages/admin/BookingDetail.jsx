@@ -26,7 +26,7 @@ const STATUS_FLOW = {
   PICKUP: ['RETURNED'],
   RETURNED: [],
   CANCELLED: [],
-  EXPIRED: ['DEPOSIT_PAID', 'CONFIRMED'],
+  EXPIRED: ['DEPOSIT_PAID'],
 };
 
 export default function AdminBookingDetail() {
