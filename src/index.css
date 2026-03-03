@@ -112,6 +112,10 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  select.input-field option {
+    background: #1e293b;
+    color: #e2e8f0;
+  }
 
   .input-label {
     @apply block text-sm font-medium text-slate-300 mb-2;
