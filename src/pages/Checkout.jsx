@@ -287,7 +287,11 @@ export default function Checkout() {
               <BookingForm
                 onSubmit={handleInfoSubmit}
                 loading={loading}
-                initialData={{ email: user?.email || '' }}
+                initialData={{
+                  email: user?.email || '',
+                  name: profile?.display_name || '',
+                  phone: profile?.phone || ''
+                }}
               />
             </div>
           )}
