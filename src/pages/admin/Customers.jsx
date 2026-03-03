@@ -134,7 +134,7 @@ export default function Customers() {
   return (
     <AdminLayout title="Customer Management">
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
@@ -145,22 +145,14 @@ export default function Customers() {
             className="input-field !pl-10"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
-          {ROLE_OPTIONS.map(role => (
-            <button
-              key={role}
-              onClick={() => setRoleFilter(role)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                roleFilter === role
-                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
-                  : 'glass-card text-slate-400 hover:text-white'
-              }`}
-            >
-              {role === 'ALL' ? 'Customers' : role === 'admin' ? '🛡️ Admin' : role === 'super_admin' ? '🟠 Super Admin' : '👤 Customer'}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
+            className="input-field !py-1.5 !px-3 text-xs w-40">
+            <option value="ALL">All Roles</option>
+            <option value="customer">👤 Customer</option>
+            <option value="admin">🛡️ Admin</option>
+            <option value="super_admin">🟠 Super Admin</option>
+          </select>
           {['ALL','verified','not_verified','pending'].map(v => (
             <button
               key={v}
@@ -168,7 +160,7 @@ export default function Customers() {
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                 verificationFilter === v
                   ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                  : 'glass-card text-slate-400 hover:text-white'
+                  : 'bg-white/5 text-slate-400 hover:bg-white/10'
               }`}
             >
               {v === 'ALL' ? 'All Status' : v === 'verified' ? '✅ Verified' : v === 'not_verified' ? '❌ Not Verified' : '⏳ Pending'}
