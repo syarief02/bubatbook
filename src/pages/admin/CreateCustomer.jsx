@@ -101,7 +101,6 @@ export default function CreateCustomer() {
           verified_by: user.id,
           verified_at: new Date().toISOString(),
           role: 'customer',
-          credit_balance: 0,
         });
       if (profileErr) throw profileErr;
 
