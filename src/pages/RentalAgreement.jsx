@@ -28,7 +28,7 @@ export default function RentalAgreement() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
-  const [alreadySigned, setAlreadySigned] = useState(false);
+  const [existingAgreement, setExistingAgreement] = useState(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
@@ -53,11 +53,11 @@ export default function RentalAgreement() {
         // Check if already signed
         const { data: agreement } = await supabase
           .from('bubatrent_booking_rental_agreements')
-          .select('id, agreed_at')
+          .select('*')
           .eq('booking_id', id)
           .maybeSingle();
 
-        if (agreement) setAlreadySigned(true);
+        if (agreement) setExistingAgreement(agreement);
       } catch (err) {
         console.error(err);
         toast.error('Failed to load booking.');
@@ -97,7 +97,7 @@ export default function RentalAgreement() {
       if (error) throw error;
 
       toast.success('Agreement signed successfully!');
-      setAlreadySigned(true);
+      setExistingAgreement({ ...insertData, agreed_at: new Date().toISOString(), signature_data: signatureData });
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Failed to submit agreement.');
@@ -111,16 +111,66 @@ export default function RentalAgreement() {
 
   const car = booking.bubatrent_booking_cars;
 
-  // Already signed — show confirmation
-  if (alreadySigned) {
+  // Already signed — show full agreement with signature
+  if (existingAgreement) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="glass-card max-w-md w-full text-center">
-          <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Agreement Signed!</h1>
-          <p className="text-slate-400 text-sm mb-6">
-            Your rental agreement for <span className="text-white font-medium">{car?.brand} {car?.model}</span> has been signed and recorded.
-          </p>
+      <div className="min-h-screen py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="glass-card mb-6 text-center bg-green-500/5 border-green-500/20">
+            <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-2" />
+            <h1 className="text-2xl font-bold text-white mb-1">PERJANJIAN SEWAAN KENDERAAN</h1>
+            <p className="text-green-400 text-sm font-medium">✓ Ditandatangani / Signed</p>
+            <p className="text-slate-500 text-xs mt-1">Signed on {new Date(existingAgreement.agreed_at).toLocaleString()}</p>
+          </div>
+
+          {/* Agreement Details */}
+          <div className="glass-card mb-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Booking Details</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">Nama / Name</p>
+                <p className="text-white font-medium">{existingAgreement.customer_name}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">No. K/P / IC</p>
+                <p className="text-white font-medium">{existingAgreement.customer_ic || '—'}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">Kenderaan / Vehicle</p>
+                <p className="text-white font-medium">{existingAgreement.car_model}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">No. Pendaftaran / Plate</p>
+                <p className="text-white font-medium">{existingAgreement.car_plate || '—'}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">Tarikh Mula / Pickup</p>
+                <p className="text-white font-medium">{formatDate(existingAgreement.pickup_date)}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">Tarikh Tamat / Return</p>
+                <p className="text-white font-medium">{formatDate(existingAgreement.return_date)}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">Jumlah Sewa / Total</p>
+                <p className="text-white font-medium">{formatMYR(existingAgreement.total_price)}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs mb-0.5">Deposit</p>
+                <p className="text-white font-medium">{formatMYR(existingAgreement.deposit_amount)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Signature */}
+          <div className="glass-card mb-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Tandatangan / Signature</h2>
+            <div className="bg-white rounded-xl p-4 max-w-xs">
+              <img src={existingAgreement.signature_data} alt="Customer Signature" className="w-full h-auto" />
+            </div>
+          </div>
+
           <button onClick={() => navigate('/my-bookings')} className="btn-primary w-full">
             Back to My Bookings
           </button>

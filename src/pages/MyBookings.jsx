@@ -10,7 +10,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CalendarDays, ExternalLink, Car, XCircle, Hash, Upload, FileImage, Loader2 } from 'lucide-react';
+import { CalendarDays, ExternalLink, Car, XCircle, Hash, Upload, FileImage, Loader2, FileSignature, Receipt } from 'lucide-react';
 
 export default function MyBookings() {
   const { user } = useAuth();
@@ -167,6 +167,21 @@ export default function MyBookings() {
                         className="text-xs text-slate-500 hover:text-white flex items-center gap-1">
                         View Details <ExternalLink className="w-3 h-3" />
                       </Link>
+
+                      {['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
+                        <Link to={`/booking/${booking.id}/agreement`}
+                          className="text-xs text-cyan-500/70 hover:text-cyan-400 flex items-center gap-1">
+                          <FileSignature className="w-3 h-3" /> Agreement
+                        </Link>
+                      )}
+
+                      {booking.deposit_receipt_path && (
+                        <a href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-documents/${booking.deposit_receipt_path}`}
+                          target="_blank" rel="noreferrer"
+                          className="text-xs text-emerald-500/70 hover:text-emerald-400 flex items-center gap-1">
+                          <Receipt className="w-3 h-3" /> Deposit Receipt
+                        </a>
+                      )}
 
                       {canCancel(booking.status) && (
                         <>
