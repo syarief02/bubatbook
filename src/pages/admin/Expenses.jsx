@@ -10,7 +10,7 @@ import { formatMYR } from '../../utils/pricing';
 import { formatDate } from '../../utils/dates';
 import {
   Receipt, Plus, Upload, CheckCircle, Clock, Car, FileImage,
-  Loader2, X, ChevronDown, ChevronUp, Filter, Trash2
+  Loader2, X, ChevronDown, ChevronUp, Filter, Trash2, Calendar
 } from 'lucide-react';
 
 export default function AdminExpenses() {
@@ -25,6 +25,8 @@ export default function AdminExpenses() {
   const [submitting, setSubmitting] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [carFilter, setCarFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Form state
   const [formCarId, setFormCarId] = useState('');
@@ -156,6 +158,8 @@ export default function AdminExpenses() {
     if (tab === 'completed' && c.status !== 'completed') return false;
     if (carFilter === 'others' && c.car_id !== null) return false;
     if (carFilter !== 'all' && carFilter !== 'others' && c.car_id !== carFilter) return false;
+    if (dateFrom && c.expense_date < dateFrom) return false;
+    if (dateTo && c.expense_date > dateTo) return false;
     return true;
   });
 
@@ -242,6 +246,21 @@ export default function AdminExpenses() {
           <option value="others">Others (General)</option>
         </select>
       </div>
+      {/* Date Filter */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <Calendar className="w-4 h-4 text-slate-500" />
+        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+          className="input-field !py-1.5 !px-3 text-xs w-36" placeholder="From" />
+        <span className="text-xs text-slate-500">to</span>
+        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+          className="input-field !py-1.5 !px-3 text-xs w-36" placeholder="To" />
+        {(dateFrom || dateTo) && (
+          <button onClick={() => { setDateFrom(''); setDateTo(''); }}
+            className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+            Clear
+          </button>
+        )}
+      </div>
 
       {/* Claims List */}
       {filteredClaims.length === 0 ? (
@@ -308,8 +327,18 @@ export default function AdminExpenses() {
                     </div>
                   )}
 
-                  {claim.status === 'completed' && claim.completed_at && (
-                    <p className="text-xs text-green-400">Completed on {formatDate(claim.completed_at)}</p>
+                  {claim.status === 'completed' && (
+                    <div className="flex items-center justify-between">
+                      {claim.completed_at && (
+                        <p className="text-xs text-green-400">Completed on {formatDate(claim.completed_at)}</p>
+                      )}
+                      <button onClick={() => handleDeleteClaim(claim)}
+                        disabled={deletingId === claim.id}
+                        className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-50">
+                        {deletingId === claim.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
