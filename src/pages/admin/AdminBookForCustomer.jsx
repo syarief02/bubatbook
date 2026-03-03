@@ -50,7 +50,6 @@ export default function AdminBookForCustomer() {
     const { data } = await supabase
       .from('bubatrent_booking_profiles')
       .select('id, display_name, username, email, phone, ic_number, is_verified')
-      .eq('role', 'customer')
       .or(`display_name.ilike.%${q}%,phone.ilike.%${q}%,ic_number.ilike.%${q}%,email.ilike.%${q}%`)
       .limit(10);
     setCustResults(data || []);
