@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -15,7 +15,7 @@ import { maskSensitive } from '../../utils/format';
 import {
   ArrowLeft, User, Mail, Phone, FileText, Shield, CheckCircle,
   Clock, Eye, FileCheck, Edit3, Save, X, Upload, FileImage,
-  Wallet, AlertTriangle, CarFront, Calendar
+  Wallet, AlertTriangle, CarFront, Calendar, Trash2
 } from 'lucide-react';
 
 // Status flow definition
@@ -34,11 +34,13 @@ export default function AdminBookingDetail() {
   const { user } = useAuth();
   const { activeFleetId } = useFleet();
   const toast = useToast();
+  const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Date editing
   const [editingDates, setEditingDates] = useState(false);
@@ -235,6 +237,29 @@ export default function AdminBookingDetail() {
     }
   }
 
+  // Delete booking and all related records
+  async function handleDeleteBooking() {
+    const confirmMsg = `Are you sure you want to DELETE this booking?\n\nCar: ${booking.bubatrent_booking_cars?.name || 'Unknown'}\nDates: ${booking.pickup_date} → ${booking.return_date}\nStatus: ${booking.status}\n\nThis will permanently delete:\n• The booking record\n• Associated payments\n• Audit logs\n\nThis action CANNOT be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeleting(true);
+    try {
+      // Delete related payments
+      await supabase.from('bubatrent_booking_payments').delete().eq('booking_id', id);
+      // Delete related audit logs
+      await supabase.from('bubatrent_booking_audit_logs').delete().eq('resource_id', id);
+      // Delete the booking itself
+      const { error } = await supabase.from('bubatrent_booking_bookings').delete().eq('id', id);
+      if (error) throw error;
+
+      toast.success('Booking deleted successfully');
+      navigate('/admin/bookings');
+    } catch (err) {
+      toast.error('Failed to delete: ' + err.message);
+      setDeleting(false);
+    }
+  }
+
   if (loading) return <AdminLayout><LoadingSpinner fullScreen /></AdminLayout>;
   if (notFound || !booking) return (
     <AdminLayout>
@@ -279,6 +304,11 @@ export default function AdminBookingDetail() {
                ns === 'CANCELLED' ? 'Cancel' : ns}
             </button>
           ))}
+          <button onClick={handleDeleteBooking} disabled={deleting}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-1.5">
+            <Trash2 className="w-3.5 h-3.5" />
+            {deleting ? 'Deleting...' : 'Delete'}
+          </button>
         </div>
       </div>
 
