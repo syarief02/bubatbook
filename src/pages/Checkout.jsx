@@ -368,34 +368,40 @@ export default function Checkout() {
 
               {/* Receipt upload (if payment needed) */}
               {amountDue > 0 ? (
-                <>
-                  <div className="text-xs text-slate-400 mb-4 bg-white/5 p-3 rounded-xl border border-white/10">
-                    <span className="block mb-2 text-white font-medium">Payment Instructions:</span>
-                    <ol className="list-decimal pl-4 space-y-1.5">
-                      <li>
-                        Please <a 
-                          href={car?.bubatrent_booking_fleet_groups?.support_whatsapp ? `https://wa.me/${car.bubatrent_booking_fleet_groups.support_whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car.brand} ${car.model}. Please provide the bank account details.`)}` : '#'} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="text-green-400 hover:text-green-300 hover:underline font-medium"
-                        >WhatsApp our admin</a> to get the bank account details.
-                      </li>
-                      <li>Transfer <span className="text-white font-semibold">{formatMYR(amountDue)}</span> to the provided account.</li>
-                      <li>Upload your payment receipt below to secure your booking.</li>
-                    </ol>
-                  </div>
-                  
-                  <a 
-                    href={car?.bubatrent_booking_fleet_groups?.support_whatsapp ? `https://wa.me/${car.bubatrent_booking_fleet_groups.support_whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${car.bubatrent_booking_fleet_groups.name || 'Admin'}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car.brand} ${car.model}. Please provide the bank account details.`)}` : '#'} 
-                    target="_blank" 
-                    rel="noreferrer" 
-                    className="flex items-center justify-center gap-2 w-full py-3.5 mb-6 bg-[#25D366] hover:bg-[#20BE5C] text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-[#25D366]/30 hover:-translate-y-0.5"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    <span>WhatsApp Admin for Bank Details</span>
-                  </a>
+                (() => {
+                  const contactPhone = car?.bubatrent_booking_fleet_groups?.support_whatsapp?.replace(/\D/g, '') || '60162569733';
+                  const contactName = car?.bubatrent_booking_fleet_groups?.name || 'Rent2Go Support';
+                  const whatsappUrl = `https://wa.me/${contactPhone}?text=${encodeURIComponent(`Hi ${contactName}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car?.brand} ${car?.model}. Please provide the bank account details.`)}`;
 
-                  <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6">
+                  return (
+                    <>
+                      <div className="text-xs text-slate-400 mb-4 bg-white/5 p-3 rounded-xl border border-white/10">
+                        <span className="block mb-2 text-white font-medium">Payment Instructions:</span>
+                        <ol className="list-decimal pl-4 space-y-1.5">
+                          <li>
+                            Please <a 
+                              href={whatsappUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="text-green-400 hover:text-green-300 hover:underline font-medium"
+                            >WhatsApp our admin</a> to get the bank account details.
+                          </li>
+                          <li>Transfer <span className="text-white font-semibold">{formatMYR(amountDue)}</span> to the provided account.</li>
+                          <li>Upload your payment receipt below to secure your booking.</li>
+                        </ol>
+                      </div>
+                      
+                      <a 
+                        href={whatsappUrl} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="flex items-center justify-center gap-2 w-full py-3.5 mb-6 bg-[#25D366] hover:bg-[#20BE5C] text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-[#25D366]/30 hover:-translate-y-0.5"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        <span>WhatsApp Admin for Bank Details</span>
+                      </a>
+
+                      <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6">
                     <FileImage className="w-6 h-6 text-slate-500" />
                     <div>
                       <p className="text-sm text-slate-300">{receiptFile ? receiptFile.name : 'Click to upload payment receipt'}</p>
@@ -405,6 +411,8 @@ export default function Checkout() {
                       className="hidden" disabled={uploading} />
                   </label>
                 </>
+                );
+              })()
               ) : (
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 mb-6">
                   <CheckCircle className="w-5 h-5 text-green-400" />
