@@ -25,6 +25,7 @@ export default function AdminExpenses() {
   const [submitting, setSubmitting] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [carFilter, setCarFilter] = useState('all');
+  const [datePreset, setDatePreset] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -153,13 +154,19 @@ export default function AdminExpenses() {
     }
   }
 
+  // Compute effective date range from preset
+  const today = new Date().toISOString().split('T')[0];
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  const effectiveFrom = datePreset === 'today' ? today : datePreset === 'month' ? monthStart : datePreset === 'custom' ? dateFrom : '';
+  const effectiveTo = datePreset === 'today' ? today : datePreset === 'custom' ? dateTo : '';
+
   const filteredClaims = claims.filter(c => {
     if (tab === 'pending' && c.status !== 'pending') return false;
     if (tab === 'completed' && c.status !== 'completed') return false;
     if (carFilter === 'others' && c.car_id !== null) return false;
     if (carFilter !== 'all' && carFilter !== 'others' && c.car_id !== carFilter) return false;
-    if (dateFrom && c.expense_date < dateFrom) return false;
-    if (dateTo && c.expense_date > dateTo) return false;
+    if (effectiveFrom && c.expense_date < effectiveFrom) return false;
+    if (effectiveTo && c.expense_date > effectiveTo) return false;
     return true;
   });
 
@@ -247,20 +254,23 @@ export default function AdminExpenses() {
         </select>
       </div>
       {/* Date Filter */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <Calendar className="w-4 h-4 text-slate-500" />
-        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-          className="input-field !py-1.5 !px-3 text-xs w-36" placeholder="From" />
-        <span className="text-xs text-slate-500">to</span>
-        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-          className="input-field !py-1.5 !px-3 text-xs w-36" placeholder="To" />
-        {(dateFrom || dateTo) && (
-          <button onClick={() => { setDateFrom(''); setDateTo(''); }}
-            className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
-            Clear
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <Filter className="w-4 h-4 text-slate-500" />
+        {[['all','All Time'],['today','Today'],['month','This Month'],['custom','Custom']].map(([val, label]) => (
+          <button key={val} onClick={() => { setDatePreset(val); if (val !== 'custom') { setDateFrom(''); setDateTo(''); } }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${datePreset === val ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>
+            {label}
           </button>
-        )}
+        ))}
       </div>
+      {datePreset === 'custom' && (
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+            className="input-field !py-1.5 !px-3 text-xs w-40" />
+          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+            className="input-field !py-1.5 !px-3 text-xs w-40" />
+        </div>
+      )}
 
       {/* Claims List */}
       {filteredClaims.length === 0 ? (
