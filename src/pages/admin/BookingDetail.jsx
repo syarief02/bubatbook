@@ -279,20 +279,20 @@ export default function AdminBookingDetail() {
         <ArrowLeft className="w-4 h-4" /> All Bookings
       </Link>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
             Booking Detail <BookingStatusBadge status={booking.status} />
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-mono">{booking.id}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {nextStatuses.map(ns => (
             <button key={ns} onClick={() => {
               if (booking.status === 'EXPIRED') { setShowReactivate(true); return; }
               handleStatusChange(ns);
             }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 ns === 'CANCELLED' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' :
                 ns === 'RETURNED' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' :
                 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
@@ -305,7 +305,7 @@ export default function AdminBookingDetail() {
             </button>
           ))}
           <button onClick={handleDeleteBooking} disabled={deleting}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-1.5">
+            className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-1.5">
             <Trash2 className="w-3.5 h-3.5" />
             {deleting ? 'Deleting...' : 'Delete'}
           </button>
@@ -325,7 +325,7 @@ export default function AdminBookingDetail() {
               rows={3}
               placeholder="Reason for reactivation (required)..."
             />
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button onClick={() => setShowReactivate(false)} className="btn-secondary flex-1">Cancel</button>
               {nextStatuses.filter(s => s !== 'CANCELLED').map(ns => (
                 <button
