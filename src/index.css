@@ -22,13 +22,16 @@
   ::-webkit-scrollbar {
     width: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
     background: rgba(168, 85, 247, 0.3);
     border-radius: 3px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(168, 85, 247, 0.5);
   }
@@ -40,6 +43,7 @@
 }
 
 @layer components {
+
   /* ─── Glass Surfaces ─── */
   .glass {
     background: rgba(255, 255, 255, 0.03);
@@ -65,13 +69,16 @@
     @apply px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300 cursor-pointer;
     background: linear-gradient(135deg, #a855f7, #6366f1);
   }
+
   .btn-primary:hover {
     box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
     transform: translateY(-1px);
   }
+
   .btn-primary:active {
     transform: translateY(0);
   }
+
   .btn-primary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -85,6 +92,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #e2e8f0;
   }
+
   .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
@@ -94,6 +102,7 @@
     @apply px-6 py-3 rounded-xl font-medium text-white transition-all duration-300 cursor-pointer;
     background: linear-gradient(135deg, #ef4444, #dc2626);
   }
+
   .btn-danger:hover {
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
   }
@@ -104,14 +113,17 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
+
   .input-field:focus {
     border-color: rgba(168, 85, 247, 0.5);
     box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
   }
+
   .input-field:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
+
   select.input-field option {
     background: #1e293b;
     color: #e2e8f0;
@@ -146,42 +158,49 @@
   .badge {
     @apply px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider inline-flex items-center;
   }
+
   .badge-hold {
     @apply badge;
     background: rgba(245, 158, 11, 0.15);
     color: #fbbf24;
     border: 1px solid rgba(245, 158, 11, 0.3);
   }
+
   .badge-paid {
     @apply badge;
     background: rgba(59, 130, 246, 0.15);
     color: #60a5fa;
     border: 1px solid rgba(59, 130, 246, 0.3);
   }
+
   .badge-confirmed {
     @apply badge;
     background: rgba(34, 197, 94, 0.15);
     color: #4ade80;
     border: 1px solid rgba(34, 197, 94, 0.3);
   }
+
   .badge-cancelled {
     @apply badge;
     background: rgba(239, 68, 68, 0.15);
     color: #f87171;
     border: 1px solid rgba(239, 68, 68, 0.3);
   }
+
   .badge-expired {
     @apply badge;
     background: rgba(100, 116, 139, 0.15);
     color: #94a3b8;
     border: 1px solid rgba(100, 116, 139, 0.3);
   }
+
   .badge-pickup {
     @apply badge;
     background: rgba(6, 182, 212, 0.15);
     color: #22d3ee;
     border: 1px solid rgba(6, 182, 212, 0.3);
   }
+
   .badge-returned {
     @apply badge;
     background: rgba(16, 185, 129, 0.15);
@@ -193,6 +212,7 @@
   .glow {
     box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
   }
+
   .glow-sm {
     box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
   }
@@ -203,18 +223,17 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 75%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.03) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
@@ -228,4 +247,27 @@
 
 .bg-gradient-radial {
   background: radial-gradient(ellipse at top, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+}
+
+/* Print styles for Invoice */
+@media print {
+  body {
+    background: white !important;
+  }
+
+  nav,
+  footer,
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  * {
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }

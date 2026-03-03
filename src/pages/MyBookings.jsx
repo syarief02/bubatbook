@@ -183,6 +183,13 @@ export default function MyBookings() {
                         </a>
                       )}
 
+                      {(booking.deposit_status === 'verified' || booking.full_payment_status === 'verified') && (
+                        <Link to={`/booking/${booking.id}/invoice`}
+                          className="text-xs text-violet-500/70 hover:text-violet-400 flex items-center gap-1">
+                          <Receipt className="w-3 h-3" /> Invoice
+                        </Link>
+                      )}
+
                       {canCancel(booking.status) && (
                         <>
                           {confirmCancelId === booking.id ? (

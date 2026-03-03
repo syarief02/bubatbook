@@ -631,6 +631,22 @@ export default function AdminBookingDetail() {
                 )}
               </div>
             </div>
+
+            {/* Official Invoice */}
+            {(booking.deposit_status === 'verified' || booking.full_payment_status === 'verified') && (
+              <div className="bg-violet-500/5 border border-violet-500/10 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-white font-medium">Official Invoice / Receipt</p>
+                    <p className="text-xs text-slate-500">Auto-generated company invoice</p>
+                  </div>
+                  <a href={`/booking/${id}/invoice`} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-colors whitespace-nowrap">
+                    <Eye className="w-3.5 h-3.5" /> View Invoice
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Documents */}
