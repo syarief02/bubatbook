@@ -1,31 +1,66 @@
 import { supabase } from './supabase';
 
 /**
+ * Log an upload step to the database for remote debugging.
+ * Fire-and-forget — never blocks the upload flow.
+ */
+async function logUploadStep(step, message, metadata = {}) {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        await supabase.from('bubatrent_booking_upload_logs').insert({
+            user_id: session.user.id,
+            booking_id: metadata.booking_id || null,
+            step,
+            message,
+            metadata: {
+                ...metadata,
+                browser: navigator.userAgent,
+                timestamp: new Date().toISOString(),
+            },
+        });
+    } catch {
+        // Never let logging break the upload
+    }
+}
+
+/**
  * Robust mobile-friendly upload function.
  * 1. Reads file into RAM as ArrayBuffer to bypass Android File streaming bugs.
  * 2. Uses XMLHttpRequest for maximum compatibility and progress tracking.
  * 3. Sends raw Uint8Array bytes to prevent browser chunking errors.
  * 4. Explicitly uses x-upsert: false to avoid RLS deadlocks.
+ * 5. Logs each step to bubatrent_booking_upload_logs for remote debugging.
  */
 export async function uploadFileRobust(bucket, path, file, toast = null) {
+    // Extract booking_id from path if possible (e.g. receipts/{bookingId}/...)
+    const bookingIdMatch = path.match(/(?:receipts|documents|uploads)\/([a-f0-9-]+)\//i);
+    const booking_id = bookingIdMatch ? bookingIdMatch[1] : null;
+    const logMeta = { bucket, path, booking_id, file_name: file.name, file_type: file.type, file_size: file.size };
+
     return new Promise(async (resolve) => {
         try {
             if (toast) toast.info('Step 1: Preparing file...');
+            logUploadStep('preflight', `Starting upload: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`, logMeta);
 
             // 0. Pre-flight checks
             if (file.name.match(/\.(heic|heif)$/i) || file.type.match(/heic|heif/i)) {
+                logUploadStep('error', 'HEIC format rejected', logMeta);
                 return resolve({ data: null, error: new Error('HEIC format not supported. Please change camera settings to JPEG or use a different file.') });
             }
             if (file.size > 10 * 1024 * 1024) {
+                logUploadStep('error', `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB`, logMeta);
                 return resolve({ data: null, error: new Error(`File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max allowed size is 10MB.`) });
             }
 
             const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
             if (sessionErr || !session) {
+                logUploadStep('error', 'Not authenticated', { ...logMeta, sessionErr: sessionErr?.message });
                 return resolve({ data: null, error: new Error('Not authenticated. Please log in again.') });
             }
 
             if (toast) toast.info('Step 2: Reading image into memory...');
+            logUploadStep('reading_file', 'Reading file into memory via FileReader', logMeta);
 
             // Read file into ArrayBuffer to bypass Android File streaming bugs
             const arrayBuffer = await new Promise((res, rej) => {
@@ -37,6 +72,7 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
 
             const kbSize = Math.round(arrayBuffer.byteLength / 1024);
             if (toast) toast.info(`Step 3: Uploading ${kbSize}KB...`);
+            logUploadStep('uploading', `XHR upload starting: ${kbSize}KB to ${bucket}/${path}`, { ...logMeta, kbSize });
             console.log(`[UploadHelper] Starting upload of ${kbSize}KB to ${bucket}/${path}`);
 
             const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/${bucket}/${path}`;
@@ -56,8 +92,10 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
                         const percent = Math.round((e.loaded / e.total) * 100);
                         if (percent === 50 || percent === 100) {
                             console.log(`[UploadHelper] Progress: ${percent}%`);
-                            // Only toast at 50% so we don't spam the UI
-                            if (percent === 50) toast.info(`Uploading: 50%...`);
+                            if (percent === 50) {
+                                toast.info(`Uploading: 50%...`);
+                                logUploadStep('progress', 'Upload 50%', { ...logMeta, percent });
+                            }
                         }
                     }
                 };
@@ -66,25 +104,31 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
             xhr.onload = () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     console.log(`[UploadHelper] Upload success! HTTP ${xhr.status}`);
+                    logUploadStep('success', `Upload complete! HTTP ${xhr.status}`, { ...logMeta, httpStatus: xhr.status });
                     resolve({ data: { path }, error: null });
                 } else {
                     console.error(`[UploadHelper] Upload error: HTTP ${xhr.status}`, xhr.responseText);
+                    let errMsg;
                     try {
                         const errBody = JSON.parse(xhr.responseText);
-                        resolve({ data: null, error: new Error(`Upload failed (HTTP ${xhr.status}): ${errBody.message || errBody.error}`) });
+                        errMsg = `Upload failed (HTTP ${xhr.status}): ${errBody.message || errBody.error}`;
                     } catch {
-                        resolve({ data: null, error: new Error(`Upload failed (HTTP ${xhr.status}): ${xhr.statusText}`) });
+                        errMsg = `Upload failed (HTTP ${xhr.status}): ${xhr.statusText}`;
                     }
+                    logUploadStep('error', errMsg, { ...logMeta, httpStatus: xhr.status, response: xhr.responseText?.substring(0, 500) });
+                    resolve({ data: null, error: new Error(errMsg) });
                 }
             };
 
             xhr.onerror = () => {
                 console.error('[UploadHelper] XHR network error.');
+                logUploadStep('network_error', 'XHR network error — connection lost or CORS issue', logMeta);
                 resolve({ data: null, error: new Error('Network error during upload. Check connection.') });
             };
 
             xhr.ontimeout = () => {
                 console.error('[UploadHelper] XHR timeout after 90s.');
+                logUploadStep('timeout', 'XHR timed out after 90 seconds', logMeta);
                 resolve({ data: null, error: new Error('Upload timed out after 90s. Please check your network connection.') });
             };
 
@@ -93,6 +137,7 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
 
         } catch (err) {
             console.error('[UploadHelper] Unexpected error:', err);
+            logUploadStep('error', `Unexpected error: ${err.message}`, { ...logMeta, stack: err.stack?.substring(0, 500) });
             resolve({ data: null, error: err });
         }
     });

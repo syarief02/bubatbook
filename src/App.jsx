@@ -37,6 +37,7 @@ const GroupMembers = lazy(() => import('./pages/admin/GroupMembers'));
 const CreateCustomer = lazy(() => import('./pages/admin/CreateCustomer'));
 const AdminBookForCustomer = lazy(() => import('./pages/admin/AdminBookForCustomer'));
 const UserManual = lazy(() => import('./pages/admin/UserManual'));
+const UploadLogs = lazy(() => import('./pages/admin/UploadLogs'));
 const RentalAgreement = lazy(() => import('./pages/RentalAgreement'));
 const Invoice = lazy(() => import('./pages/Invoice'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -103,6 +104,7 @@ function AppRoutes() {
             <Route path="/admin/groups" element={<AdminRoute><GroupManagement /></AdminRoute>} />
             <Route path="/admin/change-requests" element={<AdminRoute><ChangeRequests /></AdminRoute>} />
             <Route path="/admin/manual" element={<AdminRoute><UserManual /></AdminRoute>} />
+            <Route path="/admin/upload-logs" element={<AdminRoute><UploadLogs /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
