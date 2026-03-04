@@ -127,7 +127,9 @@ export default function AdminBookingDetail() {
           .filter(p => p.status === 'completed')
           .reduce((sum, p) => sum + Number(p.amount || 0), 0);
         const totalPrice = Number(booking.total_price || 0);
-        if (totalPaid < totalPrice) {
+        // Also accept if both receipts are verified (handles legacy data before payment record fix)
+        const receiptsVerified = booking.deposit_status === 'verified' && booking.full_payment_status === 'verified';
+        if (totalPaid < totalPrice && !receiptsVerified) {
           const outstanding = totalPrice - totalPaid;
           toast.error(`Cannot mark as Picked Up — full payment required. Outstanding: RM ${outstanding.toFixed(2)} (Paid: RM ${totalPaid.toFixed(2)} / Total: RM ${totalPrice.toFixed(2)})`);
           return;
@@ -209,7 +211,21 @@ export default function AdminBookingDetail() {
         .update({ deposit_status: 'verified' })
         .eq('id', id);
       if (error) throw error;
-      setBooking(prev => ({ ...prev, deposit_status: 'verified' }));
+
+      // Also mark the deposit payment record as completed
+      await supabase.from('bubatrent_booking_payments')
+        .update({ status: 'completed' })
+        .eq('booking_id', id)
+        .eq('payment_type', 'deposit');
+
+      // Refresh booking with updated payment data
+      const { data: refreshed } = await supabase
+        .from('bubatrent_booking_bookings')
+        .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
+        .eq('id', id)
+        .maybeSingle();
+      if (refreshed) setBooking(refreshed);
+
       toast.success('Deposit receipt verified!');
     } catch (err) {
       toast.error(err.message);
@@ -237,7 +253,38 @@ export default function AdminBookingDetail() {
         .update({ full_payment_status: 'verified' })
         .eq('id', id);
       if (error) throw error;
-      setBooking(prev => ({ ...prev, full_payment_status: 'verified' }));
+
+      // Update or create the full payment record as completed
+      const { data: existing } = await supabase
+        .from('bubatrent_booking_payments')
+        .select('id')
+        .eq('booking_id', id)
+        .eq('payment_type', 'full_payment')
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from('bubatrent_booking_payments')
+          .update({ status: 'completed' })
+          .eq('id', existing.id);
+      } else {
+        await supabase.from('bubatrent_booking_payments').insert({
+          booking_id: id,
+          amount: booking.full_payment_amount || booking.total_price,
+          payment_method: 'bank_transfer',
+          status: 'completed',
+          payment_type: 'full_payment',
+          reference_number: `FP-${Date.now().toString(36).toUpperCase()}`,
+        });
+      }
+
+      // Refresh booking with updated payment data
+      const { data: refreshed } = await supabase
+        .from('bubatrent_booking_bookings')
+        .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
+        .eq('id', id)
+        .maybeSingle();
+      if (refreshed) setBooking(refreshed);
+
       toast.success('Full payment verified!');
     } catch (err) {
       toast.error(err.message);
