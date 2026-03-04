@@ -149,26 +149,7 @@ export default function AdminBookingDetail() {
       setBooking(prev => ({ ...prev, ...updates }));
       toast.success(`Status updated to ${newStatus}`);
 
-      // If returned, add deposit back as credit
-      if (newStatus === 'RETURNED' && booking.deposit_amount > 0) {
-        const profileData = await supabase
-          .from('bubatrent_booking_profiles')
-          .select('deposit_credit')
-          .eq('id', booking.user_id)
-          .single();
-        const currentCredit = Number(profileData.data?.deposit_credit || 0);
-        await supabase.from('bubatrent_booking_profiles')
-          .update({ deposit_credit: currentCredit + Number(booking.deposit_amount) })
-          .eq('id', booking.user_id);
-        await supabase.from('bubatrent_booking_credit_transactions').insert({
-          user_id: booking.user_id,
-          booking_id: id,
-          amount: Number(booking.deposit_amount),
-          type: 'deposit_return',
-          description: `Deposit returned from booking`,
-          admin_id: user.id,
-        });
-      }
+
     } catch (err) {
       toast.error(err.message);
     }
@@ -218,6 +199,27 @@ export default function AdminBookingDetail() {
         .eq('booking_id', id)
         .eq('payment_type', 'deposit');
 
+      // Increase customer deposit credit by the deposit amount
+      if (booking.deposit_amount > 0) {
+        const profileData = await supabase
+          .from('bubatrent_booking_profiles')
+          .select('deposit_credit')
+          .eq('id', booking.user_id)
+          .single();
+        const currentCredit = Number(profileData.data?.deposit_credit || 0);
+        await supabase.from('bubatrent_booking_profiles')
+          .update({ deposit_credit: currentCredit + Number(booking.deposit_amount) })
+          .eq('id', booking.user_id);
+        await supabase.from('bubatrent_booking_credit_transactions').insert({
+          user_id: booking.user_id,
+          booking_id: id,
+          amount: Number(booking.deposit_amount),
+          type: 'deposit_paid',
+          description: `Deposit verified — credit added`,
+          admin_id: user.id,
+        });
+      }
+
       // Refresh booking with updated payment data
       const { data: refreshed } = await supabase
         .from('bubatrent_booking_bookings')
@@ -226,7 +228,7 @@ export default function AdminBookingDetail() {
         .maybeSingle();
       if (refreshed) setBooking(refreshed);
 
-      toast.success('Deposit receipt verified!');
+      toast.success('Deposit receipt verified! Customer credit updated.');
     } catch (err) {
       toast.error(err.message);
     }
