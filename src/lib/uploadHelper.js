@@ -26,11 +26,12 @@ async function logUploadStep(step, message, metadata = {}) {
 
 /**
  * Robust mobile-friendly upload function.
- * 1. Reads file into RAM as ArrayBuffer to bypass Android File streaming bugs.
+ * 1. Sends the File object directly via XHR — no FileReader or ArrayBuffer copy,
+ *    so Android browsers don't freeze from doubled memory usage.
  * 2. Uses XMLHttpRequest for maximum compatibility and progress tracking.
- * 3. Sends raw Uint8Array bytes to prevent browser chunking errors.
- * 4. Explicitly uses x-upsert: false to avoid RLS deadlocks.
- * 5. Logs each step to bubatrent_booking_upload_logs for remote debugging.
+ * 3. Explicitly uses x-upsert: false to avoid RLS deadlocks.
+ * 4. Logs each step to bubatrent_booking_upload_logs for remote debugging.
+ * 5. Warns users when files exceed 5MB (still allows up to 10MB max).
  */
 export async function uploadFileRobust(bucket, path, file, toast = null) {
     // Extract booking_id from path if possible (e.g. receipts/{bookingId}/...)
@@ -59,19 +60,13 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
                 return resolve({ data: null, error: new Error('Not authenticated. Please log in again.') });
             }
 
-            if (toast) toast.info('Step 2: Reading image into memory...');
-            logUploadStep('reading_file', 'Reading file into memory via FileReader', logMeta);
+            // Warn user about large files (> 5MB) — they still upload but may be slow on mobile
+            if (file.size > 5 * 1024 * 1024 && toast) {
+                toast.warn(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) — upload may take a moment on mobile.`);
+            }
 
-            // Read file into ArrayBuffer to bypass Android File streaming bugs
-            const arrayBuffer = await new Promise((res, rej) => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result);
-                reader.onerror = () => rej(new Error('Browser failed to read file from disk.'));
-                reader.readAsArrayBuffer(file);
-            });
-
-            const kbSize = Math.round(arrayBuffer.byteLength / 1024);
-            if (toast) toast.info(`Step 3: Uploading ${kbSize}KB...`);
+            const kbSize = Math.round(file.size / 1024);
+            if (toast) toast.info(`Step 2: Uploading ${kbSize}KB...`);
             logUploadStep('uploading', `XHR upload starting: ${kbSize}KB to ${bucket}/${path}`, { ...logMeta, kbSize });
             console.log(`[UploadHelper] Starting upload of ${kbSize}KB to ${bucket}/${path}`);
 
@@ -132,8 +127,11 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
                 resolve({ data: null, error: new Error('Upload timed out after 90s. Please check your network connection.') });
             };
 
-            // Send raw bytes, NOT the File object!
-            xhr.send(new Uint8Array(arrayBuffer));
+            // Send the File object directly — XHR streams it from disk without
+            // loading the entire file into JS heap memory.  This is the key fix
+            // for Android browsers where FileReader.readAsArrayBuffer() + Uint8Array
+            // copy would double RAM usage and freeze the JS thread.
+            xhr.send(file);
 
         } catch (err) {
             console.error('[UploadHelper] Unexpected error:', err);
