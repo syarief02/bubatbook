@@ -104,7 +104,17 @@ export default function RentalAgreement() {
       if (error) throw error;
 
       toast.success('Agreement signed successfully!');
-      setExistingAgreement({ ...insertData, agreed_at: new Date().toISOString(), signature_data: signatureData });
+      setExistingAgreement({ 
+        agreed_at: new Date().toISOString(), 
+        signature_data: signatureData,
+        customer_name: profile?.full_name || user.email,
+        customer_ic: profile?.ic_number || '',
+        car_model: `${car?.brand || ''} ${car?.model || ''}`.trim(),
+        pickup_date: booking.pickup_date,
+        return_date: booking.return_date,
+        total_price: booking.total_price,
+        deposit_amount: booking.deposit_amount,
+      });
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Failed to submit agreement.');
