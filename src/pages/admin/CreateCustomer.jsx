@@ -91,14 +91,9 @@ export default function CreateCustomer() {
           state: form.state || null,
           postcode: form.postcode || null,
           licence_expiry: form.licence_expiry,
-          ic_image_url: icPath,
-          licence_image_url: licPath,
-          ic_verified: true,
-          licence_verified: true,
+          ic_file_path: icPath,
+          licence_file_path: licPath,
           is_verified: true,
-          verified_by: user.id,
-          verified_at: new Date().toISOString(),
-          role: 'customer',
         });
       if (profileErr) throw profileErr;
 
