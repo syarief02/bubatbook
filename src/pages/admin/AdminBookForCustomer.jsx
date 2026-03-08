@@ -169,6 +169,8 @@ export default function AdminBookForCustomer() {
           customer_name: selectedCust.display_name || '',
           customer_email: selectedCust.username || '',
           customer_phone: selectedCust.phone || '',
+          deposit_receipt_path: receiptUrl,
+          deposit_status: receiptUrl ? 'uploaded' : 'pending',
         })
         .select()
         .single();
