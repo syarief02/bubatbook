@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { uploadFileRobust } from '../lib/uploadHelper';
+import { uploadFileRobust, getSessionWithTimeout } from '../lib/uploadHelper';
 import { useToast } from '../components/Toast';
 import {
   FileCheck, Shield, Upload, FileImage, Loader2,
@@ -40,10 +40,10 @@ export default function VerifyAccount() {
     return null;
   }
 
-  async function uploadFile(file, folder) {
-    const ext = file.name.split('.').pop().replace(/[^a-zA-Z0-9]/g, '');
+  async function uploadFile(file, folder, token) {
+    const ext = file.name.split('.').pop().replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
     const filePath = `profiles/${user.id}/${folder}_${Date.now()}.${ext}`;
-    const { error: uploadErr } = await uploadFileRobust('customer-documents', filePath, file, toast);
+    const { error: uploadErr } = await uploadFileRobust('customer-documents', filePath, file, toast, token);
     if (uploadErr) throw uploadErr;
     return filePath;
   }
@@ -70,13 +70,21 @@ export default function VerifyAccount() {
       if (licErr) { setError(licErr); return; }
     }
 
+    // Get session once with timeout — avoids Android getSession() hang
+    const { session, error: sessionErr } = await getSessionWithTimeout(8000);
+    if (sessionErr || !session) {
+      setError('Session expired. Please refresh the page and log in again.');
+      return;
+    }
+    const token = session.access_token;
+
     setUploading(true);
     try {
       let icPath = profile?.ic_file_path || null;
       let licencePath = profile?.licence_file_path || null;
 
-      if (icFile) icPath = await uploadFile(icFile, 'ic');
-      if (licenceFile) licencePath = await uploadFile(licenceFile, 'licence');
+      if (icFile) icPath = await uploadFile(icFile, 'ic', token);
+      if (licenceFile) licencePath = await uploadFile(licenceFile, 'licence', token);
 
       if (isUpdate) {
         // Submit as pending verification update (old stays valid)

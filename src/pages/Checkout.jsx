@@ -4,7 +4,7 @@ import { useCar } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
 import { createHoldBooking, updateBookingCustomerInfo, cancelBooking } from '../hooks/useBookings';
 import { supabase } from '../lib/supabase';
-import { uploadFileRobust } from '../lib/uploadHelper';
+import { uploadFileRobust, getSessionWithTimeout } from '../lib/uploadHelper';
 import BookingForm from '../components/BookingForm';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
@@ -165,15 +165,23 @@ export default function Checkout() {
       toast.error('Please upload your payment receipt.');
       return;
     }
+    // Get session once with timeout — avoids Android getSession() hang
+    const { session, error: sessionErr } = await getSessionWithTimeout(8000);
+    if (sessionErr || !session) {
+      toast.error('Session expired. Please refresh the page and log in again.');
+      return;
+    }
+    const token = session.access_token;
+
     setUploading(true);
     try {
       let receiptPath = null;
 
       // Upload receipt if payment is required
       if (receiptFile) {
-        const ext = receiptFile.name.split('.').pop();
+        const ext = receiptFile.name.split('.').pop().replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
         const path = `receipts/${booking.id}/deposit_${Date.now()}.${ext}`;
-        const { error: upErr } = await uploadFileRobust('customer-documents', path, receiptFile, toast);
+        const { error: upErr } = await uploadFileRobust('customer-documents', path, receiptFile, toast, token);
         if (upErr) throw upErr;
         receiptPath = path;
       }
