@@ -85,7 +85,6 @@ export default function CreateCustomer() {
           display_name: form.display_name || null,
           ic_number: form.ic_number,
           phone: normalizedPhone,
-          email: form.email || null,
           address_line1: form.address_line1,
           address_line2: form.address_line2 || null,
           city: form.city || null,
