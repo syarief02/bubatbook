@@ -77,24 +77,22 @@ export default function CreateCustomer() {
       const { error: licUpErr } = await uploadFileRobust('customer-documents', licPath, licenceFile, toast);
       if (licUpErr) throw new Error('Licence upload failed: ' + licUpErr.message);
 
-      // Create profile
-      const { error: profileErr } = await supabase
-        .from('bubatrent_booking_profiles')
-        .insert({
-          id: profileId,
-          display_name: form.display_name || null,
-          ic_number: form.ic_number,
-          phone: normalizedPhone,
-          address_line1: form.address_line1,
-          address_line2: form.address_line2 || null,
-          city: form.city || null,
-          state: form.state || null,
-          postcode: form.postcode || null,
-          licence_expiry: form.licence_expiry,
-          ic_file_path: icPath,
-          licence_file_path: licPath,
-          is_verified: true,
-        });
+      // Create profile via secure RPC bypassing RLS & inserting dummy auth user
+      const { error: profileErr } = await supabase.rpc('admin_create_walk_in_customer', {
+        p_id: profileId,
+        p_display_name: form.display_name || null,
+        p_ic_number: form.ic_number,
+        p_phone: normalizedPhone,
+        p_address_line1: form.address_line1,
+        p_address_line2: form.address_line2 || null,
+        p_city: form.city || null,
+        p_state: form.state || null,
+        p_postcode: form.postcode || null,
+        p_licence_expiry: form.licence_expiry,
+        p_ic_file_path: icPath,
+        p_licence_file_path: licPath,
+        p_admin_id: user.id
+      });
       if (profileErr) throw profileErr;
 
       // Audit log
