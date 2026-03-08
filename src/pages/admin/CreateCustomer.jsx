@@ -91,7 +91,6 @@ export default function CreateCustomer() {
           state: form.state || null,
           postcode: form.postcode || null,
           licence_expiry: form.licence_expiry,
-          gdl_license: form.gdl_license,
           ic_image_url: icPath,
           licence_image_url: licPath,
           ic_verified: true,
