@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { Mail, Lock, User, Phone, AlertCircle, Car, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  User,
+  Phone,
+  AlertCircle,
+  Car,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
 import { useToast } from '../components/Toast';
 
 function PasswordStrength({ password }) {
@@ -10,19 +21,23 @@ function PasswordStrength({ password }) {
     { label: 'Uppercase letter', pass: /[A-Z]/.test(password) },
     { label: 'Number', pass: /\d/.test(password) },
   ];
-  const passed = checks.filter(c => c.pass).length;
+  const passed = checks.filter((c) => c.pass).length;
 
   if (!password) return null;
 
   return (
     <div className="mt-2 space-y-1">
       <div className="flex gap-1">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
             className={`h-1 flex-1 rounded-full transition-colors ${
               i <= passed
-                ? passed === 3 ? 'bg-green-400' : passed >= 2 ? 'bg-yellow-400' : 'bg-red-400'
+                ? passed === 3
+                  ? 'bg-green-400'
+                  : passed >= 2
+                    ? 'bg-yellow-400'
+                    : 'bg-red-400'
                 : 'bg-white/10'
             }`}
           />
@@ -30,7 +45,10 @@ function PasswordStrength({ password }) {
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-0.5">
         {checks.map(({ label, pass }) => (
-          <span key={label} className={`text-[10px] flex items-center gap-0.5 ${pass ? 'text-green-400' : 'text-slate-500'}`}>
+          <span
+            key={label}
+            className={`text-[10px] flex items-center gap-0.5 ${pass ? 'text-green-400' : 'text-slate-500'}`}
+          >
             {pass ? <CheckCircle className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
             {label}
           </span>

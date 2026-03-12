@@ -11,24 +11,36 @@ import { formatDate } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import { CalendarDays, ExternalLink, Filter, Search, Hash } from 'lucide-react';
 
-const STATUSES = ['ALL', 'HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED', 'CANCELLED', 'EXPIRED'];
+const STATUSES = [
+  'ALL',
+  'HOLD',
+  'DEPOSIT_PAID',
+  'CONFIRMED',
+  'PICKUP',
+  'RETURNED',
+  'CANCELLED',
+  'EXPIRED',
+];
 
 export default function AdminBookings() {
   const toast = useToast();
   const { activeFleetId } = useFleet();
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [customerSearch, setCustomerSearch] = useState('');
-  const { bookings, loading, error, refetch } = useAdminBookings(
-    { ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}), fleetId: activeFleetId }
-  );
+  const { bookings, loading, error, refetch } = useAdminBookings({
+    ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
+    fleetId: activeFleetId,
+  });
 
   // Client-side filter by customer name/email
-  const filteredBookings = bookings.filter(b => {
+  const filteredBookings = bookings.filter((b) => {
     if (!customerSearch) return true;
     const q = customerSearch.toLowerCase();
-    return (b.customer_name || '').toLowerCase().includes(q)
-      || (b.customer_email || '').toLowerCase().includes(q)
-      || b.id.toLowerCase().startsWith(q);
+    return (
+      (b.customer_name || '').toLowerCase().includes(q) ||
+      (b.customer_email || '').toLowerCase().includes(q) ||
+      b.id.toLowerCase().startsWith(q)
+    );
   });
 
   async function handleStatusChange(bookingId, newStatus) {
@@ -52,7 +64,7 @@ export default function AdminBookings() {
             type="text"
             placeholder="Search customer name, email, or booking ID..."
             value={customerSearch}
-            onChange={e => setCustomerSearch(e.target.value)}
+            onChange={(e) => setCustomerSearch(e.target.value)}
             className="input-field !pl-10 !py-2 text-sm"
           />
         </div>
@@ -61,7 +73,7 @@ export default function AdminBookings() {
       {/* Status tabs */}
       <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
         <Filter className="w-4 h-4 text-slate-500 shrink-0" />
-        {STATUSES.map(s => (
+        {STATUSES.map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
@@ -82,16 +94,24 @@ export default function AdminBookings() {
       {loading ? (
         <LoadingSpinner />
       ) : error ? (
-        <div className="glass-card text-center"><p className="text-red-400">{error}</p></div>
+        <div className="glass-card text-center">
+          <p className="text-red-400">{error}</p>
+        </div>
       ) : filteredBookings.length === 0 ? (
         <EmptyState
           icon={CalendarDays}
           title="No bookings found"
-          description={customerSearch ? 'Try a different search term' : statusFilter !== 'ALL' ? `No ${statusFilter} bookings.` : 'No bookings yet.'}
+          description={
+            customerSearch
+              ? 'Try a different search term'
+              : statusFilter !== 'ALL'
+                ? `No ${statusFilter} bookings.`
+                : 'No bookings yet.'
+          }
         />
       ) : (
         <div className="space-y-3">
-          {filteredBookings.map(booking => {
+          {filteredBookings.map((booking) => {
             const car = booking.bubatrent_booking_cars;
             return (
               <div key={booking.id} className="glass-card">
@@ -99,19 +119,27 @@ export default function AdminBookings() {
                   {/* Car info */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {car?.image_url && (
-                      <img src={car.image_url} alt={car.name} className="w-16 h-12 rounded-lg object-cover shrink-0" />
+                      <img
+                        src={car.image_url}
+                        alt={car.name}
+                        className="w-16 h-12 rounded-lg object-cover shrink-0"
+                      />
                     )}
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-white font-medium text-sm truncate">{car?.name || 'Car'}</h3>
+                        <h3 className="text-white font-medium text-sm truncate">
+                          {car?.name || 'Car'}
+                        </h3>
                         <BookingStatusBadge status={booking.status} />
                       </div>
                       <div className="flex items-center gap-2">
                         <p className="text-xs text-slate-500 truncate">
-                          {booking.customer_name || 'No name'} · {booking.customer_email || 'No email'}
+                          {booking.customer_name || 'No name'} ·{' '}
+                          {booking.customer_email || 'No email'}
                         </p>
                         <span className="text-[10px] text-slate-600 font-mono flex items-center gap-0.5 shrink-0">
-                          <Hash className="w-2.5 h-2.5" />{booking.id.slice(0, 8)}
+                          <Hash className="w-2.5 h-2.5" />
+                          {booking.id.slice(0, 8)}
                         </span>
                       </div>
                     </div>
@@ -121,11 +149,16 @@ export default function AdminBookings() {
                   <div className="flex gap-6 text-xs shrink-0">
                     <div>
                       <p className="text-slate-500">Dates</p>
-                      <p className="text-slate-200">{formatDate(booking.pickup_date)} → {formatDate(booking.return_date)}</p>
+                      <p className="text-slate-200">
+                        {formatDate(booking.pickup_date)} → {formatDate(booking.return_date)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-slate-500">Total / Deposit</p>
-                      <p className="text-slate-200">{formatMYR(booking.total_price)} / <span className="text-green-400">{formatMYR(booking.deposit_amount)}</span></p>
+                      <p className="text-slate-200">
+                        {formatMYR(booking.total_price)} /{' '}
+                        <span className="text-green-400">{formatMYR(booking.deposit_amount)}</span>
+                      </p>
                     </div>
                   </div>
 

@@ -18,7 +18,12 @@ export default function FleetSettings() {
 
   // Register new fleet
   const [showRegister, setShowRegister] = useState(false);
-  const [regForm, setRegForm] = useState({ name: '', support_email: '', support_phone: '', support_whatsapp: '' });
+  const [regForm, setRegForm] = useState({
+    name: '',
+    support_email: '',
+    support_phone: '',
+    support_whatsapp: '',
+  });
   const [registering, setRegistering] = useState(false);
 
   function startEdit() {
@@ -33,10 +38,14 @@ export default function FleetSettings() {
 
   async function handleSave(e) {
     e.preventDefault();
-    if (!form.name?.trim()) { toast.error('Fleet name is required'); return; }
+    if (!form.name?.trim()) {
+      toast.error('Fleet name is required');
+      return;
+    }
     setSaving(true);
     try {
-      const { error } = await supabase.from('bubatrent_booking_fleet_groups')
+      const { error } = await supabase
+        .from('bubatrent_booking_fleet_groups')
         .update({
           name: form.name.trim(),
           support_email: form.support_email?.trim() || null,
@@ -48,17 +57,27 @@ export default function FleetSettings() {
       toast.success('Fleet settings updated');
       setEditing(false);
       refetchFleets();
-    } catch (err) { toast.error(err.message); }
-    finally { setSaving(false); }
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleRegister(e) {
     e.preventDefault();
-    if (!regForm.name?.trim()) { toast.error('Fleet name is required'); return; }
+    if (!regForm.name?.trim()) {
+      toast.error('Fleet name is required');
+      return;
+    }
     setRegistering(true);
     try {
-      const slug = regForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const { data: newFleet, error: fleetErr } = await supabase.from('bubatrent_booking_fleet_groups')
+      const slug = regForm.name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-');
+      const { data: newFleet, error: fleetErr } = await supabase
+        .from('bubatrent_booking_fleet_groups')
         .insert({
           name: regForm.name.trim(),
           slug,
@@ -67,16 +86,16 @@ export default function FleetSettings() {
           support_whatsapp: regForm.support_whatsapp?.trim() || null,
           created_by: user.id,
         })
-        .select().single();
+        .select()
+        .single();
       if (fleetErr) throw fleetErr;
 
       // Auto-add creator as fleet_admin
-      const { error: memErr } = await supabase.from('bubatrent_booking_fleet_memberships')
-        .insert({
-          user_id: user.id,
-          fleet_group_id: newFleet.id,
-          role: 'fleet_admin',
-        });
+      const { error: memErr } = await supabase.from('bubatrent_booking_fleet_memberships').insert({
+        user_id: user.id,
+        fleet_group_id: newFleet.id,
+        role: 'fleet_admin',
+      });
       if (memErr) throw memErr;
 
       // Audit log
@@ -92,8 +111,11 @@ export default function FleetSettings() {
       setShowRegister(false);
       setRegForm({ name: '', support_email: '', support_phone: '', support_whatsapp: '' });
       refetchFleets();
-    } catch (err) { toast.error(err.message); }
-    finally { setRegistering(false); }
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setRegistering(false);
+    }
   }
 
   return (
@@ -122,26 +144,67 @@ export default function FleetSettings() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="input-label">Fleet Name *</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="input-field" required />
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="input-field"
+                  required
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="input-label flex items-center gap-1"><Mail className="w-3 h-3" /> Support Email</label>
-                  <input value={form.support_email} onChange={e => setForm({ ...form, support_email: e.target.value })} className="input-field" type="email" placeholder="support@example.com" />
+                  <label className="input-label flex items-center gap-1">
+                    <Mail className="w-3 h-3" /> Support Email
+                  </label>
+                  <input
+                    value={form.support_email}
+                    onChange={(e) => setForm({ ...form, support_email: e.target.value })}
+                    className="input-field"
+                    type="email"
+                    placeholder="support@example.com"
+                  />
                 </div>
                 <div>
-                  <label className="input-label flex items-center gap-1"><Phone className="w-3 h-3" /> Support Phone</label>
-                  <input value={form.support_phone} onChange={e => setForm({ ...form, support_phone: e.target.value })} className="input-field" placeholder="+60 12-345 6789" />
+                  <label className="input-label flex items-center gap-1">
+                    <Phone className="w-3 h-3" /> Support Phone
+                  </label>
+                  <input
+                    value={form.support_phone}
+                    onChange={(e) => setForm({ ...form, support_phone: e.target.value })}
+                    className="input-field"
+                    placeholder="+60 12-345 6789"
+                  />
                 </div>
                 <div>
-                  <label className="input-label flex items-center gap-1"><MessageCircle className="w-3 h-3" /> WhatsApp Number</label>
-                  <input value={form.support_whatsapp} onChange={e => setForm({ ...form, support_whatsapp: e.target.value })} className="input-field" placeholder="601234567890" />
+                  <label className="input-label flex items-center gap-1">
+                    <MessageCircle className="w-3 h-3" /> WhatsApp Number
+                  </label>
+                  <input
+                    value={form.support_whatsapp}
+                    onChange={(e) => setForm({ ...form, support_whatsapp: e.target.value })}
+                    className="input-field"
+                    placeholder="601234567890"
+                  />
                 </div>
               </div>
               <div className="flex gap-3">
-                <button type="button" onClick={() => setEditing(false)} className="btn-secondary flex-1">Cancel</button>
-                <button type="submit" disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="btn-primary flex-1 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
                   {saving ? 'Saving...' : 'Save Settings'}
                 </button>
               </div>
@@ -168,9 +231,14 @@ export default function FleetSettings() {
       {/* Register New Fleet — accessible to all admins */}
       <div className="glass-card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Register New Fleet Group</h3>
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+            Register New Fleet Group
+          </h3>
           {!showRegister && (
-            <button onClick={() => setShowRegister(true)} className="btn-primary flex items-center gap-2 text-sm">
+            <button
+              onClick={() => setShowRegister(true)}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
               <Plus className="w-4 h-4" /> New Fleet
             </button>
           )}
@@ -179,56 +247,98 @@ export default function FleetSettings() {
         {fleets.length > 0 && !showRegister && !isSuperAdmin && (
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 mb-3">
             <p className="text-xs text-blue-300">
-              You already manage <strong>{fleets.map(f => f.name).join(', ')}</strong>.
-              Creating a new fleet will add it to your groups.
+              You already manage <strong>{fleets.map((f) => f.name).join(', ')}</strong>. Creating a
+              new fleet will add it to your groups.
             </p>
           </div>
         )}
 
         {showRegister && (
-            <form onSubmit={handleRegister} className="space-y-4 animate-fade-in">
+          <form onSubmit={handleRegister} className="space-y-4 animate-fade-in">
+            <div>
+              <label className="input-label">Fleet Name *</label>
+              <input
+                value={regForm.name}
+                onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
+                className="input-field"
+                placeholder="e.g. MyCompany Cars"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="input-label">Fleet Name *</label>
-                <input value={regForm.name} onChange={e => setRegForm({ ...regForm, name: e.target.value })} className="input-field" placeholder="e.g. MyCompany Cars" required />
+                <label className="input-label">Support Email</label>
+                <input
+                  value={regForm.support_email}
+                  onChange={(e) => setRegForm({ ...regForm, support_email: e.target.value })}
+                  className="input-field"
+                  type="email"
+                />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="input-label">Support Email</label>
-                  <input value={regForm.support_email} onChange={e => setRegForm({ ...regForm, support_email: e.target.value })} className="input-field" type="email" />
-                </div>
-                <div>
-                  <label className="input-label">Support Phone</label>
-                  <input value={regForm.support_phone} onChange={e => setRegForm({ ...regForm, support_phone: e.target.value })} className="input-field" />
-                </div>
-                <div>
-                  <label className="input-label">WhatsApp Number</label>
-                  <input value={regForm.support_whatsapp} onChange={e => setRegForm({ ...regForm, support_whatsapp: e.target.value })} className="input-field" />
-                </div>
+              <div>
+                <label className="input-label">Support Phone</label>
+                <input
+                  value={regForm.support_phone}
+                  onChange={(e) => setRegForm({ ...regForm, support_phone: e.target.value })}
+                  className="input-field"
+                />
               </div>
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setShowRegister(false)} className="btn-secondary flex-1">Cancel</button>
-                <button type="submit" disabled={registering} className="btn-primary flex-1 flex items-center justify-center gap-2">
-                  {registering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
-                  {registering ? 'Creating...' : 'Create Fleet Group'}
-                </button>
+              <div>
+                <label className="input-label">WhatsApp Number</label>
+                <input
+                  value={regForm.support_whatsapp}
+                  onChange={(e) => setRegForm({ ...regForm, support_whatsapp: e.target.value })}
+                  className="input-field"
+                />
               </div>
-            </form>
-          )}
-        </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowRegister(false)}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={registering}
+                className="btn-primary flex-1 flex items-center justify-center gap-2"
+              >
+                {registering ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Building2 className="w-4 h-4" />
+                )}
+                {registering ? 'Creating...' : 'Create Fleet Group'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
 
       {/* All Fleets (super admin only) */}
       {isSuperAdmin && fleets.length > 0 && (
         <div className="glass-card mt-6">
-          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">All Fleet Groups</h3>
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            All Fleet Groups
+          </h3>
           <div className="space-y-2">
-            {fleets.map(f => (
-              <div key={f.id} className={`flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${f.id === activeFleetId ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-white/5'}`}>
+            {fleets.map((f) => (
+              <div
+                key={f.id}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${f.id === activeFleetId ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-white/5'}`}
+              >
                 <div>
                   <p className="text-sm text-white font-medium">{f.name}</p>
-                  <p className="text-[10px] text-slate-500">{f.slug} • Created {new Date(f.created_at).toLocaleDateString()}</p>
+                  <p className="text-[10px] text-slate-500">
+                    {f.slug} • Created {new Date(f.created_at).toLocaleDateString()}
+                  </p>
                 </div>
                 {f.id === activeFleetId && (
-                  <span className="px-2 py-1 rounded-full text-[10px] bg-violet-500/20 text-violet-300">Active</span>
+                  <span className="px-2 py-1 rounded-full text-[10px] bg-violet-500/20 text-violet-300">
+                    Active
+                  </span>
                 )}
               </div>
             ))}

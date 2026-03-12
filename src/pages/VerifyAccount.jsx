@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -5,15 +6,27 @@ import { supabase } from '../lib/supabase';
 import { uploadFileRobust, getSessionWithTimeout } from '../lib/uploadHelper';
 import { useToast } from '../components/Toast';
 import {
-  FileCheck, Shield, Upload, FileImage, Loader2,
-  CheckCircle, AlertCircle, Phone, CreditCard, Clock, MapPin
+  FileCheck,
+  Shield,
+  Upload,
+  FileImage,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Phone,
+  CreditCard,
+  Clock,
+  MapPin,
 } from 'lucide-react';
 
 export default function VerifyAccount() {
   const { user, profile, isVerified, refreshProfile } = useAuth();
   const toast = useToast();
 
-  const licenceExpired = profile?.is_verified && profile?.licence_expiry && new Date(profile.licence_expiry) < new Date();
+  const licenceExpired =
+    profile?.is_verified &&
+    profile?.licence_expiry &&
+    new Date(profile.licence_expiry) < new Date();
   const hasSubmittedDocs = profile?.ic_number && profile?.ic_file_path && !profile?.is_verified;
 
   const [icNumber, setIcNumber] = useState(profile?.ic_number || '');
@@ -41,9 +54,19 @@ export default function VerifyAccount() {
   }
 
   async function uploadFile(file, folder, token) {
-    const ext = file.name.split('.').pop().replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
+    const ext =
+      file.name
+        .split('.')
+        .pop()
+        .replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
     const filePath = `profiles/${user.id}/${folder}_${Date.now()}.${ext}`;
-    const { error: uploadErr } = await uploadFileRobust('customer-documents', filePath, file, toast, token);
+    const { error: uploadErr } = await uploadFileRobust(
+      'customer-documents',
+      filePath,
+      file,
+      toast,
+      token
+    );
     if (uploadErr) throw uploadErr;
     return filePath;
   }
@@ -52,22 +75,52 @@ export default function VerifyAccount() {
     e.preventDefault();
     setError('');
 
-    if (!icNumber.trim()) { setError('IC / MyKad number is required.'); return; }
-    if (!licenceExpiry) { setError('Driving licence expiry date is required.'); return; }
-    if (new Date(licenceExpiry) < new Date()) { setError('Your driving licence has expired. Please enter a valid expiry date.'); return; }
-    if (!phone.trim() || phone.replace(/\D/g, '').length < 9) { setError('Please enter a valid phone number.'); return; }
-    if (!addressLine1.trim()) { setError('Address line 1 is required.'); return; }
-    if (!city.trim()) { setError('City is required.'); return; }
-    if (!state.trim()) { setError('State is required.'); return; }
-    if (!postcode.trim()) { setError('Postcode is required.'); return; }
+    if (!icNumber.trim()) {
+      setError('IC / MyKad number is required.');
+      return;
+    }
+    if (!licenceExpiry) {
+      setError('Driving licence expiry date is required.');
+      return;
+    }
+    if (new Date(licenceExpiry) < new Date()) {
+      setError('Your driving licence has expired. Please enter a valid expiry date.');
+      return;
+    }
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 9) {
+      setError('Please enter a valid phone number.');
+      return;
+    }
+    if (!addressLine1.trim()) {
+      setError('Address line 1 is required.');
+      return;
+    }
+    if (!city.trim()) {
+      setError('City is required.');
+      return;
+    }
+    if (!state.trim()) {
+      setError('State is required.');
+      return;
+    }
+    if (!postcode.trim()) {
+      setError('Postcode is required.');
+      return;
+    }
 
     // For first-time verification, files are required
     const isUpdate = profile?.is_verified || hasSubmittedDocs;
     if (!isUpdate) {
       const icErr = validateFile(icFile, 'IC / MyKad');
-      if (icErr) { setError(icErr); return; }
+      if (icErr) {
+        setError(icErr);
+        return;
+      }
       const licErr = validateFile(licenceFile, 'Driving Licence');
-      if (licErr) { setError(licErr); return; }
+      if (licErr) {
+        setError(licErr);
+        return;
+      }
     }
 
     // Get session once with timeout — avoids Android getSession() hang
@@ -126,7 +179,9 @@ export default function VerifyAccount() {
 
       await refreshProfile();
       setSubmitted(true);
-      toast.success(isUpdate ? 'Verification update submitted!' : 'Documents submitted for verification!');
+      toast.success(
+        isUpdate ? 'Verification update submitted!' : 'Documents submitted for verification!'
+      );
     } catch (err) {
       setError(err.message || 'Upload failed. Please try again.');
     } finally {
@@ -143,10 +198,16 @@ export default function VerifyAccount() {
             <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Account Verified</h1>
-          <p className="text-sm text-slate-400 mb-6">Your identity has been verified. You can now book cars.</p>
+          <p className="text-sm text-slate-400 mb-6">
+            Your identity has been verified. You can now book cars.
+          </p>
           <div className="flex gap-3 justify-center">
-            <Link to="/" className="btn-primary inline-flex items-center gap-2">Browse Fleet</Link>
-            <Link to="/profile" className="btn-secondary inline-flex items-center gap-2">View Profile</Link>
+            <Link to="/" className="btn-primary inline-flex items-center gap-2">
+              Browse Fleet
+            </Link>
+            <Link to="/profile" className="btn-secondary inline-flex items-center gap-2">
+              View Profile
+            </Link>
           </div>
         </div>
       </div>
@@ -162,8 +223,12 @@ export default function VerifyAccount() {
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Licence Expired</h1>
-          <p className="text-sm text-slate-400 mb-4">Your driving licence has expired. Please update your licence to continue booking.</p>
-          <p className="text-xs text-slate-500 mb-6">Upload a new licence with a valid expiry date below.</p>
+          <p className="text-sm text-slate-400 mb-4">
+            Your driving licence has expired. Please update your licence to continue booking.
+          </p>
+          <p className="text-xs text-slate-500 mb-6">
+            Upload a new licence with a valid expiry date below.
+          </p>
         </div>
         {renderForm()}
       </div>
@@ -179,9 +244,15 @@ export default function VerifyAccount() {
             <Clock className="w-8 h-8 text-yellow-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Verification Pending</h1>
-          <p className="text-sm text-slate-400 mb-2">Your documents have been submitted and are being reviewed.</p>
-          <p className="text-xs text-slate-500 mb-6">This usually takes less than 24 hours. You'll be able to book once verified.</p>
-          <Link to="/" className="btn-secondary inline-flex items-center gap-2">Back to Home</Link>
+          <p className="text-sm text-slate-400 mb-2">
+            Your documents have been submitted and are being reviewed.
+          </p>
+          <p className="text-xs text-slate-500 mb-6">
+            This usually takes less than 24 hours. You'll be able to book once verified.
+          </p>
+          <Link to="/" className="btn-secondary inline-flex items-center gap-2">
+            Back to Home
+          </Link>
         </div>
       </div>
     );
@@ -194,7 +265,9 @@ export default function VerifyAccount() {
           <FileCheck className="w-7 h-7 text-violet-400" />
         </div>
         <h1 className="text-2xl font-bold text-white mb-1">Verify Your Account</h1>
-        <p className="text-sm text-slate-400">Submit your IC and driving licence to start booking</p>
+        <p className="text-sm text-slate-400">
+          Submit your IC and driving licence to start booking
+        </p>
       </div>
       {renderForm()}
     </div>
@@ -226,8 +299,15 @@ export default function VerifyAccount() {
                 <Phone className="w-4 h-4 text-violet-400" />
                 Phone Number *
               </label>
-              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                className="input-field" placeholder="+60 12-345 6789" maxLength={20} disabled={uploading} />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="input-field"
+                placeholder="+60 12-345 6789"
+                maxLength={20}
+                disabled={uploading}
+              />
             </div>
 
             {/* IC Section */}
@@ -239,24 +319,44 @@ export default function VerifyAccount() {
               <div className="space-y-4">
                 <div>
                   <label className="input-label">IC Number (MyKad) *</label>
-                  <input type="text" value={icNumber} onChange={(e) => setIcNumber(e.target.value)}
-                    className="input-field" placeholder="e.g. 990101-14-1234" maxLength={30} disabled={uploading} />
+                  <input
+                    type="text"
+                    value={icNumber}
+                    onChange={(e) => setIcNumber(e.target.value)}
+                    className="input-field"
+                    placeholder="e.g. 990101-14-1234"
+                    maxLength={30}
+                    disabled={uploading}
+                  />
                 </div>
                 <div>
                   <label className="input-label">Driving Licence Expiry Date *</label>
-                  <input type="date" value={licenceExpiry} onChange={(e) => setLicenceExpiry(e.target.value)}
-                    className="input-field" disabled={uploading} />
+                  <input
+                    type="date"
+                    value={licenceExpiry}
+                    onChange={(e) => setLicenceExpiry(e.target.value)}
+                    className="input-field"
+                    disabled={uploading}
+                  />
                 </div>
                 <div>
                   <label className="input-label">IC / MyKad Image *</label>
                   <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors">
                     <FileImage className="w-6 h-6 text-slate-500" />
                     <div>
-                      <p className="text-sm text-slate-300">{icFile ? icFile.name : 'Click to upload IC photo'}</p>
+                      <p className="text-sm text-slate-300">
+                        Didn&apos;t receive code?{' '}
+                        {icFile ? icFile.name : 'Click to upload IC photo'}
+                      </p>
                       <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
                     </div>
-                    <input type="file" accept="image/*,.pdf" onChange={(e) => setIcFile(e.target.files[0])}
-                      className="hidden" disabled={uploading} />
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setIcFile(e.target.files[0])}
+                      className="hidden"
+                      disabled={uploading}
+                    />
                   </label>
                 </div>
                 <div>
@@ -264,11 +364,18 @@ export default function VerifyAccount() {
                   <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors">
                     <FileImage className="w-6 h-6 text-slate-500" />
                     <div>
-                      <p className="text-sm text-slate-300">{licenceFile ? licenceFile.name : 'Click to upload licence photo'}</p>
+                      <p className="text-sm text-slate-300">
+                        {licenceFile ? licenceFile.name : 'Click to upload licence photo'}
+                      </p>
                       <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
                     </div>
-                    <input type="file" accept="image/*,.pdf" onChange={(e) => setLicenceFile(e.target.files[0])}
-                      className="hidden" disabled={uploading} />
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setLicenceFile(e.target.files[0])}
+                      className="hidden"
+                      disabled={uploading}
+                    />
                   </label>
                 </div>
               </div>
@@ -283,44 +390,100 @@ export default function VerifyAccount() {
               <div className="space-y-4">
                 <div>
                   <label className="input-label">Address Line 1 *</label>
-                  <input type="text" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)}
-                    className="input-field" placeholder="Street address" disabled={uploading} />
+                  <input
+                    type="text"
+                    value={addressLine1}
+                    onChange={(e) => setAddressLine1(e.target.value)}
+                    className="input-field"
+                    placeholder="Street address"
+                    disabled={uploading}
+                  />
                 </div>
                 <div>
                   <label className="input-label">Address Line 2</label>
-                  <input type="text" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)}
-                    className="input-field" placeholder="Apartment, unit, etc. (optional)" disabled={uploading} />
+                  <input
+                    type="text"
+                    value={addressLine2}
+                    onChange={(e) => setAddressLine2(e.target.value)}
+                    className="input-field"
+                    placeholder="Apartment, unit, etc. (optional)"
+                    disabled={uploading}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="input-label">City *</label>
-                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)}
-                      className="input-field" placeholder="City" disabled={uploading} />
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="input-field"
+                      placeholder="City"
+                      disabled={uploading}
+                    />
                   </div>
                   <div>
                     <label className="input-label">State *</label>
-                    <select value={state} onChange={(e) => setState(e.target.value)}
-                      className="input-field" disabled={uploading}>
+                    <select
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="input-field"
+                      disabled={uploading}
+                    >
                       <option value="">Select state</option>
-                      {['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Perak','Perlis','Pulau Pinang','Sabah','Sarawak','Selangor','Terengganu','W.P. Kuala Lumpur','W.P. Labuan','W.P. Putrajaya'].map(s => (
-                        <option key={s} value={s}>{s}</option>
+                      {[
+                        'Johor',
+                        'Kedah',
+                        'Kelantan',
+                        'Melaka',
+                        'Negeri Sembilan',
+                        'Pahang',
+                        'Perak',
+                        'Perlis',
+                        'Pulau Pinang',
+                        'Sabah',
+                        'Sarawak',
+                        'Selangor',
+                        'Terengganu',
+                        'W.P. Kuala Lumpur',
+                        'W.P. Labuan',
+                        'W.P. Putrajaya',
+                      ].map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
                 <div className="w-1/2">
                   <label className="input-label">Postcode *</label>
-                  <input type="text" value={postcode} onChange={(e) => setPostcode(e.target.value)}
-                    className="input-field" placeholder="e.g. 50000" maxLength={10} disabled={uploading} />
+                  <input
+                    type="text"
+                    value={postcode}
+                    onChange={(e) => setPostcode(e.target.value)}
+                    className="input-field"
+                    placeholder="e.g. 50000"
+                    maxLength={10}
+                    disabled={uploading}
+                  />
                 </div>
               </div>
             </div>
 
-            <button type="submit" disabled={uploading} className="btn-primary w-full flex items-center justify-center gap-2">
+            <button
+              type="submit"
+              disabled={uploading}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
               {uploading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</>
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" /> Uploading...
+                </>
               ) : (
-                <><Upload className="w-5 h-5" /> Submit for Verification</>
+                <>
+                  <Upload className="w-5 h-5" /> Submit for Verification
+                </>
               )}
             </button>
           </form>

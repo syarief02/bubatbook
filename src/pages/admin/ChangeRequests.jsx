@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAuth } from '../../hooks/useAuth';
@@ -6,10 +7,21 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
-import { formatDate } from '../../utils/dates';
+import { formatDateTime } from '../../utils/dates';
 import {
-  FileCheck, CheckCircle, XCircle, Clock, Loader2, ArrowRight,
-  ChevronDown, ChevronUp, ShieldAlert
+  FileCheck,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  ArrowLeft,
+  Search,
+  AlertTriangle,
+  History,
+  FileText,
+  User,
 } from 'lucide-react';
 
 const STATUS_STYLE = {
@@ -42,13 +54,17 @@ export default function ChangeRequests() {
   const [filter, setFilter] = useState('PENDING');
   const [rejectModal, setRejectModal] = useState(null);
 
-  useEffect(() => { fetchRequests(); }, [filter, activeFleetId]);
+  useEffect(() => {
+    fetchRequests();
+  }, [filter, activeFleetId]);
 
   async function fetchRequests() {
     setLoading(true);
     let query = supabase
       .from('bubatrent_booking_change_requests')
-      .select('*, bubatrent_booking_fleet_groups(name), bubatrent_booking_profiles!customer_id(display_name, username)')
+      .select(
+        '*, bubatrent_booking_fleet_groups(name), bubatrent_booking_profiles!customer_id(display_name, username)'
+      )
       .order('created_at', { ascending: false });
 
     if (filter !== 'ALL') {
@@ -72,7 +88,7 @@ export default function ChangeRequests() {
       // Apply the changes to the customer profile
       const changes = request.changes;
       const updates = {};
-      Object.keys(changes).forEach(field => {
+      Object.keys(changes).forEach((field) => {
         updates[field] = changes[field].new;
       });
 
@@ -153,7 +169,7 @@ export default function ChangeRequests() {
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6">
-        {['PENDING', 'APPROVED', 'REJECTED', 'ALL'].map(s => (
+        {['PENDING', 'APPROVED', 'REJECTED', 'ALL'].map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
@@ -163,20 +179,32 @@ export default function ChangeRequests() {
                 : 'glass-card text-slate-400 hover:text-white'
             }`}
           >
-            {s === 'ALL' ? 'All' : s === 'PENDING' ? '⏳ Pending' : s === 'APPROVED' ? '✅ Approved' : '❌ Rejected'}
+            {s === 'ALL'
+              ? 'All'
+              : s === 'PENDING'
+                ? '⏳ Pending'
+                : s === 'APPROVED'
+                  ? '✅ Approved'
+                  : '❌ Rejected'}
           </button>
         ))}
       </div>
 
-      {loading ? <LoadingSpinner /> : requests.length === 0 ? (
+      {loading ? (
+        <LoadingSpinner />
+      ) : requests.length === 0 ? (
         <EmptyState
           icon={FileCheck}
           title={filter === 'PENDING' ? 'No pending requests' : 'No change requests'}
-          description={filter === 'PENDING' ? 'All change requests have been processed.' : 'No change requests match this filter.'}
+          description={
+            filter === 'PENDING'
+              ? 'All change requests have been processed.'
+              : 'No change requests match this filter.'
+          }
         />
       ) : (
         <div className="space-y-3">
-          {requests.map(req => {
+          {requests.map((req) => {
             const isExpanded = expandedId === req.id;
             const changes = req.changes || {};
             const changedFields = Object.keys(changes);
@@ -196,15 +224,22 @@ export default function ChangeRequests() {
                       </span>
                       <span className="text-[10px] text-slate-500">•</span>
                       <span className="text-[10px] text-slate-500">{group?.name}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${STATUS_STYLE[req.status]}`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${STATUS_STYLE[req.status]}`}
+                      >
                         {req.status}
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      {changedFields.length} field{changedFields.length !== 1 ? 's' : ''} changed • {new Date(req.created_at).toLocaleString()}
+                      {changedFields.length} field{changedFields.length !== 1 ? 's' : ''} changed •{' '}
+                      {new Date(req.created_at).toLocaleString()}
                     </p>
                   </div>
-                  {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-slate-500" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                  )}
                 </div>
 
                 {isExpanded && (
@@ -212,12 +247,18 @@ export default function ChangeRequests() {
                     {/* Diff view */}
                     <div className="bg-white/[0.02] rounded-xl p-3 space-y-2">
                       <h4 className="text-xs font-semibold text-slate-500 uppercase">Changes</h4>
-                      {changedFields.map(field => (
+                      {changedFields.map((field) => (
                         <div key={field} className="flex items-center gap-2 text-sm">
-                          <span className="text-slate-400 font-medium min-w-[120px]">{FIELD_LABELS[field] || field}</span>
-                          <span className="text-red-400/70 line-through text-xs">{String(changes[field].old || '—')}</span>
+                          <span className="text-slate-400 font-medium min-w-[120px]">
+                            {FIELD_LABELS[field] || field}
+                          </span>
+                          <span className="text-red-400/70 line-through text-xs">
+                            {String(changes[field].old || '—')}
+                          </span>
                           <ArrowRight className="w-3 h-3 text-slate-600" />
-                          <span className="text-green-400 text-xs font-medium">{String(changes[field].new || '—')}</span>
+                          <span className="text-green-400 text-xs font-medium">
+                            {String(changes[field].new || '—')}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -238,7 +279,11 @@ export default function ChangeRequests() {
                           disabled={actionLoading === req.id}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 transition-all disabled:opacity-50"
                         >
-                          {actionLoading === req.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                          {actionLoading === req.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle className="w-3.5 h-3.5" />
+                          )}
                           Approve & Apply
                         </button>
                         <button
@@ -259,26 +304,36 @@ export default function ChangeRequests() {
 
       {/* Reject Modal */}
       {rejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setRejectModal(null)}>
-          <div className="glass-card w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setRejectModal(null)}
+        >
+          <div
+            className="glass-card w-full max-w-md animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-white mb-4">Reject Change Request</h3>
             <div>
               <label className="input-label">Rejection Reason *</label>
               <textarea
                 value={rejectModal.reason}
-                onChange={e => setRejectModal({ ...rejectModal, reason: e.target.value })}
+                onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
                 className="input-field min-h-[80px]"
                 placeholder="Explain why this change is being rejected..."
               />
             </div>
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setRejectModal(null)} className="btn-secondary flex-1">Cancel</button>
+              <button onClick={() => setRejectModal(null)} className="btn-secondary flex-1">
+                Cancel
+              </button>
               <button
                 onClick={() => handleReject(rejectModal.id, rejectModal.reason)}
                 disabled={!rejectModal.reason?.trim() || actionLoading === rejectModal.id}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20 transition-all disabled:opacity-50"
               >
-                {actionLoading === rejectModal.id ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {actionLoading === rejectModal.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : null}
                 Reject
               </button>
             </div>

@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Car, Menu, X, User, LogOut, Shield, CalendarDays, AlertTriangle, Wallet } from 'lucide-react';
+import {
+  Car,
+  Menu,
+  X,
+  User,
+  LogOut,
+  Shield,
+  CalendarDays,
+  AlertTriangle,
+  Wallet,
+} from 'lucide-react';
 import { formatMYR } from '../utils/pricing';
 import { useViewAs } from '../hooks/ViewAsContext';
 
@@ -45,7 +55,9 @@ export default function Navbar() {
   }
 
   return (
-    <nav className={`fixed left-0 right-0 z-50 glass border-b border-white/5 transition-all ${isViewMode ? 'top-11' : 'top-0'}`}>
+    <nav
+      className={`fixed left-0 right-0 z-50 glass border-b border-white/5 transition-all ${isViewMode ? 'top-11' : 'top-0'}`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -58,23 +70,35 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/" className="text-slate-300 hover:text-white transition-colors text-sm font-medium">
+            <Link
+              to="/"
+              className="text-slate-300 hover:text-white transition-colors text-sm font-medium"
+            >
               Browse Cars
             </Link>
             {user && (
-              <Link to="/my-bookings" className="text-slate-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1.5">
+              <Link
+                to="/my-bookings"
+                className="text-slate-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1.5"
+              >
                 <CalendarDays className="w-4 h-4" />
                 My Bookings
               </Link>
             )}
             {isAdmin && (
-              <Link to="/admin" className="text-violet-400 hover:text-violet-300 transition-colors text-sm font-medium flex items-center gap-1.5">
+              <Link
+                to="/admin"
+                className="text-violet-400 hover:text-violet-300 transition-colors text-sm font-medium flex items-center gap-1.5"
+              >
                 <Shield className="w-4 h-4" />
                 Admin
               </Link>
             )}
             {user && !isVerified && !isAdmin && (
-              <Link to="/verify" className="text-yellow-400 hover:text-yellow-300 transition-colors text-sm font-medium flex items-center gap-1.5">
+              <Link
+                to="/verify"
+                className="text-yellow-400 hover:text-yellow-300 transition-colors text-sm font-medium flex items-center gap-1.5"
+              >
                 <AlertTriangle className="w-4 h-4" />
                 Verify
               </Link>
@@ -211,23 +235,36 @@ export default function Navbar() {
               {user && (
                 <div className="px-4 py-2 flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-green-400" />
-                  <span className="text-sm text-green-400 font-medium">Credit: {formatMYR(creditBalance)}</span>
+                  <span className="text-sm text-green-400 font-medium">
+                    Credit: {formatMYR(creditBalance)}
+                  </span>
                 </div>
               )}
               <div className="border-t border-white/5 mt-2 pt-2">
                 {user ? (
                   <button
-                    onClick={() => { handleSignOut(); setMenuOpen(false); }}
+                    onClick={() => {
+                      handleSignOut();
+                      setMenuOpen(false);
+                    }}
                     className="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
                   >
                     Sign Out
                   </button>
                 ) : (
                   <div className="flex gap-2 px-4">
-                    <Link to="/login" onClick={() => setMenuOpen(false)} className="btn-secondary text-sm flex-1 text-center !py-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="btn-secondary text-sm flex-1 text-center !py-2"
+                    >
                       Sign In
                     </Link>
-                    <Link to="/signup" onClick={() => setMenuOpen(false)} className="btn-primary text-sm flex-1 text-center !py-2">
+                    <Link
+                      to="/signup"
+                      onClick={() => setMenuOpen(false)}
+                      className="btn-primary text-sm flex-1 text-center !py-2"
+                    >
                       Sign Up
                     </Link>
                   </div>

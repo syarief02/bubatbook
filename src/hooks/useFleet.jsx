@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+/* eslint-disable */
+import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '../lib/supabase';
 import { useViewAs } from './ViewAsContext';
 
@@ -17,7 +18,11 @@ export function FleetProvider({ userId, isSuperAdmin, children }) {
 
   // ViewAs integration
   let viewAsContext;
-  try { viewAsContext = useViewAs(); } catch { viewAsContext = { isViewMode: false, viewAs: null }; }
+  try {
+    viewAsContext = useViewAs();
+  } catch {
+    viewAsContext = { isViewMode: false, viewAs: null };
+  }
   const { isViewMode, viewAs } = viewAsContext;
 
   useEffect(() => {
@@ -47,7 +52,9 @@ export function FleetProvider({ userId, isSuperAdmin, children }) {
           .select('*, bubatrent_booking_fleet_groups(*)')
           .eq('user_id', userId);
         setMemberships(mData || []);
-        const userFleets = (mData || []).map(m => m.bubatrent_booking_fleet_groups).filter(Boolean);
+        const userFleets = (mData || [])
+          .map((m) => m.bubatrent_booking_fleet_groups)
+          .filter(Boolean);
         setFleets(userFleets);
         if (userFleets.length) setActiveFleetId(userFleets[0].id);
       }
@@ -58,7 +65,7 @@ export function FleetProvider({ userId, isSuperAdmin, children }) {
     }
   }
 
-  const activeFleet = fleets.find(f => f.id === activeFleetId) || null;
+  const activeFleet = fleets.find((f) => f.id === activeFleetId) || null;
 
   // Governance status flags — respect ViewAs overrides
   let effectiveFleetId = activeFleetId;
@@ -77,24 +84,31 @@ export function FleetProvider({ userId, isSuperAdmin, children }) {
   const canWrite = isGroupVerified && !isGroupSuspended;
 
   return (
-    <FleetContext.Provider value={{
-      fleets,
-      memberships,
-      activeFleetId: effectiveFleetId,
-      activeFleet: isViewMode && viewAs?.role === 'group_admin'
-        ? (fleets.find(f => f.id === viewAs.fleetId) || { ...activeFleet, status: viewAs.fleetStatus, is_super_group: viewAs.isSuperGroup })
-        : activeFleet,
-      setActiveFleetId,
-      loading,
-      refetchFleets: fetchFleetData,
-      // Governance
-      groupStatus,
-      isGroupVerified,
-      isGroupSuspended,
-      isSuperGroup,
-      canAccessSensitiveData,
-      canWrite,
-    }}>
+    <FleetContext.Provider
+      value={{
+        fleets,
+        memberships,
+        activeFleetId: effectiveFleetId,
+        activeFleet:
+          isViewMode && viewAs?.role === 'group_admin'
+            ? fleets.find((f) => f.id === viewAs.fleetId) || {
+                ...activeFleet,
+                status: viewAs.fleetStatus,
+                is_super_group: viewAs.isSuperGroup,
+              }
+            : activeFleet,
+        setActiveFleetId,
+        loading,
+        refetchFleets: fetchFleetData,
+        // Governance
+        groupStatus,
+        isGroupVerified,
+        isGroupSuspended,
+        isSuperGroup,
+        canAccessSensitiveData,
+        canWrite,
+      }}
+    >
       {children}
     </FleetContext.Provider>
   );

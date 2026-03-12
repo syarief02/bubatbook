@@ -2,7 +2,13 @@ import { CalendarDays } from 'lucide-react';
 import { getTodayString, getTomorrowString } from '../utils/dates';
 import { format, addDays, parseISO } from 'date-fns';
 
-export default function DateRangePicker({ pickupDate, returnDate, onPickupChange, onReturnChange, className = '' }) {
+export default function DateRangePicker({
+  pickupDate,
+  returnDate,
+  onPickupChange,
+  onReturnChange,
+  className = '',
+}) {
   const today = getTodayString();
 
   // Return date must be at least 1 day after pickup (DB constraint: return_date > pickup_date)

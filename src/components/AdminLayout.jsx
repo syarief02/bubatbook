@@ -1,6 +1,21 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Car, CalendarDays, Users, ArrowLeft, DollarSign, Receipt, Building2, Shield, FileCheck, Eye, Users2, BookOpen, Upload } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Car,
+  CalendarDays,
+  Users,
+  ArrowLeft,
+  DollarSign,
+  Receipt,
+  Building2,
+  Shield,
+  FileCheck,
+  Eye,
+  Users2,
+  BookOpen,
+  Upload,
+} from 'lucide-react';
 import FleetSelector from './FleetSelector';
 import ViewAsSelector from './ViewAsSelector';
 import { useFleet } from '../hooks/useFleet';
@@ -30,15 +45,19 @@ export default function AdminLayout({ children, title }) {
   const { isSuperAdmin, realIsSuperAdmin } = useAuth();
   const [showViewAs, setShowViewAs] = useState(false);
 
-  const allItems = isSuperAdmin && isSuperGroup
-    ? [...navItems, ...governanceItems]
-    : [...navItems, { to: '/admin/change-requests', label: 'My Requests', icon: FileCheck }];
+  const allItems =
+    isSuperAdmin && isSuperGroup
+      ? [...navItems, ...governanceItems]
+      : [...navItems, { to: '/admin/change-requests', label: 'My Requests', icon: FileCheck }];
 
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Back to site */}
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back to site
         </Link>
@@ -73,7 +92,9 @@ export default function AdminLayout({ children, title }) {
               {/* Governance separator for super group */}
               {isSuperAdmin && isSuperGroup && (
                 <div className="mt-3 pt-3 border-t border-white/5">
-                  <p className="px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Governance</p>
+                  <p className="px-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                    Governance
+                  </p>
                 </div>
               )}
 

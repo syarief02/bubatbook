@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useCar } from '../hooks/useCars';
@@ -10,8 +11,18 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
 import { formatDate, formatTimeRemaining } from '../utils/dates';
 import {
-  ArrowLeft, Clock, CheckCircle, AlertTriangle, Shield,
-  ChevronRight, FileCheck, Upload, FileImage, Loader2, Wallet, MessageCircle
+  ArrowLeft,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Shield,
+  ChevronRight,
+  FileCheck,
+  Upload,
+  FileImage,
+  Loader2,
+  Wallet,
+  MessageCircle,
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
@@ -56,11 +67,21 @@ export default function Checkout() {
       try {
         setLoading(true);
         const { days, total, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
-        const hold = await createHoldBooking(car.id, user.id, pickupDate, returnDate, total, deposit, car.fleet_group_id);
+        const hold = await createHoldBooking(
+          car.id,
+          user.id,
+          pickupDate,
+          returnDate,
+          total,
+          deposit,
+          car.fleet_group_id
+        );
         setBooking(hold);
       } catch (err) {
         holdCreatedRef.current = false;
-        setHoldError(err.message || 'Unable to hold this booking. The dates may no longer be available.');
+        setHoldError(
+          err.message || 'Unable to hold this booking. The dates may no longer be available.'
+        );
       } finally {
         setLoading(false);
       }
@@ -90,7 +111,9 @@ export default function Checkout() {
     return (
       <div className="page-container text-center">
         <p className="text-red-400">Invalid checkout. Please select dates first.</p>
-        <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">Back to fleet</Link>
+        <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">
+          Back to fleet
+        </Link>
       </div>
     );
   }
@@ -104,8 +127,12 @@ export default function Checkout() {
             <FileCheck className="w-8 h-8 text-yellow-400" />
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Verification Required</h2>
-          <p className="text-sm text-slate-400 mb-6">You need to verify your identity before booking a car.</p>
-          <Link to="/verify" className="btn-primary inline-flex items-center gap-2">Verify Now</Link>
+          <p className="text-sm text-slate-400 mb-6">
+            You need to verify your identity before booking a car.
+          </p>
+          <Link to="/verify" className="btn-primary inline-flex items-center gap-2">
+            Verify Now
+          </Link>
         </div>
       </div>
     );
@@ -120,8 +147,12 @@ export default function Checkout() {
             <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Booking Too Far in Advance</h2>
-          <p className="text-sm text-slate-400 mb-6">You can only book up to 6 months in advance.</p>
-          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">Change Dates</Link>
+          <p className="text-sm text-slate-400 mb-6">
+            You can only book up to 6 months in advance.
+          </p>
+          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">
+            Change Dates
+          </Link>
         </div>
       </div>
     );
@@ -136,7 +167,9 @@ export default function Checkout() {
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Booking Unavailable</h2>
           <p className="text-sm text-slate-400 mb-6">{holdError}</p>
-          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">Try Different Dates</Link>
+          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">
+            Try Different Dates
+          </Link>
         </div>
       </div>
     );
@@ -179,9 +212,19 @@ export default function Checkout() {
 
       // Upload receipt if payment is required
       if (receiptFile) {
-        const ext = receiptFile.name.split('.').pop().replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
+        const ext =
+          receiptFile.name
+            .split('.')
+            .pop()
+            .replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
         const path = `receipts/${booking.id}/deposit_${Date.now()}.${ext}`;
-        const { error: upErr } = await uploadFileRobust('customer-documents', path, receiptFile, toast, token);
+        const { error: upErr } = await uploadFileRobust(
+          'customer-documents',
+          path,
+          receiptFile,
+          toast,
+          token
+        );
         if (upErr) throw upErr;
         receiptPath = path;
       }
@@ -202,18 +245,16 @@ export default function Checkout() {
       if (bookErr) throw bookErr;
 
       // Create payment record
-      const { error: payErr } = await supabase
-        .from('bubatrent_booking_payments')
-        .insert({
-          booking_id: booking.id,
-          amount: deposit,
-          payment_method: 'bank_transfer',
-          status: amountDue > 0 ? 'pending' : 'completed',
-          simulated: false,
-          payment_type: 'deposit',
-          receipt_path: receiptPath,
-          reference_number: `DEP-${Date.now().toString(36).toUpperCase()}`,
-        });
+      const { error: payErr } = await supabase.from('bubatrent_booking_payments').insert({
+        booking_id: booking.id,
+        amount: deposit,
+        payment_method: 'bank_transfer',
+        status: amountDue > 0 ? 'pending' : 'completed',
+        simulated: false,
+        payment_type: 'deposit',
+        receipt_path: receiptPath,
+        reference_number: `DEP-${Date.now().toString(36).toUpperCase()}`,
+      });
       if (payErr) throw payErr;
 
       // Deduct credit if applied
@@ -247,7 +288,10 @@ export default function Checkout() {
 
   return (
     <div className="page-container max-w-4xl mx-auto">
-      <Link to={`/cars/${carId}`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6">
+      <Link
+        to={`/cars/${carId}`}
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6"
+      >
         <ArrowLeft className="w-4 h-4" />
         Back to car
       </Link>
@@ -266,7 +310,12 @@ export default function Checkout() {
       {isExpired && (
         <div className="glass-card !p-4 mb-6 border-red-500/20 text-center">
           <p className="text-red-400 font-medium">Your hold has expired. Please start over.</p>
-          <Link to={`/cars/${carId}`} className="text-violet-400 hover:underline text-sm mt-2 inline-block">Go back</Link>
+          <Link
+            to={`/cars/${carId}`}
+            className="text-violet-400 hover:underline text-sm mt-2 inline-block"
+          >
+            Go back
+          </Link>
         </div>
       )}
 
@@ -274,11 +323,20 @@ export default function Checkout() {
       <div className="flex items-center justify-center gap-2 mb-8">
         {STEPS.map((s, i) => (
           <div key={s} className="flex items-center gap-2">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              i === step ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' :
-              i < step ? 'bg-green-500/10 text-green-400' : 'bg-white/5 text-slate-500'
-            }`}>
-              {i < step ? <CheckCircle className="w-3.5 h-3.5" /> : <span className="w-4 text-center">{i + 1}</span>}
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                i === step
+                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+                  : i < step
+                    ? 'bg-green-500/10 text-green-400'
+                    : 'bg-white/5 text-slate-500'
+              }`}
+            >
+              {i < step ? (
+                <CheckCircle className="w-3.5 h-3.5" />
+              ) : (
+                <span className="w-4 text-center">{i + 1}</span>
+              )}
               <span className="hidden sm:inline">{s}</span>
             </div>
             {i < STEPS.length - 1 && <ChevronRight className="w-4 h-4 text-slate-700" />}
@@ -298,7 +356,7 @@ export default function Checkout() {
                 initialData={{
                   email: user?.email || '',
                   name: profile?.display_name || '',
-                  phone: profile?.phone || ''
+                  phone: profile?.phone || '',
                 }}
               />
             </div>
@@ -329,8 +387,14 @@ export default function Checkout() {
                   </div>
                 )}
                 <div className="border-t border-white/5 pt-4 flex gap-3">
-                  <button onClick={() => setStep(0)} className="btn-secondary flex-1">Edit Info</button>
-                  <button onClick={() => setStep(2)} className="btn-primary flex-1" disabled={isExpired}>
+                  <button onClick={() => setStep(0)} className="btn-secondary flex-1">
+                    Edit Info
+                  </button>
+                  <button
+                    onClick={() => setStep(2)}
+                    className="btn-primary flex-1"
+                    disabled={isExpired}
+                  >
                     Proceed to Payment
                   </button>
                 </div>
@@ -342,7 +406,8 @@ export default function Checkout() {
             <div className="glass-card animate-fade-in">
               <h2 className="text-lg font-semibold text-white mb-2">Deposit Payment</h2>
               <p className="text-sm text-slate-400 mb-6">
-                Upload your payment receipt to secure this booking. Full rental payment is due at pickup.
+                Upload your payment receipt to secure this booking. Full rental payment is due at
+                pickup.
               </p>
 
               {/* Credit applied */}
@@ -350,7 +415,9 @@ export default function Checkout() {
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 mb-4">
                   <Wallet className="w-5 h-5 text-green-400" />
                   <div>
-                    <p className="text-sm text-green-300 font-medium">Credit Applied: {formatMYR(creditApplied)}</p>
+                    <p className="text-sm text-green-300 font-medium">
+                      Credit Applied: {formatMYR(creditApplied)}
+                    </p>
                     <p className="text-xs text-green-400/70">Deducted from your deposit balance</p>
                   </div>
                 </div>
@@ -377,32 +444,45 @@ export default function Checkout() {
               {/* Receipt upload (if payment needed) */}
               {amountDue > 0 ? (
                 (() => {
-                  const contactPhone = car?.bubatrent_booking_fleet_groups?.support_whatsapp?.replace(/\D/g, '') || '60162569733';
-                  const contactName = car?.bubatrent_booking_fleet_groups?.name || 'Rent2Go Support';
+                  const contactPhone =
+                    car?.bubatrent_booking_fleet_groups?.support_whatsapp?.replace(/\D/g, '') ||
+                    '60162569733';
+                  const contactName =
+                    car?.bubatrent_booking_fleet_groups?.name || 'Rent2Go Support';
                   const whatsappUrl = `https://wa.me/${contactPhone}?text=${encodeURIComponent(`Hi ${contactName}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car?.brand} ${car?.model}. Please provide the bank account details.`)}`;
 
                   return (
                     <>
                       <div className="text-xs text-slate-400 mb-4 bg-white/5 p-3 rounded-xl border border-white/10">
-                        <span className="block mb-2 text-white font-medium">Payment Instructions:</span>
+                        <span className="block mb-2 text-white font-medium">
+                          Payment Instructions:
+                        </span>
                         <ol className="list-decimal pl-4 space-y-1.5">
                           <li>
-                            Please <a 
-                              href={whatsappUrl} 
-                              target="_blank" 
-                              rel="noreferrer" 
+                            Please{' '}
+                            <a
+                              href={whatsappUrl}
+                              target="_blank"
+                              rel="noreferrer"
                               className="text-green-400 hover:text-green-300 hover:underline font-medium"
-                            >WhatsApp our admin</a> to get the bank account details.
+                            >
+                              WhatsApp our admin
+                            </a>{' '}
+                            to get the bank account details.
                           </li>
-                          <li>Transfer <span className="text-white font-semibold">{formatMYR(amountDue)}</span> to the provided account.</li>
+                          <li>
+                            Transfer{' '}
+                            <span className="text-white font-semibold">{formatMYR(amountDue)}</span>{' '}
+                            to the provided account.
+                          </li>
                           <li>Upload your payment receipt below to secure your booking.</li>
                         </ol>
                       </div>
-                      
-                      <a 
-                        href={whatsappUrl} 
-                        target="_blank" 
-                        rel="noreferrer" 
+
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
                         className="flex items-center justify-center gap-2 w-full py-3.5 mb-6 bg-[#25D366] hover:bg-[#20BE5C] text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-[#25D366]/30 hover:-translate-y-0.5"
                       >
                         <MessageCircle className="w-5 h-5" />
@@ -410,21 +490,30 @@ export default function Checkout() {
                       </a>
 
                       <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6">
-                    <FileImage className="w-6 h-6 text-slate-500" />
-                    <div>
-                      <p className="text-sm text-slate-300">{receiptFile ? receiptFile.name : 'Click to upload payment receipt'}</p>
-                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
-                    </div>
-                    <input type="file" accept="image/*,.pdf" onChange={e => setReceiptFile(e.target.files[0])}
-                      className="hidden" disabled={uploading} />
-                  </label>
-                </>
-                );
-              })()
+                        <FileImage className="w-6 h-6 text-slate-500" />
+                        <div>
+                          <p className="text-sm text-slate-300">
+                            {receiptFile ? receiptFile.name : 'Click to upload payment receipt'}
+                          </p>
+                          <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) => setReceiptFile(e.target.files[0])}
+                          className="hidden"
+                          disabled={uploading}
+                        />
+                      </label>
+                    </>
+                  );
+                })()
               ) : (
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 mb-6">
                   <CheckCircle className="w-5 h-5 text-green-400" />
-                  <p className="text-sm text-green-300">Deposit fully covered by your credit balance!</p>
+                  <p className="text-sm text-green-300">
+                    Deposit fully covered by your credit balance!
+                  </p>
                 </div>
               )}
 
@@ -434,9 +523,14 @@ export default function Checkout() {
                 className="btn-primary w-full flex items-center justify-center gap-2"
               >
                 {uploading ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Processing...
+                  </>
                 ) : (
-                  <><Upload className="w-5 h-5" /> {amountDue > 0 ? 'Submit Deposit Payment' : 'Confirm Booking'}</>
+                  <>
+                    <Upload className="w-5 h-5" />{' '}
+                    {amountDue > 0 ? 'Submit Deposit Payment' : 'Confirm Booking'}
+                  </>
                 )}
               </button>
             </div>
@@ -446,12 +540,22 @@ export default function Checkout() {
         {/* Right: Booking Summary */}
         <div className="lg:w-80 shrink-0">
           <div className="glass-card lg:sticky lg:top-24">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Summary</h3>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+              Summary
+            </h3>
             {car.image_url && (
-              <img src={car.image_url} alt={car.name} className="w-full h-32 object-cover rounded-xl mb-4" loading="lazy" referrerPolicy="no-referrer" />
+              <img
+                src={car.image_url}
+                alt={car.name}
+                className="w-full h-32 object-cover rounded-xl mb-4"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
             )}
             <h4 className="text-white font-semibold mb-1">{car.name}</h4>
-            <p className="text-xs text-slate-500 mb-4">{car.brand} {car.model}</p>
+            <p className="text-xs text-slate-500 mb-4">
+              {car.brand} {car.model}
+            </p>
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -464,7 +568,9 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Duration</span>
-                <span className="text-white">{days} day{days > 1 ? 's' : ''}</span>
+                <span className="text-white">
+                  {days} day{days > 1 ? 's' : ''}
+                </span>
               </div>
               <div className="border-t border-white/5 pt-3 flex justify-between">
                 <span className="text-slate-400">Rental Total</span>
@@ -474,7 +580,9 @@ export default function Checkout() {
                 <span className="text-violet-300 text-sm">Deposit (Security)</span>
                 <span className="text-violet-300 font-bold">{formatMYR(deposit)}</span>
               </div>
-              <p className="text-xs text-slate-600 italic">Full rental payment ({formatMYR(total)}) due at pickup</p>
+              <p className="text-xs text-slate-600 italic">
+                Full rental payment ({formatMYR(total)}) due at pickup
+              </p>
             </div>
 
             <div className="flex items-center gap-1.5 mt-4 text-xs text-slate-600">

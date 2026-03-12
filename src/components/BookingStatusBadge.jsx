@@ -21,9 +21,5 @@ export default function BookingStatusBadge({ status }) {
     EXPIRED: 'Expired',
   };
 
-  return (
-    <span className={badgeMap[status] || 'badge-expired'}>
-      {labelMap[status] || status}
-    </span>
-  );
+  return <span className={badgeMap[status] || 'badge-expired'}>{labelMap[status] || status}</span>;
 }

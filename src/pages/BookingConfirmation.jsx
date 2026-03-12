@@ -8,7 +8,18 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CheckCircle, FileUp, CalendarDays, Copy, ExternalLink, XCircle, AlertTriangle, Download, Clock, MessageCircle } from 'lucide-react';
+import {
+  CheckCircle,
+  FileUp,
+  CalendarDays,
+  Copy,
+  ExternalLink,
+  XCircle,
+  AlertTriangle,
+  Download,
+  Clock,
+  MessageCircle,
+} from 'lucide-react';
 
 export default function BookingConfirmation() {
   const { id } = useParams();
@@ -65,7 +76,9 @@ export default function BookingConfirmation() {
     return (
       <div className="page-container text-center">
         <p className="text-red-400">Booking not found.</p>
-        <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">Back to home</Link>
+        <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">
+          Back to home
+        </Link>
       </div>
     );
   }
@@ -176,8 +189,14 @@ export default function BookingConfirmation() {
       <div className="text-center mb-8 animate-fade-in">
         {isCancelled || isExpired ? (
           <>
-            <div className={`w-20 h-20 rounded-full ${isExpired ? 'bg-slate-500/10' : 'bg-red-500/10'} flex items-center justify-center mx-auto mb-4`}>
-              {isExpired ? <Clock className="w-10 h-10 text-slate-400" /> : <XCircle className="w-10 h-10 text-red-400" />}
+            <div
+              className={`w-20 h-20 rounded-full ${isExpired ? 'bg-slate-500/10' : 'bg-red-500/10'} flex items-center justify-center mx-auto mb-4`}
+            >
+              {isExpired ? (
+                <Clock className="w-10 h-10 text-slate-400" />
+              ) : (
+                <XCircle className="w-10 h-10 text-red-400" />
+              )}
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">
               {isExpired ? 'Booking Expired' : 'Booking Cancelled'}
@@ -194,7 +213,9 @@ export default function BookingConfirmation() {
               <Clock className="w-10 h-10 text-yellow-400" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Booking on Hold</h1>
-            <p className="text-slate-400">Please upload your deposit receipt to secure this booking. Hold expires in 10 minutes.</p>
+            <p className="text-slate-400">
+              Please upload your deposit receipt to secure this booking. Hold expires in 10 minutes.
+            </p>
           </>
         ) : (
           <>
@@ -221,8 +242,15 @@ export default function BookingConfirmation() {
               <code className="text-sm font-mono text-violet-300 bg-violet-500/10 px-3 py-1 rounded-lg">
                 {booking.id.slice(0, 8).toUpperCase()}
               </code>
-              <button onClick={copyBookingId} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-slate-500 hover:text-white">
-                {copied ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              <button
+                onClick={copyBookingId}
+                className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-slate-500 hover:text-white"
+              >
+                {copied ? (
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>
@@ -236,7 +264,9 @@ export default function BookingConfirmation() {
           )}
           <div>
             <h3 className="text-white font-semibold">{car?.name || 'Car'}</h3>
-            <p className="text-xs text-slate-500">{car?.brand} {car?.model}</p>
+            <p className="text-xs text-slate-500">
+              {car?.brand} {car?.model}
+            </p>
           </div>
         </div>
 
@@ -255,8 +285,12 @@ export default function BookingConfirmation() {
             <p className="text-white font-semibold">{formatMYR(booking.total_price)}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">{isHold ? 'Deposit Required' : 'Deposit Paid'}</p>
-            <p className={`font-semibold ${isHold ? 'text-yellow-400' : 'text-green-400'}`}>{formatMYR(booking.deposit_amount)}</p>
+            <p className="text-xs text-slate-500 mb-1">
+              {isHold ? 'Deposit Required' : 'Deposit Paid'}
+            </p>
+            <p className={`font-semibold ${isHold ? 'text-yellow-400' : 'text-green-400'}`}>
+              {formatMYR(booking.deposit_amount)}
+            </p>
           </div>
         </div>
 
@@ -277,12 +311,12 @@ export default function BookingConfirmation() {
           <a
             href={`https://wa.me/${fleetGroup.support_whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
               `Hi, I'd like to make payment for my booking:\n\n` +
-              `📋 Booking ID: ${booking.id.slice(0, 8).toUpperCase()}\n` +
-              `👤 Name: ${booking.customer_name || 'N/A'}\n` +
-              `🚗 Car: ${car?.name || car?.brand + ' ' + car?.model}\n` +
-              `📅 Dates: ${booking.pickup_date} → ${booking.return_date}\n` +
-              `💰 ${isHold ? 'Deposit Due' : 'Amount'}: RM${isHold ? booking.deposit_amount : booking.total_price}\n\n` +
-              `I will upload my receipt after payment. Thank you!`
+                `📋 Booking ID: ${booking.id.slice(0, 8).toUpperCase()}\n` +
+                `👤 Name: ${booking.customer_name || 'N/A'}\n` +
+                `🚗 Car: ${car?.name || car?.brand + ' ' + car?.model}\n` +
+                `📅 Dates: ${booking.pickup_date} → ${booking.return_date}\n` +
+                `💰 ${isHold ? 'Deposit Due' : 'Amount'}: RM${isHold ? booking.deposit_amount : booking.total_price}\n\n` +
+                `I will upload my receipt after payment. Thank you!`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -294,7 +328,9 @@ export default function BookingConfirmation() {
         )}
 
         {Number(booking.credit_applied || 0) > 0 && (
-          <p className="mt-2 text-xs text-green-400">Credit applied: {formatMYR(booking.credit_applied)}</p>
+          <p className="mt-2 text-xs text-green-400">
+            Credit applied: {formatMYR(booking.credit_applied)}
+          </p>
         )}
 
         {hasPaid && (
@@ -329,8 +365,13 @@ export default function BookingConfirmation() {
               <div className="flex items-start gap-3 mb-4">
                 <AlertTriangle className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-white font-medium mb-1">Are you sure you want to cancel?</p>
-                  <p className="text-xs text-slate-400">This action cannot be undone. Your booking will be released and the dates will become available for others.</p>
+                  <p className="text-sm text-white font-medium mb-1">
+                    Are you sure you want to cancel?
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    This action cannot be undone. Your booking will be released and the dates will
+                    become available for others.
+                  </p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -366,8 +407,12 @@ export default function BookingConfirmation() {
                 <FileUp className="w-5 h-5 text-violet-400" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-white font-medium group-hover:text-violet-300 transition-colors">Upload Identity Documents</p>
-                <p className="text-xs text-slate-500">Submit your driving licence for verification (recommended)</p>
+                <p className="text-sm text-white font-medium group-hover:text-violet-300 transition-colors">
+                  Upload Identity Documents
+                </p>
+                <p className="text-xs text-slate-500">
+                  Submit your driving licence for verification (recommended)
+                </p>
               </div>
               <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
             </Link>
@@ -380,7 +425,9 @@ export default function BookingConfirmation() {
                 <CalendarDays className="w-5 h-5 text-indigo-400" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-white font-medium group-hover:text-indigo-300 transition-colors">View My Bookings</p>
+                <p className="text-sm text-white font-medium group-hover:text-indigo-300 transition-colors">
+                  View My Bookings
+                </p>
                 <p className="text-xs text-slate-500">Track all your bookings in one place</p>
               </div>
               <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />

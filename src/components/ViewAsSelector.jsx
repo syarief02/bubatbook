@@ -16,18 +16,17 @@ export default function ViewAsSelector({ isOpen, onClose }) {
   const [selectedStatus, setSelectedStatus] = useState('VERIFIED');
 
   useEffect(() => {
+    async function fetchGroups() {
+      setLoading(true);
+      const { data } = await supabase
+        .from('bubatrent_booking_fleet_groups')
+        .select('id, name, slug, status, is_super_group')
+        .order('name');
+      setGroups(data || []);
+      setLoading(false);
+    }
     if (isOpen) fetchGroups();
   }, [isOpen]);
-
-  async function fetchGroups() {
-    setLoading(true);
-    const { data } = await supabase
-      .from('bubatrent_booking_fleet_groups')
-      .select('id, name, slug, status, is_super_group')
-      .order('name');
-    setGroups(data || []);
-    setLoading(false);
-  }
 
   function handleCustomerView() {
     enterViewAs({ role: 'customer' });
@@ -56,8 +55,14 @@ export default function ViewAsSelector({ isOpen, onClose }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="glass-card w-full max-w-lg animate-fade-in" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="glass-card w-full max-w-lg animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
@@ -68,7 +73,10 @@ export default function ViewAsSelector({ isOpen, onClose }) {
               <p className="text-xs text-slate-500">See exactly what other users see</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/5 text-slate-500 transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl hover:bg-white/5 text-slate-500 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -84,7 +92,9 @@ export default function ViewAsSelector({ isOpen, onClose }) {
             </div>
             <div className="text-left">
               <p className="text-sm font-semibold text-white">View as Customer</p>
-              <p className="text-[10px] text-slate-500">See the homepage, bookings, and profile as a customer</p>
+              <p className="text-[10px] text-slate-500">
+                See the homepage, bookings, and profile as a customer
+              </p>
             </div>
           </div>
           <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors" />
@@ -98,42 +108,52 @@ export default function ViewAsSelector({ isOpen, onClose }) {
             </div>
             <div>
               <p className="text-sm font-semibold text-white">View as Group Admin</p>
-              <p className="text-[10px] text-slate-500">Select a fleet group and simulate its status</p>
+              <p className="text-[10px] text-slate-500">
+                Select a fleet group and simulate its status
+              </p>
             </div>
           </div>
 
           {/* Fleet group selector */}
           <div className="space-y-3">
             <div>
-              <label className="text-[10px] text-slate-500 uppercase font-semibold mb-1 block">Select Fleet Group</label>
+              <label className="text-[10px] text-slate-500 uppercase font-semibold mb-1 block">
+                Select Fleet Group
+              </label>
               <div className="space-y-1.5 max-h-40 overflow-y-auto">
                 {loading ? (
                   <p className="text-xs text-slate-500 py-2">Loading groups...</p>
-                ) : groups.map(g => (
-                  <button
-                    key={g.id}
-                    onClick={() => setSelectedGroup(g)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-sm transition-all ${
-                      selectedGroup?.id === g.id
-                        ? 'bg-violet-500/15 text-violet-300 border border-violet-500/30'
-                        : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-transparent'
-                    }`}
-                  >
-                    <Building2 className="w-3.5 h-3.5 shrink-0" />
-                    <span className="font-medium">{g.name}</span>
-                    {g.is_super_group && (
-                      <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] bg-violet-500/20 text-violet-300">Super</span>
-                    )}
-                  </button>
-                ))}
+                ) : (
+                  groups.map((g) => (
+                    <button
+                      key={g.id}
+                      onClick={() => setSelectedGroup(g)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-sm transition-all ${
+                        selectedGroup?.id === g.id
+                          ? 'bg-violet-500/15 text-violet-300 border border-violet-500/30'
+                          : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-transparent'
+                      }`}
+                    >
+                      <Building2 className="w-3.5 h-3.5 shrink-0" />
+                      <span className="font-medium">{g.name}</span>
+                      {g.is_super_group && (
+                        <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] bg-violet-500/20 text-violet-300">
+                          Super
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 
             {/* Status override */}
             <div>
-              <label className="text-[10px] text-slate-500 uppercase font-semibold mb-1 block">Simulate Group Status</label>
+              <label className="text-[10px] text-slate-500 uppercase font-semibold mb-1 block">
+                Simulate Group Status
+              </label>
               <div className="grid grid-cols-2 gap-1.5">
-                {STATUS_OPTIONS.map(s => (
+                {STATUS_OPTIONS.map((s) => (
                   <button
                     key={s.value}
                     onClick={() => setSelectedStatus(s.value)}

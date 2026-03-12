@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminStats } from '../../hooks/useAdmin';

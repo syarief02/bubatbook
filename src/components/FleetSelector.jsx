@@ -38,14 +38,19 @@ export default function FleetSelector() {
         <span className="text-sm text-white font-medium truncate max-w-[180px]">
           {activeFleet?.name || 'Select Fleet'}
         </span>
-        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-1 w-56 glass-card !p-1 z-50 animate-fade-in border border-white/10">
-          {fleets.map(f => (
+          {fleets.map((f) => (
             <button
               key={f.id}
-              onClick={() => { setActiveFleetId(f.id); setOpen(false); }}
+              onClick={() => {
+                setActiveFleetId(f.id);
+                setOpen(false);
+              }}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 f.id === activeFleetId
                   ? 'bg-violet-500/20 text-violet-300'

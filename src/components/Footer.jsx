@@ -15,29 +15,46 @@ export default function Footer() {
               <span className="text-lg font-bold gradient-text">Rent2Go</span>
             </Link>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Premium car rental in Malaysia. Browse our fleet, pick your dates, and book instantly with secure deposit payment.
+              Premium car rental in Malaysia. Browse our fleet, pick your dates, and book instantly
+              with secure deposit payment.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Quick Links</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+              Quick Links
+            </h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">Browse Cars</Link>
+                <Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">
+                  Browse Cars
+                </Link>
               </li>
               <li>
-                <Link to="/my-bookings" className="text-sm text-slate-400 hover:text-white transition-colors">My Bookings</Link>
+                <Link
+                  to="/my-bookings"
+                  className="text-sm text-slate-400 hover:text-white transition-colors"
+                >
+                  My Bookings
+                </Link>
               </li>
               <li>
-                <Link to="/login" className="text-sm text-slate-400 hover:text-white transition-colors">Sign In</Link>
+                <Link
+                  to="/login"
+                  className="text-sm text-slate-400 hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Contact Us</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+              Contact Us
+            </h4>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-slate-400">
                 <Phone className="w-4 h-4 text-violet-400" />

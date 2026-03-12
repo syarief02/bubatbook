@@ -77,35 +77,39 @@ export default function RentalAgreement() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!signatureData) { toast.error('Please draw your signature.'); return; }
-    if (!agreedToTerms) { toast.error('Please agree to the terms and conditions.'); return; }
+    if (!signatureData) {
+      toast.error('Please draw your signature.');
+      return;
+    }
+    if (!agreedToTerms) {
+      toast.error('Please agree to the terms and conditions.');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const car = booking.bubatrent_booking_cars;
-      const { error } = await supabase
-        .from('bubatrent_booking_rental_agreements')
-        .insert({
-          booking_id: booking.id,
-          customer_id: user.id,
-          customer_name: profile?.full_name || user.email,
-          customer_ic: profile?.ic_number || '',
-          customer_phone: profile?.phone || '',
-          car_model: `${car?.brand || ''} ${car?.model || ''}`.trim(),
-          car_plate: car?.plate_number || '',
-          pickup_date: booking.pickup_date,
-          return_date: booking.return_date,
-          rental_rate: car?.price_per_day || 0,
-          total_price: booking.total_price,
-          deposit_amount: booking.deposit_amount,
-          signature_data: signatureData,
-        });
+      const { error } = await supabase.from('bubatrent_booking_rental_agreements').insert({
+        booking_id: booking.id,
+        customer_id: user.id,
+        customer_name: profile?.full_name || user.email,
+        customer_ic: profile?.ic_number || '',
+        customer_phone: profile?.phone || '',
+        car_model: `${car?.brand || ''} ${car?.model || ''}`.trim(),
+        car_plate: car?.plate_number || '',
+        pickup_date: booking.pickup_date,
+        return_date: booking.return_date,
+        rental_rate: car?.price_per_day || 0,
+        total_price: booking.total_price,
+        deposit_amount: booking.deposit_amount,
+        signature_data: signatureData,
+      });
 
       if (error) throw error;
 
       toast.success('Agreement signed successfully!');
-      setExistingAgreement({ 
-        agreed_at: new Date().toISOString(), 
+      setExistingAgreement({
+        agreed_at: new Date().toISOString(),
         signature_data: signatureData,
         customer_name: profile?.full_name || user.email,
         customer_ic: profile?.ic_number || '',
@@ -123,7 +127,12 @@ export default function RentalAgreement() {
     }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>;
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   if (!booking) return null;
 
   const car = booking.bubatrent_booking_cars;
@@ -138,7 +147,9 @@ export default function RentalAgreement() {
             <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-2" />
             <h1 className="text-2xl font-bold text-white mb-1">PERJANJIAN SEWAAN KENDERAAN</h1>
             <p className="text-green-400 text-sm font-medium">✓ Ditandatangani / Signed</p>
-            <p className="text-slate-500 text-xs mt-1">Signed on {new Date(existingAgreement.agreed_at).toLocaleString()}</p>
+            <p className="text-slate-500 text-xs mt-1">
+              Signed on {new Date(existingAgreement.agreed_at).toLocaleString()}
+            </p>
           </div>
 
           {/* Agreement Details */}
@@ -163,11 +174,15 @@ export default function RentalAgreement() {
               </div>
               <div>
                 <p className="text-slate-500 text-xs mb-0.5">Tarikh Mula / Pickup</p>
-                <p className="text-white font-medium">{formatDate(existingAgreement.pickup_date)}</p>
+                <p className="text-white font-medium">
+                  {formatDate(existingAgreement.pickup_date)}
+                </p>
               </div>
               <div>
                 <p className="text-slate-500 text-xs mb-0.5">Tarikh Tamat / Return</p>
-                <p className="text-white font-medium">{formatDate(existingAgreement.return_date)}</p>
+                <p className="text-white font-medium">
+                  {formatDate(existingAgreement.return_date)}
+                </p>
               </div>
               <div>
                 <p className="text-slate-500 text-xs mb-0.5">Jumlah Sewa / Total</p>
@@ -175,25 +190,60 @@ export default function RentalAgreement() {
               </div>
               <div>
                 <p className="text-slate-500 text-xs mb-0.5">Deposit</p>
-                <p className="text-white font-medium">{formatMYR(existingAgreement.deposit_amount)}</p>
+                <p className="text-white font-medium">
+                  {formatMYR(existingAgreement.deposit_amount)}
+                </p>
               </div>
             </div>
           </div>
 
           {/* Terms & Conditions */}
           <div className="glass-card mb-6">
-            <h2 className="text-lg font-semibold text-white mb-4">TERMA & SYARAT (Terms & Conditions)</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">
+              TERMA & SYARAT (Terms & Conditions)
+            </h2>
             <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
               <p className="text-xs text-slate-500 italic mb-4">
-                Penyewa yang mengikat kontrak sewa kenderaan bulanan, jika berlaku kerosakan sewaktu tempoh sewa yang disebabkan oleh kenderaan itu sendiri, syarikat akan menggantikan kenderaan tersebut dengan yang lain. Jika ada, jika tiada kenderaan lain, syarikat akan beri sewa percuma mengikut hari yang terlibat.
+                Penyewa yang mengikat kontrak sewa kenderaan bulanan, jika berlaku kerosakan sewaktu
+                tempoh sewa yang disebabkan oleh kenderaan itu sendiri, syarikat akan menggantikan
+                kenderaan tersebut dengan yang lain. Jika ada, jika tiada kenderaan lain, syarikat
+                akan beri sewa percuma mengikut hari yang terlibat.
               </p>
               <ol className="list-decimal pl-5 space-y-2">
-                <li>Penyewa bersetuju untuk menyewa dan memulangkan kenderaan pada <strong className="text-white">tarikh dan masa yang telah ditetapkan</strong>.</li>
-                <li>Penyewa mestilah mempunyai <strong className="text-white">lesen memandu Malaysia Kelas D</strong> dan GDL Kelas D yang sah.</li>
-                <li>Penyewa mestilah memaklumkan kepada syarikat sekiranya berlaku sebarang perkara yang tidak diingini. Contoh: <strong className="text-white">kemalangan, kehilangan dan sebagainya</strong>.</li>
-                <li>Kenderaan mestilah digunakan untuk perkara yang <strong className="text-white">mematuhi undang-undang sahaja</strong>. Segala perkara yang melanggar undang-undang seperti pengedaran dadah, perlumbaan, perjudian dan sebagainya adalah <strong className="text-red-400">DILARANG</strong>.</li>
-                <li>Penyewa adalah <strong className="text-white">bertanggungjawab</strong> dengan segala bentuk saman yang dikenakan, bayaran parking, minyak kenderaan, kerosakan atau kegagalan kenderaan yang berpunca dari penyewa sepanjang tempoh sewaan.</li>
-                <li>Untuk sebarang <strong className="text-white">kelewatan pengembalian</strong> kenderaan, penyewa akan dikenakan caj sebanyak <strong className="text-yellow-400">RM10.00 / RM15.00 / RM20.00 sejam</strong>. Penyewa bertanggungjawab untuk memulangkan kenderaan dalam keadaan bersih. Jika tidak, deposit akan ditolak sebanyak <strong className="text-yellow-400">RM20</strong>.</li>
+                <li>
+                  Penyewa bersetuju untuk menyewa dan memulangkan kenderaan pada{' '}
+                  <strong className="text-white">tarikh dan masa yang telah ditetapkan</strong>.
+                </li>
+                <li>
+                  Penyewa mestilah mempunyai{' '}
+                  <strong className="text-white">lesen memandu Malaysia Kelas D</strong> dan GDL
+                  Kelas D yang sah.
+                </li>
+                <li>
+                  Penyewa mestilah memaklumkan kepada syarikat sekiranya berlaku sebarang perkara
+                  yang tidak diingini. Contoh:{' '}
+                  <strong className="text-white">kemalangan, kehilangan dan sebagainya</strong>.
+                </li>
+                <li>
+                  Kenderaan mestilah digunakan untuk perkara yang{' '}
+                  <strong className="text-white">mematuhi undang-undang sahaja</strong>. Segala
+                  perkara yang melanggar undang-undang seperti pengedaran dadah, perlumbaan,
+                  perjudian dan sebagainya adalah <strong className="text-red-400">DILARANG</strong>
+                  .
+                </li>
+                <li>
+                  Penyewa adalah <strong className="text-white">bertanggungjawab</strong> dengan
+                  segala bentuk saman yang dikenakan, bayaran parking, minyak kenderaan, kerosakan
+                  atau kegagalan kenderaan yang berpunca dari penyewa sepanjang tempoh sewaan.
+                </li>
+                <li>
+                  Untuk sebarang <strong className="text-white">kelewatan pengembalian</strong>{' '}
+                  kenderaan, penyewa akan dikenakan caj sebanyak{' '}
+                  <strong className="text-yellow-400">RM10.00 / RM15.00 / RM20.00 sejam</strong>.
+                  Penyewa bertanggungjawab untuk memulangkan kenderaan dalam keadaan bersih. Jika
+                  tidak, deposit akan ditolak sebanyak{' '}
+                  <strong className="text-yellow-400">RM20</strong>.
+                </li>
               </ol>
             </div>
           </div>
@@ -203,8 +253,20 @@ export default function RentalAgreement() {
             <h2 className="text-lg font-semibold text-white mb-4">INSURAN / PERSETUJUAN BERSAMA</h2>
             <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
               <ol className="list-decimal pl-5 space-y-3">
-                <li>Penyewa bersetuju untuk <strong className="text-white">bertanggungjawab sepenuhnya</strong> diatas segala kehilangan atau kerosakan pada kenderaan atau segala peralatan sepanjang tempoh sewaan mengikut terma dan syarat penyewaan kenderaan walaupun berpunca dari perlanggaraan, kebakaran, banjir, vandalisme, kecurian atau apapunpunca kecuali atas kerosakan atau kecacatan kenderaan itu sendiri.</li>
-                <li>Penyewa <strong className="text-white">wajib membayar gantirugi</strong> kemalangan atau kerosakan kepada syarikat serta merta. Ganti rugi kemalangan yang dibayar oleh penyewa sama sekali tidak melibatkan tuntutan insuran kenderaan walaupun tuntutan insuran dibuat oleh syarikat.</li>
+                <li>
+                  Penyewa bersetuju untuk{' '}
+                  <strong className="text-white">bertanggungjawab sepenuhnya</strong> diatas segala
+                  kehilangan atau kerosakan pada kenderaan atau segala peralatan sepanjang tempoh
+                  sewaan mengikut terma dan syarat penyewaan kenderaan walaupun berpunca dari
+                  perlanggaraan, kebakaran, banjir, vandalisme, kecurian atau apapunpunca kecuali
+                  atas kerosakan atau kecacatan kenderaan itu sendiri.
+                </li>
+                <li>
+                  Penyewa <strong className="text-white">wajib membayar gantirugi</strong>{' '}
+                  kemalangan atau kerosakan kepada syarikat serta merta. Ganti rugi kemalangan yang
+                  dibayar oleh penyewa sama sekali tidak melibatkan tuntutan insuran kenderaan
+                  walaupun tuntutan insuran dibuat oleh syarikat.
+                </li>
               </ol>
 
               {/* Liability Table */}
@@ -212,19 +274,33 @@ export default function RentalAgreement() {
                 <table className="w-full text-xs border-collapse">
                   <thead>
                     <tr className="text-slate-400">
-                      <th className="border border-white/10 p-2 text-left bg-white/5">CC Kenderaan</th>
-                      <th className="border border-white/10 p-2 text-center bg-white/5">Bengkel &lt; 7 Hari</th>
-                      <th className="border border-white/10 p-2 text-center bg-white/5">Bengkel &gt; 7 Hari</th>
-                      <th className="border border-white/10 p-2 text-center bg-white/5">Kerosakan Kecil</th>
+                      <th className="border border-white/10 p-2 text-left bg-white/5">
+                        CC Kenderaan
+                      </th>
+                      <th className="border border-white/10 p-2 text-center bg-white/5">
+                        Bengkel &lt; 7 Hari
+                      </th>
+                      <th className="border border-white/10 p-2 text-center bg-white/5">
+                        Bengkel &gt; 7 Hari
+                      </th>
+                      <th className="border border-white/10 p-2 text-center bg-white/5">
+                        Kerosakan Kecil
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {LIABILITY_TABLE.map((row, i) => (
                       <tr key={i} className="text-white">
                         <td className="border border-white/10 p-2 text-slate-300">{row.cc}</td>
-                        <td className="border border-white/10 p-2 text-center font-medium text-yellow-400">{row.workshop7}</td>
-                        <td className="border border-white/10 p-2 text-center font-medium text-orange-400">{row.workshopMore}</td>
-                        <td className="border border-white/10 p-2 text-center font-medium text-emerald-400">{row.minor}</td>
+                        <td className="border border-white/10 p-2 text-center font-medium text-yellow-400">
+                          {row.workshop7}
+                        </td>
+                        <td className="border border-white/10 p-2 text-center font-medium text-orange-400">
+                          {row.workshopMore}
+                        </td>
+                        <td className="border border-white/10 p-2 text-center font-medium text-emerald-400">
+                          {row.minor}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -232,24 +308,44 @@ export default function RentalAgreement() {
               </div>
 
               <ol className="list-decimal pl-5 space-y-2" start={3}>
-                <li>Deposit akan <strong className="text-white">dikembalikan semula</strong> kepada penyewa diantara <strong className="text-white">7 hari bekerja</strong>. Sekiranya tidak berlaku sebarang perkara yang tidak diingini mengikut terma & syarat perjanjian penyewaan.</li>
-                <li>Penalti sebanyak <strong className="text-yellow-400">25%</strong> dari jumlah bayaran keseluruhan tempoh sewaan akan dikenakan sekiranya penyewa <strong className="text-white">membatalkan atau memendekkan</strong> perjanjian tempoh sewaan.</li>
+                <li>
+                  Deposit akan <strong className="text-white">dikembalikan semula</strong> kepada
+                  penyewa diantara <strong className="text-white">7 hari bekerja</strong>. Sekiranya
+                  tidak berlaku sebarang perkara yang tidak diingini mengikut terma & syarat
+                  perjanjian penyewaan.
+                </li>
+                <li>
+                  Penalti sebanyak <strong className="text-yellow-400">25%</strong> dari jumlah
+                  bayaran keseluruhan tempoh sewaan akan dikenakan sekiranya penyewa{' '}
+                  <strong className="text-white">membatalkan atau memendekkan</strong> perjanjian
+                  tempoh sewaan.
+                </li>
               </ol>
             </div>
           </div>
 
           {/* Signature */}
           <div className="glass-card mb-6">
-            <h2 className="text-lg font-semibold text-white mb-4">TANDATANGAN PENYEWA (Customer Signature)</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">
+              TANDATANGAN PENYEWA (Customer Signature)
+            </h2>
             <div className="bg-white rounded-xl p-4 max-w-xs">
-              <img src={existingAgreement.signature_data} alt="Customer Signature" className="w-full h-auto" />
+              <img
+                src={existingAgreement.signature_data}
+                alt="Customer Signature"
+                className="w-full h-auto"
+              />
             </div>
             <p className="text-xs text-slate-500 mt-3">
-              Ditandatangani pada / Signed on: {new Date(existingAgreement.agreed_at).toLocaleString()}
+              Ditandatangani pada / Signed on:{' '}
+              {new Date(existingAgreement.agreed_at).toLocaleString()}
             </p>
           </div>
 
-          <button onClick={() => navigate(isOwner ? '/my-bookings' : '/admin/bookings')} className="btn-primary w-full">
+          <button
+            onClick={() => navigate(isOwner ? '/my-bookings' : '/admin/bookings')}
+            className="btn-primary w-full"
+          >
             {isOwner ? 'Back to My Bookings' : 'Back to Bookings'}
           </button>
         </div>
@@ -294,11 +390,15 @@ export default function RentalAgreement() {
 
         {/* Vehicle & Booking Info */}
         <div className="glass-card mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4">BUTIRAN KENDERAAN (Vehicle Details)</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">
+            BUTIRAN KENDERAAN (Vehicle Details)
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-slate-500 text-xs mb-0.5">Model Kenderaan / Vehicle</p>
-              <p className="text-white font-medium">{car?.brand} {car?.model}</p>
+              <p className="text-white font-medium">
+                {car?.brand} {car?.model}
+              </p>
             </div>
             <div>
               <p className="text-slate-500 text-xs mb-0.5">No. Pendaftaran / Plate</p>
@@ -329,19 +429,51 @@ export default function RentalAgreement() {
 
         {/* Terms & Conditions */}
         <div className="glass-card mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4">TERMA & SYARAT (Terms & Conditions)</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">
+            TERMA & SYARAT (Terms & Conditions)
+          </h2>
           <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
             <p className="text-xs text-slate-500 italic mb-4">
-              Penyewa yang mengikat kontrak sewa kenderaan bulanan, jika berlaku kerosakan sewaktu tempoh sewa yang disebabkan oleh kenderaan itu sendiri, syarikat akan menggantikan kenderaan tersebut dengan yang lain. Jika ada, jika tiada kenderaan lain, syarikat akan beri sewa percuma mengikut hari yang terlibat.
+              Penyewa yang mengikat kontrak sewa kenderaan bulanan, jika berlaku kerosakan sewaktu
+              tempoh sewa yang disebabkan oleh kenderaan itu sendiri, syarikat akan menggantikan
+              kenderaan tersebut dengan yang lain. Jika ada, jika tiada kenderaan lain, syarikat
+              akan beri sewa percuma mengikut hari yang terlibat.
             </p>
 
             <ol className="list-decimal pl-5 space-y-2">
-              <li>Penyewa bersetuju untuk menyewa dan memulangkan kenderaan pada <strong className="text-white">tarikh dan masa yang telah ditetapkan</strong>.</li>
-              <li>Penyewa mestilah mempunyai <strong className="text-white">lesen memandu Malaysia Kelas D</strong> dan GDL Kelas D yang sah.</li>
-              <li>Penyewa mestilah memaklumkan kepada syarikat sekiranya berlaku sebarang perkara yang tidak diingini. Contoh: <strong className="text-white">kemalangan, kehilangan dan sebagainya</strong>.</li>
-              <li>Kenderaan mestilah digunakan untuk perkara yang <strong className="text-white">mematuhi undang-undang sahaja</strong>. Segala perkara yang melanggar undang-undang seperti pengedaran dadah, perlumbaan, perjudian dan sebagainya adalah <strong className="text-red-400">DILARANG</strong>.</li>
-              <li>Penyewa adalah <strong className="text-white">bertanggungjawab</strong> dengan segala bentuk saman yang dikenakan, bayaran parking, minyak kenderaan, kerosakan atau kegagalan kenderaan yang berpunca dari penyewa sepanjang tempoh sewaan.</li>
-              <li>Untuk sebarang <strong className="text-white">kelewatan pengembalian</strong> kenderaan, penyewa akan dikenakan caj sebanyak <strong className="text-yellow-400">RM10.00 / RM15.00 / RM20.00 sejam</strong>. Penyewa bertanggungjawab untuk memulangkan kenderaan dalam keadaan bersih. Jika tidak, deposit akan ditolak sebanyak <strong className="text-yellow-400">RM20</strong>.</li>
+              <li>
+                Penyewa bersetuju untuk menyewa dan memulangkan kenderaan pada{' '}
+                <strong className="text-white">tarikh dan masa yang telah ditetapkan</strong>.
+              </li>
+              <li>
+                Penyewa mestilah mempunyai{' '}
+                <strong className="text-white">lesen memandu Malaysia Kelas D</strong> dan GDL Kelas
+                D yang sah.
+              </li>
+              <li>
+                Penyewa mestilah memaklumkan kepada syarikat sekiranya berlaku sebarang perkara yang
+                tidak diingini. Contoh:{' '}
+                <strong className="text-white">kemalangan, kehilangan dan sebagainya</strong>.
+              </li>
+              <li>
+                Kenderaan mestilah digunakan untuk perkara yang{' '}
+                <strong className="text-white">mematuhi undang-undang sahaja</strong>. Segala
+                perkara yang melanggar undang-undang seperti pengedaran dadah, perlumbaan, perjudian
+                dan sebagainya adalah <strong className="text-red-400">DILARANG</strong>.
+              </li>
+              <li>
+                Penyewa adalah <strong className="text-white">bertanggungjawab</strong> dengan
+                segala bentuk saman yang dikenakan, bayaran parking, minyak kenderaan, kerosakan
+                atau kegagalan kenderaan yang berpunca dari penyewa sepanjang tempoh sewaan.
+              </li>
+              <li>
+                Untuk sebarang <strong className="text-white">kelewatan pengembalian</strong>{' '}
+                kenderaan, penyewa akan dikenakan caj sebanyak{' '}
+                <strong className="text-yellow-400">RM10.00 / RM15.00 / RM20.00 sejam</strong>.
+                Penyewa bertanggungjawab untuk memulangkan kenderaan dalam keadaan bersih. Jika
+                tidak, deposit akan ditolak sebanyak{' '}
+                <strong className="text-yellow-400">RM20</strong>.
+              </li>
             </ol>
           </div>
         </div>
@@ -351,8 +483,20 @@ export default function RentalAgreement() {
           <h2 className="text-lg font-semibold text-white mb-4">INSURAN / PERSETUJUAN BERSAMA</h2>
           <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
             <ol className="list-decimal pl-5 space-y-3">
-              <li>Penyewa bersetuju untuk <strong className="text-white">bertanggungjawab sepenuhnya</strong> diatas segala kehilangan atau kerosakan pada kenderaan atau segala peralatan sepanjang tempoh sewaan mengikut terma dan syarat penyewaan kenderaan walaupun berpunca dari perlanggaraan, kebakaran, banjir, vandalisme, kecurian atau apapunpunca kecuali atas kerosakan atau kecacatan kenderaan itu sendiri.</li>
-              <li>Penyewa <strong className="text-white">wajib membayar gantirugi</strong> kemalangan atau kerosakan kepada syarikat serta merta. Ganti rugi kemalangan yang dibayar oleh penyewa sama sekali tidak melibatkan tuntutan insuran kenderaan walaupun tuntutan insuran dibuat oleh syarikat.</li>
+              <li>
+                Penyewa bersetuju untuk{' '}
+                <strong className="text-white">bertanggungjawab sepenuhnya</strong> diatas segala
+                kehilangan atau kerosakan pada kenderaan atau segala peralatan sepanjang tempoh
+                sewaan mengikut terma dan syarat penyewaan kenderaan walaupun berpunca dari
+                perlanggaraan, kebakaran, banjir, vandalisme, kecurian atau apapunpunca kecuali atas
+                kerosakan atau kecacatan kenderaan itu sendiri.
+              </li>
+              <li>
+                Penyewa <strong className="text-white">wajib membayar gantirugi</strong> kemalangan
+                atau kerosakan kepada syarikat serta merta. Ganti rugi kemalangan yang dibayar oleh
+                penyewa sama sekali tidak melibatkan tuntutan insuran kenderaan walaupun tuntutan
+                insuran dibuat oleh syarikat.
+              </li>
             </ol>
 
             {/* Liability Table */}
@@ -360,19 +504,33 @@ export default function RentalAgreement() {
               <table className="w-full text-xs border-collapse">
                 <thead>
                   <tr className="text-slate-400">
-                    <th className="border border-white/10 p-2 text-left bg-white/5">CC Kenderaan</th>
-                    <th className="border border-white/10 p-2 text-center bg-white/5">Bengkel &lt; 7 Hari</th>
-                    <th className="border border-white/10 p-2 text-center bg-white/5">Bengkel &gt; 7 Hari</th>
-                    <th className="border border-white/10 p-2 text-center bg-white/5">Kerosakan Kecil</th>
+                    <th className="border border-white/10 p-2 text-left bg-white/5">
+                      CC Kenderaan
+                    </th>
+                    <th className="border border-white/10 p-2 text-center bg-white/5">
+                      Bengkel &lt; 7 Hari
+                    </th>
+                    <th className="border border-white/10 p-2 text-center bg-white/5">
+                      Bengkel &gt; 7 Hari
+                    </th>
+                    <th className="border border-white/10 p-2 text-center bg-white/5">
+                      Kerosakan Kecil
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {LIABILITY_TABLE.map((row, i) => (
                     <tr key={i} className="text-white">
                       <td className="border border-white/10 p-2 text-slate-300">{row.cc}</td>
-                      <td className="border border-white/10 p-2 text-center font-medium text-yellow-400">{row.workshop7}</td>
-                      <td className="border border-white/10 p-2 text-center font-medium text-orange-400">{row.workshopMore}</td>
-                      <td className="border border-white/10 p-2 text-center font-medium text-emerald-400">{row.minor}</td>
+                      <td className="border border-white/10 p-2 text-center font-medium text-yellow-400">
+                        {row.workshop7}
+                      </td>
+                      <td className="border border-white/10 p-2 text-center font-medium text-orange-400">
+                        {row.workshopMore}
+                      </td>
+                      <td className="border border-white/10 p-2 text-center font-medium text-emerald-400">
+                        {row.minor}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -380,8 +538,18 @@ export default function RentalAgreement() {
             </div>
 
             <ol className="list-decimal pl-5 space-y-2" start={3}>
-              <li>Deposit akan <strong className="text-white">dikembalikan semula</strong> kepada penyewa diantara <strong className="text-white">7 hari bekerja</strong>. Sekiranya tidak berlaku sebarang perkara yang tidak diingini mengikut terma & syarat perjanjian penyewaan.</li>
-              <li>Penalti sebanyak <strong className="text-yellow-400">25%</strong> dari jumlah bayaran keseluruhan tempoh sewaan akan dikenakan sekiranya penyewa <strong className="text-white">membatalkan atau memendekkan</strong> perjanjian tempoh sewaan.</li>
+              <li>
+                Deposit akan <strong className="text-white">dikembalikan semula</strong> kepada
+                penyewa diantara <strong className="text-white">7 hari bekerja</strong>. Sekiranya
+                tidak berlaku sebarang perkara yang tidak diingini mengikut terma & syarat
+                perjanjian penyewaan.
+              </li>
+              <li>
+                Penalti sebanyak <strong className="text-yellow-400">25%</strong> dari jumlah
+                bayaran keseluruhan tempoh sewaan akan dikenakan sekiranya penyewa{' '}
+                <strong className="text-white">membatalkan atau memendekkan</strong> perjanjian
+                tempoh sewaan.
+              </li>
             </ol>
           </div>
         </div>
@@ -390,14 +558,18 @@ export default function RentalAgreement() {
         <div className="flex gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
           <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <p className="text-sm text-amber-200">
-            Dengan menandatangani perjanjian ini, anda bersetuju untuk mematuhi semua terma dan syarat yang dinyatakan di atas. Pelanggaran mana-mana syarat boleh menyebabkan tindakan undang-undang.
+            Dengan menandatangani perjanjian ini, anda bersetuju untuk mematuhi semua terma dan
+            syarat yang dinyatakan di atas. Pelanggaran mana-mana syarat boleh menyebabkan tindakan
+            undang-undang.
           </p>
         </div>
 
         {/* Signature Section */}
         <form onSubmit={handleSubmit}>
           <div className="glass-card mb-6">
-            <h2 className="text-lg font-semibold text-white mb-4">TANDATANGAN PENYEWA (Customer Signature)</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">
+              TANDATANGAN PENYEWA (Customer Signature)
+            </h2>
             <SignatureCanvas onSignatureChange={setSignatureData} />
           </div>
 
@@ -406,11 +578,13 @@ export default function RentalAgreement() {
             <input
               type="checkbox"
               checked={agreedToTerms}
-              onChange={e => setAgreedToTerms(e.target.checked)}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
               className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-violet-500 focus:ring-violet-500 cursor-pointer"
             />
             <span className="text-sm text-slate-300">
-              Saya telah membaca dan <strong className="text-white">bersetuju</strong> dengan semua terma dan syarat perjanjian sewaan kenderaan di atas. / I have read and agree to all terms and conditions stated above.
+              Saya telah membaca dan <strong className="text-white">bersetuju</strong> dengan semua
+              terma dan syarat perjanjian sewaan kenderaan di atas. / I have read and agree to all
+              terms and conditions stated above.
             </span>
           </label>
 

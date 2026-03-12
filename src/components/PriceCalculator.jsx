@@ -14,7 +14,9 @@ export default function PriceCalculator({ pricePerDay, pickupDate, returnDate })
 
   return (
     <div className="glass-card space-y-4">
-      <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Price Breakdown</h4>
+      <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+        Price Breakdown
+      </h4>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between text-sm">
@@ -45,7 +47,8 @@ export default function PriceCalculator({ pricePerDay, pickupDate, returnDate })
       </div>
 
       <p className="text-xs text-slate-500">
-        Pay {formatMYR(deposit)} deposit now to lock your booking. Remaining {formatMYR(total - deposit)} to be paid on pick-up.
+        Pay {formatMYR(deposit)} deposit now to lock your booking. Remaining{' '}
+        {formatMYR(total - deposit)} to be paid on pick-up.
       </p>
     </div>
   );

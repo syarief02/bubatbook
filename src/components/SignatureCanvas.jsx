@@ -38,40 +38,49 @@ export default function SignatureCanvas({ onSignatureChange, width = 400, height
   const saveHistory = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    setHistory(prev => [...prev, canvas.toDataURL()]);
+    setHistory((prev) => [...prev, canvas.toDataURL()]);
   }, []);
 
-  const startDrawing = useCallback((e) => {
-    e.preventDefault();
-    saveHistory();
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    setIsDrawing(true);
-  }, [getPos, saveHistory]);
+  const startDrawing = useCallback(
+    (e) => {
+      e.preventDefault();
+      saveHistory();
+      const ctx = canvasRef.current?.getContext('2d');
+      if (!ctx) return;
+      const pos = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      setIsDrawing(true);
+    },
+    [getPos, saveHistory]
+  );
 
-  const draw = useCallback((e) => {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-  }, [isDrawing, getPos]);
+  const draw = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const ctx = canvasRef.current?.getContext('2d');
+      if (!ctx) return;
+      const pos = getPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    },
+    [isDrawing, getPos]
+  );
 
-  const stopDrawing = useCallback((e) => {
-    if (e) e.preventDefault();
-    if (!isDrawing) return;
-    setIsDrawing(false);
-    setHasSignature(true);
-    const canvas = canvasRef.current;
-    if (canvas && onSignatureChange) {
-      onSignatureChange(canvas.toDataURL('image/png'));
-    }
-  }, [isDrawing, onSignatureChange]);
+  const stopDrawing = useCallback(
+    (e) => {
+      if (e) e.preventDefault();
+      if (!isDrawing) return;
+      setIsDrawing(false);
+      setHasSignature(true);
+      const canvas = canvasRef.current;
+      if (canvas && onSignatureChange) {
+        onSignatureChange(canvas.toDataURL('image/png'));
+      }
+    },
+    [isDrawing, onSignatureChange]
+  );
 
   function handleClear() {
     const canvas = canvasRef.current;
@@ -95,7 +104,7 @@ export default function SignatureCanvas({ onSignatureChange, width = 400, height
     img.onload = () => {
       ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
       ctx.drawImage(img, 0, 0, canvas.width / dpr, canvas.height / dpr);
-      setHistory(h => h.slice(0, -1));
+      setHistory((h) => h.slice(0, -1));
       // Check if canvas is blank
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const isBlank = !imageData.data.some((ch, i) => i % 4 === 3 && ch !== 0);

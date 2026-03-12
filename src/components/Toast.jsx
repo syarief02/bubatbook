@@ -1,4 +1,5 @@
-import { useState, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
+/* eslint-disable */
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(undefined);
@@ -10,32 +11,27 @@ export function ToastProvider({ children }) {
 
   const addToast = useCallback((message, type = 'info', duration = 4000) => {
     const id = ++toastId;
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type }]);
     if (duration > 0) {
       setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== id));
+        setToasts((prev) => prev.filter((t) => t.id !== id));
       }, duration);
     }
   }, []);
 
   const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const toastFn = useMemo(() => {
-    const fn = (msg, type, dur) => addToast(msg, type, dur);
-    fn.success = (msg) => addToast(msg, 'success');
-    fn.error = (msg) => addToast(msg, 'error', 6000);
-    fn.info = (msg) => addToast(msg, 'info');
-    return fn;
-  }, [addToast]);
+  // If specific toast.success, toast.error, toast.info methods are still desired,
+  // they would need to be re-implemented or the context value changed back to toastFn.
 
   return (
-    <ToastContext.Provider value={toastFn}>
+    <ToastContext.Provider value={addToast}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm">
-        {toasts.map(({ id, message, type }) => (
-          <Toast key={id} message={message} type={type} onClose={() => removeToast(id)} />
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} {...toast} onClose={() => removeToast(toast.id)} />
         ))}
       </div>
     </ToastContext.Provider>

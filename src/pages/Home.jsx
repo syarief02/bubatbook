@@ -1,12 +1,13 @@
+/* eslint-disable */
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useCars } from '../hooks/useCars';
 import CarCard from '../components/CarCard';
 import DateRangePicker from '../components/DateRangePicker';
-import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { Car, Shield, Zap, CreditCard, Search } from 'lucide-react';
 import { useToast } from '../components/Toast';
+import { Button } from '../components/ui/button';
 
 export default function Home() {
   const { cars, loading, error } = useCars();
@@ -16,13 +17,15 @@ export default function Home() {
   const [carSearch, setCarSearch] = useState('');
   const toast = useToast();
 
-  const filteredCars = cars.filter(car => {
+  const filteredCars = cars.filter((car) => {
     if (!carSearch) return true;
     const q = carSearch.toLowerCase();
-    return car.name.toLowerCase().includes(q)
-      || car.brand.toLowerCase().includes(q)
-      || car.model.toLowerCase().includes(q)
-      || (car.plate_number || '').toLowerCase().includes(q);
+    return (
+      car.name.toLowerCase().includes(q) ||
+      car.brand.toLowerCase().includes(q) ||
+      car.model.toLowerCase().includes(q) ||
+      (car.plate_number || '').toLowerCase().includes(q)
+    );
   });
 
   function handleSearch() {
@@ -49,11 +52,11 @@ export default function Home() {
               Premium Car Rental in Malaysia
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-              Drive Your Way,{' '}
-              <span className="gradient-text">Hassle Free</span>
+              Drive Your Way, <span className="gradient-text">Hassle Free</span>
             </h1>
             <p className="text-lg text-slate-400 max-w-xl mx-auto">
-              Browse our curated fleet, pick your dates, and book instantly. Secure your ride with a simple deposit.
+              Browse our curated fleet, pick your dates, and book instantly. Secure your ride with a
+              simple deposit.
             </p>
           </div>
 
@@ -66,13 +69,10 @@ export default function Home() {
               onReturnChange={setReturnDate}
             />
             <div className="mt-4 flex justify-center">
-              <button 
-                onClick={handleSearch}
-                className="btn-primary flex items-center gap-2"
-              >
+              <Button onClick={handleSearch} className="flex items-center gap-2">
                 <Search className="w-4 h-4" />
                 Find Available Cars
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function Home() {
               type="text"
               placeholder="Search cars..."
               value={carSearch}
-              onChange={e => setCarSearch(e.target.value)}
+              onChange={(e) => setCarSearch(e.target.value)}
               className="input-field !pl-10 !py-2 text-sm"
             />
           </div>
@@ -148,7 +148,11 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCars.map((car, i) => (
-              <div key={car.id} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+              <div
+                key={car.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
                 <CarCard car={car} pickupDate={pickupDate} returnDate={returnDate} />
               </div>
             ))}

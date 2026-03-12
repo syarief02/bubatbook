@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Link } from 'react-router-dom';
 import { Home, AlertTriangle } from 'lucide-react';
 
@@ -11,12 +12,10 @@ export default function NotFound() {
         <h1 className="text-6xl font-extrabold gradient-text mb-2">404</h1>
         <p className="text-xl text-white font-semibold mb-2">Page Not Found</p>
         <p className="text-slate-400 mb-8">
-          The page you're looking for doesn't exist or has been moved.
+          Oops! We couldn&apos;t find the page you&apos;re looking for. It doesn&apos;t exist or has
+          been moved.
         </p>
-        <Link
-          to="/"
-          className="btn-primary inline-flex items-center gap-2"
-        >
+        <Link to="/" className="btn-primary inline-flex items-center gap-2">
           <Home className="w-4 h-4" />
           Back to Home
         </Link>

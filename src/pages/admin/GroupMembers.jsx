@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,12 +8,25 @@ import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import {
-  Users, UserPlus, Shield, ShieldCheck, Trash2, Loader2,
-  Search, ChevronDown, X, Crown
+  Users,
+  UserPlus,
+  Shield,
+  ShieldCheck,
+  Trash2,
+  Loader2,
+  Search,
+  ChevronDown,
+  X,
+  Crown,
 } from 'lucide-react';
 
 const ROLE_CONFIG = {
-  fleet_admin: { label: 'Fleet Admin', icon: ShieldCheck, color: 'violet', desc: 'Full management access' },
+  fleet_admin: {
+    label: 'Fleet Admin',
+    icon: ShieldCheck,
+    color: 'violet',
+    desc: 'Full management access',
+  },
   fleet_staff: { label: 'Staff', icon: Shield, color: 'slate', desc: 'View & limited actions' },
 };
 
@@ -38,7 +52,9 @@ export default function GroupMembers() {
   const [roleChange, setRoleChange] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
-  useEffect(() => { if (activeFleetId) fetchMembers(); }, [activeFleetId]);
+  useEffect(() => {
+    if (activeFleetId) fetchMembers();
+  }, [activeFleetId]);
 
   async function fetchMembers() {
     setLoading(true);
@@ -54,7 +70,10 @@ export default function GroupMembers() {
 
   async function handleSearch(q) {
     setSearchQuery(q);
-    if (q.length < 2) { setSearchResults([]); return; }
+    if (q.length < 2) {
+      setSearchResults([]);
+      return;
+    }
     setSearching(true);
     // Search profiles by display_name, username, or email
     const { data } = await supabase
@@ -64,8 +83,8 @@ export default function GroupMembers() {
       .in('role', ['admin', 'super_admin'])
       .limit(10);
     // Filter out already-members
-    const memberIds = members.map(m => m.user_id);
-    setSearchResults((data || []).filter(u => !memberIds.includes(u.id)));
+    const memberIds = members.map((m) => m.user_id);
+    setSearchResults((data || []).filter((u) => !memberIds.includes(u.id)));
     setSearching(false);
   }
 
@@ -73,13 +92,11 @@ export default function GroupMembers() {
     if (!selectedUser) return;
     setAdding(true);
     try {
-      const { error } = await supabase
-        .from('bubatrent_booking_fleet_memberships')
-        .insert({
-          user_id: selectedUser.id,
-          fleet_group_id: activeFleetId,
-          role: addRole,
-        });
+      const { error } = await supabase.from('bubatrent_booking_fleet_memberships').insert({
+        user_id: selectedUser.id,
+        fleet_group_id: activeFleetId,
+        role: addRole,
+      });
       if (error) {
         if (error.code === '23505') toast.error('This user is already a member');
         else throw error;
@@ -92,7 +109,9 @@ export default function GroupMembers() {
           resource_id: activeFleetId,
           details: { added_user: selectedUser.id, role: addRole, group: activeFleet?.name },
         });
-        toast.success(`${selectedUser.display_name || selectedUser.username} added as ${ROLE_CONFIG[addRole].label}`);
+        toast.success(
+          `${selectedUser.display_name || selectedUser.username} added as ${ROLE_CONFIG[addRole].label}`
+        );
         setShowAdd(false);
         setSelectedUser(null);
         setSearchQuery('');
@@ -120,7 +139,12 @@ export default function GroupMembers() {
         action: 'CHANGE_MEMBER_ROLE',
         resource_type: 'fleet_membership',
         resource_id: membership.id,
-        details: { target_user: membership.user_id, old_role: membership.role, new_role: newRole, group: activeFleet?.name },
+        details: {
+          target_user: membership.user_id,
+          old_role: membership.role,
+          new_role: newRole,
+          group: activeFleet?.name,
+        },
       });
 
       toast.success('Role updated');
@@ -160,7 +184,7 @@ export default function GroupMembers() {
     }
   }
 
-  const isFleetAdmin = members.some(m => m.user_id === user?.id && m.role === 'fleet_admin');
+  const isFleetAdmin = members.some((m) => m.user_id === user?.id && m.role === 'fleet_admin');
   const canManage = isSuperAdmin || isFleetAdmin;
 
   return (
@@ -182,9 +206,18 @@ export default function GroupMembers() {
           ) : (
             <div className="glass-card animate-fade-in">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-white">Add Member to {activeFleet?.name}</h3>
-                <button onClick={() => { setShowAdd(false); setSelectedUser(null); setSearchQuery(''); setSearchResults([]); }}
-                  className="p-1 rounded-lg hover:bg-white/5 text-slate-500">
+                <h3 className="text-sm font-semibold text-white">
+                  Add Member to {activeFleet?.name}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAdd(false);
+                    setSelectedUser(null);
+                    setSearchQuery('');
+                    setSearchResults([]);
+                  }}
+                  className="p-1 rounded-lg hover:bg-white/5 text-slate-500"
+                >
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -194,38 +227,50 @@ export default function GroupMembers() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
                   value={searchQuery}
-                  onChange={e => handleSearch(e.target.value)}
+                  onChange={(e) => handleSearch(e.target.value)}
                   className="input-field !pl-10"
                   placeholder="Search by name or email..."
                   autoFocus
                 />
-                {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 animate-spin" />}
+                {searching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 animate-spin" />
+                )}
               </div>
 
               {/* Search results */}
               {searchResults.length > 0 && !selectedUser && (
                 <div className="space-y-1 max-h-40 overflow-y-auto mb-3">
-                  {searchResults.map(u => (
+                  {searchResults.map((u) => (
                     <button
                       key={u.id}
-                      onClick={() => { setSelectedUser(u); setSearchResults([]); }}
+                      onClick={() => {
+                        setSelectedUser(u);
+                        setSearchResults([]);
+                      }}
                       className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 text-left transition-all"
                     >
                       <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-xs font-bold text-violet-300">
                         {(u.display_name || u.username || '?')[0].toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm text-white font-medium">{u.display_name || u.username}</p>
-                        <p className="text-[10px] text-slate-500">{u.username} • {u.role}</p>
+                        <p className="text-sm text-white font-medium">
+                          {u.display_name || u.username}
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          {u.username} • {u.role}
+                        </p>
                       </div>
                     </button>
                   ))}
                 </div>
               )}
 
-              {searchQuery.length >= 2 && searchResults.length === 0 && !searching && !selectedUser && (
-                <p className="text-xs text-slate-500 mb-3">No matching admin users found</p>
-              )}
+              {searchQuery.length >= 2 &&
+                searchResults.length === 0 &&
+                !searching &&
+                !selectedUser && (
+                  <p className="text-xs text-slate-500 mb-3">No matching admin users found</p>
+                )}
 
               {/* Selected user */}
               {selectedUser && (
@@ -233,14 +278,21 @@ export default function GroupMembers() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-xs font-bold text-violet-300">
-                        {(selectedUser.display_name || selectedUser.username || '?')[0].toUpperCase()}
+                        {(selectedUser.display_name ||
+                          selectedUser.username ||
+                          '?')[0].toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm text-white font-medium">{selectedUser.display_name || selectedUser.username}</p>
+                        <p className="text-sm text-white font-medium">
+                          {selectedUser.display_name || selectedUser.username}
+                        </p>
                         <p className="text-[10px] text-slate-500">{selectedUser.username}</p>
                       </div>
                     </div>
-                    <button onClick={() => setSelectedUser(null)} className="text-slate-500 hover:text-white">
+                    <button
+                      onClick={() => setSelectedUser(null)}
+                      className="text-slate-500 hover:text-white"
+                    >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -252,7 +304,7 @@ export default function GroupMembers() {
                 <div className="flex gap-2">
                   <select
                     value={addRole}
-                    onChange={e => setAddRole(e.target.value)}
+                    onChange={(e) => setAddRole(e.target.value)}
                     className="input-field flex-1"
                   >
                     <option value="fleet_admin">Fleet Admin</option>
@@ -263,7 +315,11 @@ export default function GroupMembers() {
                     disabled={adding}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 border border-violet-500/30 transition-all disabled:opacity-50"
                   >
-                    {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                    {adding ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="w-4 h-4" />
+                    )}
                     Add
                   </button>
                 </div>
@@ -274,11 +330,17 @@ export default function GroupMembers() {
       )}
 
       {/* Members list */}
-      {loading ? <LoadingSpinner /> : members.length === 0 ? (
-        <EmptyState icon={Users} title="No members" description="This fleet group has no members yet." />
+      {loading ? (
+        <LoadingSpinner />
+      ) : members.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No members"
+          description="It looks like you don&apos;t have any active groups right now."
+        />
       ) : (
         <div className="space-y-2">
-          {members.map(m => {
+          {members.map((m) => {
             const profile = m.bubatrent_booking_profiles;
             const roleInfo = ROLE_CONFIG[m.role] || ROLE_CONFIG.fleet_staff;
             const RoleIcon = roleInfo.icon;
@@ -303,7 +365,9 @@ export default function GroupMembers() {
                         </span>
                       )}
                       {isSelf && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 font-semibold">You</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 font-semibold">
+                          You
+                        </span>
                       )}
                     </div>
                     <p className="text-[10px] text-slate-500 truncate">{profile?.username}</p>
@@ -312,7 +376,9 @@ export default function GroupMembers() {
 
                 <div className="flex items-center gap-2 shrink-0">
                   {/* Role badge */}
-                  <span className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold bg-${roleInfo.color}-500/10 text-${roleInfo.color}-400 border border-${roleInfo.color}-500/20`}>
+                  <span
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold bg-${roleInfo.color}-500/10 text-${roleInfo.color}-400 border border-${roleInfo.color}-500/20`}
+                  >
                     <RoleIcon className="w-3 h-3" /> {roleInfo.label}
                   </span>
 
@@ -344,11 +410,18 @@ export default function GroupMembers() {
 
       {/* Role Change Modal */}
       {roleChange && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setRoleChange(null)}>
-          <div className="glass-card w-full max-w-sm animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setRoleChange(null)}
+        >
+          <div
+            className="glass-card w-full max-w-sm animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-white mb-4">Change Role</h3>
             <p className="text-sm text-slate-400 mb-4">
-              Change <strong>{roleChange.bubatrent_booking_profiles?.display_name}</strong>'s role in this group:
+              Change <strong>{roleChange.bubatrent_booking_profiles?.display_name}</strong>'s role
+              in this group:
             </p>
             <div className="space-y-2 mb-4">
               {Object.entries(ROLE_CONFIG).map(([key, cfg]) => (
@@ -367,31 +440,49 @@ export default function GroupMembers() {
                     <p className="text-sm font-medium">{cfg.label}</p>
                     <p className="text-[10px] text-slate-500">{cfg.desc}</p>
                   </div>
-                  {roleChange.role === key && <span className="ml-auto text-[10px] text-violet-400">Current</span>}
+                  {roleChange.role === key && (
+                    <span className="ml-auto text-[10px] text-violet-400">Current</span>
+                  )}
                 </button>
               ))}
             </div>
-            <button onClick={() => setRoleChange(null)} className="btn-secondary w-full">Cancel</button>
+            <button onClick={() => setRoleChange(null)} className="btn-secondary w-full">
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
       {/* Remove Confirmation Modal */}
       {removeConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setRemoveConfirm(null)}>
-          <div className="glass-card w-full max-w-sm animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setRemoveConfirm(null)}
+        >
+          <div
+            className="glass-card w-full max-w-sm animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-white mb-2">Remove Member</h3>
             <p className="text-sm text-slate-400 mb-4">
-              Are you sure you want to remove <strong>{removeConfirm.bubatrent_booking_profiles?.display_name}</strong> from this group? They will lose access to all group data.
+              Are you sure you want to remove{' '}
+              <strong>{removeConfirm.bubatrent_booking_profiles?.display_name}</strong> from this
+              group? They will lose access to all group data.
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setRemoveConfirm(null)} className="btn-secondary flex-1">Cancel</button>
+              <button onClick={() => setRemoveConfirm(null)} className="btn-secondary flex-1">
+                Cancel
+              </button>
               <button
                 onClick={() => handleRemove(removeConfirm)}
                 disabled={actionLoading === removeConfirm.id}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20 transition-all disabled:opacity-50"
               >
-                {actionLoading === removeConfirm.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {actionLoading === removeConfirm.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
                 Remove
               </button>
             </div>

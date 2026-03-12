@@ -9,6 +9,7 @@
 ## ✨ Features
 
 ### Customer Features
+
 - **Browse & Book** — Date picker, real-time availability check, per-car pricing
 - **Smart Checkout** — Receipt upload for deposits, auto-applied credit, 6-month advance limit
 - **Profile** — Edit details, view verification status, credit balance, booking history
@@ -17,6 +18,7 @@
 - **Printable Receipts** — Branded HTML receipts with payment breakdown + print button
 
 ### Admin Features
+
 - **Dashboard** — Quick stats, active bookings, fleet overview
 - **Booking Management** — Full status flow (HOLD → DEPOSIT_PAID → CONFIRMED → PICKUP → RETURNED), date editing, receipt verification
 - **Customer Management** — Verify/unverify users, view documents, manage deposit credits, role assignment
@@ -24,6 +26,7 @@
 - **Expense Claims** — Submit claims with invoice images, mark completed with payment receipt, "Others" for general expenses
 
 ### System Features
+
 - **Two-Part Payment** — Deposit (min RM100 or 30%) + full rental payment, each with receipt upload
 - **Deposit Credit** — Auto-returned on RETURNED, auto-applied on next booking, admin deduction
 - **Licence Expiry** — Auto-invalidates verification when licence expires
@@ -34,15 +37,15 @@
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 19, React Router v7 |
-| **Styling** | Tailwind CSS, custom glass-morphism design |
-| **Icons** | Lucide React |
-| **Dates** | date-fns |
-| **Backend** | Supabase (PostgreSQL, Auth, Storage, RLS) |
-| **Build** | Vite 6 |
-| **Deployment** | Vercel |
+| Layer          | Technology                                 |
+| -------------- | ------------------------------------------ |
+| **Frontend**   | React 19, React Router v7                  |
+| **Styling**    | Tailwind CSS, custom glass-morphism design |
+| **Icons**      | Lucide React                               |
+| **Dates**      | date-fns                                   |
+| **Backend**    | Supabase (PostgreSQL, Auth, Storage, RLS)  |
+| **Build**      | Vite 6                                     |
+| **Deployment** | Vercel                                     |
 
 ---
 
@@ -113,18 +116,18 @@ src/
 
 ### Tables
 
-| Table | Purpose |
-|-------|---------|
-| `bubatrent_booking_profiles` | User profiles, verification, address, deposit credit |
-| `bubatrent_booking_cars` | Fleet details, pricing, specs, images |
-| `bubatrent_booking_bookings` | Bookings with status flow, payment tracking, dates |
-| `bubatrent_booking_payments` | Payment records (deposit/full) with references |
-| `bubatrent_booking_customer_documents` | Per-booking identity documents |
-| `bubatrent_booking_verification_updates` | Pending document re-submissions |
-| `bubatrent_booking_credit_transactions` | Credit movement audit trail |
-| `bubatrent_booking_expense_claims` | Expense claims (car-specific or general) |
-| `bubatrent_booking_expense_images` | Invoice images per expense claim |
-| `bubatrent_booking_audit_logs` | Admin action audit log |
+| Table                                    | Purpose                                              |
+| ---------------------------------------- | ---------------------------------------------------- |
+| `bubatrent_booking_profiles`             | User profiles, verification, address, deposit credit |
+| `bubatrent_booking_cars`                 | Fleet details, pricing, specs, images                |
+| `bubatrent_booking_bookings`             | Bookings with status flow, payment tracking, dates   |
+| `bubatrent_booking_payments`             | Payment records (deposit/full) with references       |
+| `bubatrent_booking_customer_documents`   | Per-booking identity documents                       |
+| `bubatrent_booking_verification_updates` | Pending document re-submissions                      |
+| `bubatrent_booking_credit_transactions`  | Credit movement audit trail                          |
+| `bubatrent_booking_expense_claims`       | Expense claims (car-specific or general)             |
+| `bubatrent_booking_expense_images`       | Invoice images per expense claim                     |
+| `bubatrent_booking_audit_logs`           | Admin action audit log                               |
 
 ### Booking Status Flow
 
@@ -139,6 +142,7 @@ CANCELLED  CANCELLED    CANCELLED
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - Supabase project with Auth, Storage, and PostgreSQL enabled
 
@@ -180,8 +184,10 @@ npm run preview    # Preview production build
 ```
 
 ### ✅ Android Upload Smoke Test Checklist
+
 Due to historical issues with Android Chrome and `supabase-js`, we use a custom `XMLHttpRequest` wrapper to read files into memory (`ArrayBuffer`) and bypass the buggy streaming API.
 When testing on Android devices, verify the following:
+
 1. **Size Limit:** Attempt to upload an image >10MB. Ensure a clear error toast appears.
 2. **Format Limit:** Attempt to upload a `.heic` or `.heif` image. Ensure the "format not supported" error toast appears.
 3. **Progress Tracking:** Upload a valid image (e.g., 2MB JPEG). Ensure the toast shows "Step 1", "Step 2", and "Uploading: 50%...".
@@ -228,11 +234,11 @@ When testing on Android devices, verify the following:
 
 ## 👥 Roles
 
-| Role | Capabilities |
-|------|-------------|
-| **Guest** | Browse cars, view pricing |
-| **Customer** | Book cars, upload payments, manage profile, verify identity |
-| **Admin** | All customer features + manage bookings, verify users, track sales, manage expenses, deduct credits |
+| Role         | Capabilities                                                                                        |
+| ------------ | --------------------------------------------------------------------------------------------------- |
+| **Guest**    | Browse cars, view pricing                                                                           |
+| **Customer** | Book cars, upload payments, manage profile, verify identity                                         |
+| **Admin**    | All customer features + manage bookings, verify users, track sales, manage expenses, deduct credits |
 
 ---
 
@@ -241,16 +247,20 @@ When testing on Android devices, verify the following:
 Rent2Go uses a multi-tenant architecture where different businesses (Fleet Groups) can manage their own cars and bookings on the platform.
 
 ### Switching Group Context
+
 If you are a **Super Admin** or belong to multiple groups, you can switch your active group using the **dropdown selector in the top-right Admin Navbar**.
-* Every action you take (adding cars, viewing bookings, adding members) is automatically tied to the group currently selected in this dropdown.
+
+- Every action you take (adding cars, viewing bookings, adding members) is automatically tied to the group currently selected in this dropdown.
 
 ### How to Assign an Admin to a Group
+
 1. Switch to the target group in the top-right Navbar dropdown.
 2. Go to **Admin -> Members**.
 3. Search for the customer's email or phone number.
 4. Select the user, choose the "Fleet Admin" role, and click Add.
 
 ### How to Ensure Added Vehicles Belong to a Group
+
 1. Switch to the target group in the top-right Navbar dropdown.
 2. Go to **Admin -> Fleet -> Add New Car**.
 3. Fill in the car details and save. The car is **automatically assigned** to the group you selected in Step 1.

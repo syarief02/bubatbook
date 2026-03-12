@@ -34,12 +34,14 @@ export default function WhatsAppButton() {
         const fleetNumber = data.bubatrent_booking_fleet_groups?.support_whatsapp;
         if (fleetNumber) {
           setPhoneNumber(fleetNumber.replace(/\D/g, ''));
-          setMessage(`Hi ${data.bubatrent_booking_fleet_groups.name || 'Admin'}, I want to inquire about the ${data.brand} ${data.model} on Rent2Go!`);
+          setMessage(
+            `Hi ${data.bubatrent_booking_fleet_groups.name || 'Admin'}, I want to inquire about the ${data.brand} ${data.model} on Rent2Go!`
+          );
         } else {
           setPhoneNumber(DEFAULT_PHONE);
           setMessage(DEFAULT_MSG);
         }
-      } catch (err) {
+      } catch {
         setPhoneNumber(DEFAULT_PHONE);
         setMessage(DEFAULT_MSG);
       }

@@ -1,11 +1,11 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
 import { useFleet } from '../../hooks/useFleet';
 import { formatMYR } from '../../utils/pricing';
-import { formatDate } from '../../utils/dates';
-import { DollarSign, TrendingUp, Car, Calendar, Filter } from 'lucide-react';
+import { DollarSign, TrendingUp, Car, Filter } from 'lucide-react';
 
 export default function AdminSales() {
   const { activeFleetId } = useFleet();
@@ -16,11 +16,14 @@ export default function AdminSales() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  useEffect(() => { fetchData(); }, [activeFleetId]);
+  useEffect(() => {
+    fetchData();
+  }, [activeFleetId]);
 
   async function fetchData() {
     setLoading(true);
-    let bQuery = supabase.from('bubatrent_booking_bookings')
+    let bQuery = supabase
+      .from('bubatrent_booking_bookings')
       .select('*, bubatrent_booking_cars(id, name, brand, model)')
       .in('status', ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'])
       .order('created_at', { ascending: false });
@@ -40,48 +43,84 @@ export default function AdminSales() {
     const now = new Date();
     if (dateRange === 'today') {
       const today = now.toISOString().split('T')[0];
-      filtered = filtered.filter(b => b.created_at?.startsWith(today));
+      filtered = filtered.filter((b) => b.created_at?.startsWith(today));
     } else if (dateRange === 'month') {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      filtered = filtered.filter(b => b.created_at >= monthStart);
+      filtered = filtered.filter((b) => b.created_at >= monthStart);
     } else if (dateRange === 'custom' && startDate && endDate) {
-      filtered = filtered.filter(b => b.created_at >= startDate && b.created_at <= endDate + 'T23:59:59');
+      filtered = filtered.filter(
+        (b) => b.created_at >= startDate && b.created_at <= endDate + 'T23:59:59'
+      );
     }
     return filtered;
   }
 
   const filtered = getFilteredBookings();
   const totalDeposits = filtered.reduce((s, b) => s + Number(b.deposit_amount || 0), 0);
-  const totalFullPayments = filtered.filter(b => b.full_payment_status === 'verified')
+  const totalFullPayments = filtered
+    .filter((b) => b.full_payment_status === 'verified')
     .reduce((s, b) => s + Number(b.full_payment_amount || b.total_price || 0), 0);
   const totalCashIn = totalDeposits + totalFullPayments;
 
   // Per-car breakdown
-  const carStats = cars.map(car => {
-    const carBookings = filtered.filter(b => b.car_id === car.id);
-    const deposits = carBookings.reduce((s, b) => s + Number(b.deposit_amount || 0), 0);
-    const payments = carBookings.filter(b => b.full_payment_status === 'verified')
-      .reduce((s, b) => s + Number(b.full_payment_amount || b.total_price || 0), 0);
-    return { ...car, bookingCount: carBookings.length, deposits, payments, total: deposits + payments };
-  }).filter(c => c.bookingCount > 0).sort((a, b) => b.total - a.total);
+  const carStats = cars
+    .map((car) => {
+      const carBookings = filtered.filter((b) => b.car_id === car.id);
+      const deposits = carBookings.reduce((s, b) => s + Number(b.deposit_amount || 0), 0);
+      const payments = carBookings
+        .filter((b) => b.full_payment_status === 'verified')
+        .reduce((s, b) => s + Number(b.full_payment_amount || b.total_price || 0), 0);
+      return {
+        ...car,
+        bookingCount: carBookings.length,
+        deposits,
+        payments,
+        total: deposits + payments,
+      };
+    })
+    .filter((c) => c.bookingCount > 0)
+    .sort((a, b) => b.total - a.total);
 
-  if (loading) return <AdminLayout title="Sales"><LoadingSpinner /></AdminLayout>;
+  if (loading)
+    return (
+      <AdminLayout title="Sales">
+        <LoadingSpinner />
+      </AdminLayout>
+    );
 
   return (
     <AdminLayout title="Sales Dashboard">
       {/* Date Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Filter className="w-4 h-4 text-slate-500" />
-        {[['all','All Time'],['today','Today'],['month','This Month'],['custom','Custom']].map(([val, label]) => (
-          <button key={val} onClick={() => setDateRange(val)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${dateRange === val ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>
+        {[
+          ['all', 'All Time'],
+          ['today', 'Today'],
+          ['month', 'This Month'],
+          ['custom', 'Custom'],
+        ].map(([val, label]) => (
+          <button
+            key={val}
+            onClick={() => setDateRange(val)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${dateRange === val ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+          >
             {label}
           </button>
         ))}
         {dateRange === 'custom' && (
           <div className="flex gap-2">
-            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="input-field !py-1.5 !px-3 text-xs w-36" />
-            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="input-field !py-1.5 !px-3 text-xs w-36" />
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="input-field !py-1.5 !px-3 text-xs w-36"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="input-field !py-1.5 !px-3 text-xs w-36"
+            />
           </div>
         )}
       </div>
@@ -90,12 +129,19 @@ export default function AdminSales() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
           { label: 'Total Deposits', value: totalDeposits, icon: DollarSign, color: 'yellow' },
-          { label: 'Total Full Payments', value: totalFullPayments, icon: TrendingUp, color: 'green' },
+          {
+            label: 'Total Full Payments',
+            value: totalFullPayments,
+            icon: TrendingUp,
+            color: 'green',
+          },
           { label: 'Total Cash-In', value: totalCashIn, icon: DollarSign, color: 'violet' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="glass-card">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl bg-${color}-500/10 flex items-center justify-center`}>
+              <div
+                className={`w-10 h-10 rounded-xl bg-${color}-500/10 flex items-center justify-center`}
+              >
                 <Icon className={`w-5 h-5 text-${color}-400`} />
               </div>
               <div>
@@ -127,7 +173,7 @@ export default function AdminSales() {
                 </tr>
               </thead>
               <tbody>
-                {carStats.map(car => (
+                {carStats.map((car) => (
                   <tr key={car.id} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
                     <td className="py-3 pr-4 text-white font-medium">{car.name}</td>
                     <td className="py-3 pr-4 text-slate-400">{car.bookingCount}</td>

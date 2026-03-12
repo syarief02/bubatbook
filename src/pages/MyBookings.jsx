@@ -10,7 +10,18 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { formatDate } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { CalendarDays, ExternalLink, Car, XCircle, Hash, Upload, FileImage, Loader2, FileSignature, Receipt } from 'lucide-react';
+import {
+  CalendarDays,
+  ExternalLink,
+  Car,
+  XCircle,
+  Hash,
+  Upload,
+  FileImage,
+  Loader2,
+  FileSignature,
+  Receipt,
+} from 'lucide-react';
 
 export default function MyBookings() {
   const { user } = useAuth();
@@ -35,14 +46,23 @@ export default function MyBookings() {
   }
 
   async function handleUploadFullPayment(bookingId) {
-    if (!receiptFile) { toast.error('Select a receipt file first.'); return; }
+    if (!receiptFile) {
+      toast.error('Select a receipt file first.');
+      return;
+    }
     setUploadingId(bookingId);
     try {
       const ext = receiptFile.name.split('.').pop();
       const path = `receipts/${bookingId}/full_payment_${Date.now()}.${ext}`;
-      const { error: upErr } = await uploadFileRobust('customer-documents', path, receiptFile, toast);
+      const { error: upErr } = await uploadFileRobust(
+        'customer-documents',
+        path,
+        receiptFile,
+        toast
+      );
       if (upErr) throw upErr;
-      const { error } = await supabase.from('bubatrent_booking_bookings')
+      const { error } = await supabase
+        .from('bubatrent_booking_bookings')
         .update({ full_payment_receipt_path: path, full_payment_status: 'uploaded' })
         .eq('id', bookingId);
       if (error) throw error;
@@ -83,7 +103,8 @@ export default function MyBookings() {
         <div className="space-y-4">
           {bookings.map((booking, i) => {
             const car = booking.bubatrent_booking_cars;
-            const showFullPaymentUpload = ['CONFIRMED', 'PICKUP'].includes(booking.status) &&
+            const showFullPaymentUpload =
+              ['CONFIRMED', 'PICKUP'].includes(booking.status) &&
               !booking.full_payment_receipt_path;
             const fullPaymentPending = booking.full_payment_status === 'uploaded';
 
@@ -95,8 +116,11 @@ export default function MyBookings() {
               >
                 <div className="flex flex-col sm:flex-row gap-4">
                   {car?.image_url && (
-                    <img src={car.image_url} alt={car?.name}
-                      className="w-full sm:w-32 h-24 rounded-xl object-cover shrink-0" />
+                    <img
+                      src={car.image_url}
+                      alt={car?.name}
+                      className="w-full sm:w-32 h-24 rounded-xl object-cover shrink-0"
+                    />
                   )}
 
                   <div className="flex-1 min-w-0">
@@ -104,9 +128,12 @@ export default function MyBookings() {
                       <div>
                         <h3 className="text-white font-semibold">{car?.name || 'Car'}</h3>
                         <div className="flex items-center gap-2">
-                          <p className="text-xs text-slate-500">{car?.brand} {car?.model}</p>
+                          <p className="text-xs text-slate-500">
+                            {car?.brand} {car?.model}
+                          </p>
                           <span className="text-[10px] text-slate-600 font-mono flex items-center gap-0.5">
-                            <Hash className="w-2.5 h-2.5" />{booking.id.slice(0, 8)}
+                            <Hash className="w-2.5 h-2.5" />
+                            {booking.id.slice(0, 8)}
                           </span>
                         </div>
                       </div>
@@ -142,50 +169,76 @@ export default function MyBookings() {
                           <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer bg-white/5 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors">
                             <FileImage className="w-3.5 h-3.5" />
                             {receiptFile ? receiptFile.name : 'Choose file'}
-                            <input type="file" accept="image/*,.pdf" className="hidden"
-                              onChange={e => setReceiptFile(e.target.files[0])} />
+                            <input
+                              type="file"
+                              accept="image/*,.pdf"
+                              className="hidden"
+                              onChange={(e) => setReceiptFile(e.target.files[0])}
+                            />
                           </label>
                           {receiptFile && (
-                            <button onClick={() => handleUploadFullPayment(booking.id)}
+                            <button
+                              onClick={() => handleUploadFullPayment(booking.id)}
                               disabled={uploadingId === booking.id}
-                              className="px-3 py-1.5 rounded-lg text-xs bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-colors flex items-center gap-1">
-                              {uploadingId === booking.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Uploading...</> : <><Upload className="w-3 h-3" /> Upload</>}
+                              className="px-3 py-1.5 rounded-lg text-xs bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-colors flex items-center gap-1"
+                            >
+                              {uploadingId === booking.id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" /> Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="w-3 h-3" /> Upload
+                                </>
+                              )}
                             </button>
                           )}
                         </div>
                       </div>
                     )}
                     {fullPaymentPending && (
-                      <p className="text-xs text-yellow-400 mb-3">Full payment receipt submitted — awaiting verification</p>
+                      <p className="text-xs text-yellow-400 mb-3">
+                        Full payment receipt submitted — awaiting verification
+                      </p>
                     )}
                     {booking.full_payment_status === 'verified' && (
                       <p className="text-xs text-green-400 mb-3">✓ Full payment verified</p>
                     )}
 
                     <div className="flex flex-wrap gap-2">
-                      <Link to={`/booking/${booking.id}/confirmation`}
-                        className="text-xs text-slate-500 hover:text-white flex items-center gap-1">
+                      <Link
+                        to={`/booking/${booking.id}/confirmation`}
+                        className="text-xs text-slate-500 hover:text-white flex items-center gap-1"
+                      >
                         View Details <ExternalLink className="w-3 h-3" />
                       </Link>
 
                       {['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
-                        <Link to={`/booking/${booking.id}/agreement`}
-                          className="text-xs text-cyan-500/70 hover:text-cyan-400 flex items-center gap-1">
+                        <Link
+                          to={`/booking/${booking.id}/agreement`}
+                          className="text-xs text-cyan-500/70 hover:text-cyan-400 flex items-center gap-1"
+                        >
                           <FileSignature className="w-3 h-3" /> Agreement
                         </Link>
                       )}
 
                       {booking.deposit_receipt_path && (
-                        <a href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-documents/${booking.deposit_receipt_path}`}
-                          target="_blank" rel="noreferrer"
-                          className="text-xs text-emerald-500/70 hover:text-emerald-400 flex items-center gap-1">
+                        <a
+                          href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-documents/${booking.deposit_receipt_path}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-emerald-500/70 hover:text-emerald-400 flex items-center gap-1"
+                        >
                           <Receipt className="w-3 h-3" /> Deposit Receipt
                         </a>
                       )}
 
-                      {(booking.deposit_status === 'verified' || booking.full_payment_status === 'verified') && (
-                        <Link to={`/booking/${booking.id}/invoice`}
-                          className="text-xs text-violet-500/70 hover:text-violet-400 flex items-center gap-1">
+                      {(booking.deposit_status === 'verified' ||
+                        booking.full_payment_status === 'verified') && (
+                        <Link
+                          to={`/booking/${booking.id}/invoice`}
+                          className="text-xs text-violet-500/70 hover:text-violet-400 flex items-center gap-1"
+                        >
                           <Receipt className="w-3 h-3" /> Invoice
                         </Link>
                       )}
@@ -195,19 +248,25 @@ export default function MyBookings() {
                           {confirmCancelId === booking.id ? (
                             <div className="flex items-center gap-2 ml-auto">
                               <span className="text-xs text-yellow-400">Cancel this booking?</span>
-                              <button onClick={() => handleCancel(booking.id)}
+                              <button
+                                onClick={() => handleCancel(booking.id)}
                                 disabled={cancellingId === booking.id}
-                                className="text-xs px-2.5 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50">
+                                className="text-xs px-2.5 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                              >
                                 {cancellingId === booking.id ? 'Cancelling...' : 'Yes, Cancel'}
                               </button>
-                              <button onClick={() => setConfirmCancelId(null)}
-                                className="text-xs px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 hover:bg-white/10 transition-colors">
+                              <button
+                                onClick={() => setConfirmCancelId(null)}
+                                className="text-xs px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 hover:bg-white/10 transition-colors"
+                              >
                                 No
                               </button>
                             </div>
                           ) : (
-                            <button onClick={() => setConfirmCancelId(booking.id)}
-                              className="text-xs text-red-400/60 hover:text-red-400 flex items-center gap-1 ml-auto transition-colors">
+                            <button
+                              onClick={() => setConfirmCancelId(booking.id)}
+                              className="text-xs text-red-400/60 hover:text-red-400 flex items-center gap-1 ml-auto transition-colors"
+                            >
                               <XCircle className="w-3 h-3" /> Cancel
                             </button>
                           )}

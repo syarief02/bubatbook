@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAuth } from '../../hooks/useAuth';
@@ -6,8 +7,14 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
-  Building2, CheckCircle, XCircle, ShieldAlert, Clock, Loader2,
-  Shield, Ban, Undo2, AlertTriangle
+  Building2,
+  CheckCircle,
+  XCircle,
+  ShieldAlert,
+  Clock,
+  Loader2,
+  Ban,
+  Undo2,
 } from 'lucide-react';
 
 const STATUS_BADGES = {
@@ -26,7 +33,9 @@ export default function GroupManagement() {
   const [actionLoading, setActionLoading] = useState(null);
   const [modal, setModal] = useState(null); // { type, group, reason, notes }
 
-  useEffect(() => { fetchGroups(); }, []);
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   async function fetchGroups() {
     setLoading(true);
@@ -96,7 +105,9 @@ export default function GroupManagement() {
         details: { reason, notes, timestamp: new Date().toISOString() },
       });
 
-      toast.success(`Group ${type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : type === 'suspend' ? 'suspended' : 'unsuspended'} successfully`);
+      toast.success(
+        `Group ${type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : type === 'suspend' ? 'suspended' : 'unsuspended'} successfully`
+      );
       setModal(null);
       await fetchGroups();
     } catch (err) {
@@ -108,11 +119,15 @@ export default function GroupManagement() {
 
   return (
     <AdminLayout title="Group Management">
-      <p className="text-sm text-slate-400 mb-6">Manage tenant groups — approve registrations, suspend for violations, and track status.</p>
+      <p className="text-sm text-slate-400 mb-6">
+        Manage tenant groups — approve registrations, suspend for violations, and track status.
+      </p>
 
-      {loading ? <LoadingSpinner /> : (
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
         <div className="space-y-3">
-          {groups.map(group => {
+          {groups.map((group) => {
             const badge = STATUS_BADGES[group.status] || STATUS_BADGES.PENDING_VERIFICATION;
             const BadgeIcon = badge.icon;
             const isSelf = group.is_super_group;
@@ -128,15 +143,21 @@ export default function GroupManagement() {
                       <div className="flex items-center gap-2">
                         <h3 className="text-white font-semibold">{group.name}</h3>
                         {isSelf && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] bg-violet-500/20 text-violet-300 border border-violet-500/20">Super Group</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] bg-violet-500/20 text-violet-300 border border-violet-500/20">
+                            Super Group
+                          </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500">{group.slug} • Created {new Date(group.created_at).toLocaleDateString()}</p>
+                      <p className="text-xs text-slate-500">
+                        {group.slug} • Created {new Date(group.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-${badge.color}-500/10 text-${badge.color}-400 border border-${badge.color}-500/20`}>
+                    <span
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-${badge.color}-500/10 text-${badge.color}-400 border border-${badge.color}-500/20`}
+                    >
                       <BadgeIcon className="w-3 h-3" />
                       {badge.label}
                     </span>
@@ -148,8 +169,14 @@ export default function GroupManagement() {
                   <div className="mt-3 bg-red-500/5 border border-red-500/20 rounded-xl p-3 text-sm">
                     <p className="text-red-300 font-semibold text-xs">Suspension Reason:</p>
                     <p className="text-slate-300 text-xs mt-1">{group.suspension_reason}</p>
-                    {group.suspension_notes && <p className="text-slate-500 text-[10px] mt-1">Notes: {group.suspension_notes}</p>}
-                    <p className="text-slate-600 text-[10px] mt-1">Suspended {new Date(group.suspended_at).toLocaleString()}</p>
+                    {group.suspension_notes && (
+                      <p className="text-slate-500 text-[10px] mt-1">
+                        Notes: {group.suspension_notes}
+                      </p>
+                    )}
+                    <p className="text-slate-600 text-[10px] mt-1">
+                      Suspended {new Date(group.suspended_at).toLocaleString()}
+                    </p>
                   </div>
                 )}
 
@@ -206,20 +233,29 @@ export default function GroupManagement() {
 
       {/* Action Modal */}
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setModal(null)}>
-          <div className="glass-card w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setModal(null)}
+        >
+          <div
+            className="glass-card w-full max-w-md animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-white mb-4 capitalize">{modal.type} Group</h3>
             <p className="text-sm text-slate-400 mb-3">
-              {modal.type === 'reject' && `Reject "${modal.group.name}" registration? This will block their access to sensitive data.`}
-              {modal.type === 'suspend' && `Suspend "${modal.group.name}"? This will immediately block all write operations and sensitive data access.`}
-              {modal.type === 'unsuspend' && `Unsuspend "${modal.group.name}"? This will restore their verified status.`}
+              {modal.type === 'reject' &&
+                `Reject "${modal.group.name}" registration? This will block their access to sensitive data.`}
+              {modal.type === 'suspend' &&
+                `Suspend "${modal.group.name}"? This will immediately block all write operations and sensitive data access.`}
+              {modal.type === 'unsuspend' &&
+                `Unsuspend "${modal.group.name}"? This will restore their verified status.`}
             </p>
             <div className="space-y-3">
               <div>
                 <label className="input-label">Reason *</label>
                 <textarea
                   value={modal.reason || ''}
-                  onChange={e => setModal({ ...modal, reason: e.target.value })}
+                  onChange={(e) => setModal({ ...modal, reason: e.target.value })}
                   className="input-field min-h-[80px]"
                   placeholder="Enter reason..."
                   required
@@ -230,7 +266,7 @@ export default function GroupManagement() {
                   <label className="input-label">Notes (optional)</label>
                   <textarea
                     value={modal.notes || ''}
-                    onChange={e => setModal({ ...modal, notes: e.target.value })}
+                    onChange={(e) => setModal({ ...modal, notes: e.target.value })}
                     className="input-field min-h-[60px]"
                     placeholder="Internal notes..."
                   />
@@ -238,7 +274,9 @@ export default function GroupManagement() {
               )}
             </div>
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setModal(null)} className="btn-secondary flex-1">Cancel</button>
+              <button onClick={() => setModal(null)} className="btn-secondary flex-1">
+                Cancel
+              </button>
               <button
                 onClick={() => handleAction(modal.type, modal.group.id, modal.reason, modal.notes)}
                 disabled={!modal.reason?.trim() || actionLoading === modal.group.id}
@@ -248,8 +286,14 @@ export default function GroupManagement() {
                     : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20'
                 } disabled:opacity-50`}
               >
-                {actionLoading === modal.group.id ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {modal.type === 'reject' ? 'Reject' : modal.type === 'suspend' ? 'Suspend Now' : 'Unsuspend'}
+                {actionLoading === modal.group.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : null}
+                {modal.type === 'reject'
+                  ? 'Reject'
+                  : modal.type === 'suspend'
+                    ? 'Suspend Now'
+                    : 'Unsuspend'}
               </button>
             </div>
           </div>

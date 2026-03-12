@@ -1,9 +1,10 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { updateBookingStatus, getBookingDocuments, verifyDocument, getAuditLogs } from '../../hooks/useAdmin';
+import { getBookingDocuments, verifyDocument, getAuditLogs } from '../../hooks/useAdmin';
 import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
@@ -13,9 +14,24 @@ import { formatDate, formatDateTime } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import { maskSensitive } from '../../utils/format';
 import {
-  ArrowLeft, User, Mail, Phone, FileText, Shield, CheckCircle,
-  Clock, Eye, FileCheck, Edit3, Save, X, Upload, FileImage,
-  Wallet, AlertTriangle, CarFront, Calendar, Trash2, ClipboardCopy, FileSignature
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  FileText,
+  Shield,
+  CheckCircle,
+  Clock,
+  Eye,
+  FileCheck,
+  Edit3,
+  Save,
+  X,
+  FileImage,
+  Wallet,
+  Trash2,
+  ClipboardCopy,
+  FileSignature,
 } from 'lucide-react';
 
 // Status flow definition
@@ -78,7 +94,12 @@ export default function AdminBookingDetail() {
           return;
         }
 
-        console.log('[BookingDetail] Booking loaded:', bookingData.id, 'status:', bookingData.status);
+        console.log(
+          '[BookingDetail] Booking loaded:',
+          bookingData.id,
+          'status:',
+          bookingData.status
+        );
         setBooking(bookingData);
         setEditPickup(bookingData.pickup_date);
         setEditReturn(bookingData.return_date);
@@ -86,9 +107,21 @@ export default function AdminBookingDetail() {
         // Fetch docs, logs, and agreement in parallel
         try {
           const [docsData, logsData, agreementData] = await Promise.all([
-            getBookingDocuments(id, user.id).catch(err => { console.warn('[BookingDetail] Docs error:', err); return []; }),
-            getAuditLogs(id).catch(err => { console.warn('[BookingDetail] Logs error:', err); return []; }),
-            supabase.from('bubatrent_booking_rental_agreements').select('id, agreed_at, customer_name, signature_data').eq('booking_id', id).maybeSingle().then(r => r.data).catch(() => null),
+            getBookingDocuments(id, user.id).catch((err) => {
+              console.warn('[BookingDetail] Docs error:', err);
+              return [];
+            }),
+            getAuditLogs(id).catch((err) => {
+              console.warn('[BookingDetail] Logs error:', err);
+              return [];
+            }),
+            supabase
+              .from('bubatrent_booking_rental_agreements')
+              .select('id, agreed_at, customer_name, signature_data')
+              .eq('booking_id', id)
+              .maybeSingle()
+              .then((r) => r.data)
+              .catch(() => null),
           ]);
           setDocuments(docsData);
           setAuditLogs(logsData);
@@ -116,7 +149,9 @@ export default function AdminBookingDetail() {
     try {
       // Block PICKUP unless agreement is signed
       if (newStatus === 'PICKUP' && !agreement) {
-        toast.error('Cannot mark as Picked Up — rental agreement has not been signed yet. Send the agreement link to the customer first.');
+        toast.error(
+          'Cannot mark as Picked Up — rental agreement has not been signed yet. Send the agreement link to the customer first.'
+        );
         return;
       }
 
@@ -124,14 +159,17 @@ export default function AdminBookingDetail() {
       if (newStatus === 'PICKUP') {
         const payments = booking.bubatrent_booking_payments || [];
         const totalPaid = payments
-          .filter(p => p.status === 'completed')
+          .filter((p) => p.status === 'completed')
           .reduce((sum, p) => sum + Number(p.amount || 0), 0);
         const totalPrice = Number(booking.total_price || 0);
         // Also accept if both receipts are verified (handles legacy data before payment record fix)
-        const receiptsVerified = booking.deposit_status === 'verified' && booking.full_payment_status === 'verified';
+        const receiptsVerified =
+          booking.deposit_status === 'verified' && booking.full_payment_status === 'verified';
         if (totalPaid < totalPrice && !receiptsVerified) {
           const outstanding = totalPrice - totalPaid;
-          toast.error(`Cannot mark as Picked Up — full payment required. Outstanding: RM ${outstanding.toFixed(2)} (Paid: RM ${totalPaid.toFixed(2)} / Total: RM ${totalPrice.toFixed(2)})`);
+          toast.error(
+            `Cannot mark as Picked Up — full payment required. Outstanding: RM ${outstanding.toFixed(2)} (Paid: RM ${totalPaid.toFixed(2)} / Total: RM ${totalPrice.toFixed(2)})`
+          );
           return;
         }
       }
@@ -146,10 +184,8 @@ export default function AdminBookingDetail() {
         .update(updates)
         .eq('id', id);
       if (error) throw error;
-      setBooking(prev => ({ ...prev, ...updates }));
+      setBooking((prev) => ({ ...prev, ...updates }));
       toast.success(`Status updated to ${newStatus}`);
-
-
     } catch (err) {
       toast.error(err.message);
     }
@@ -175,7 +211,7 @@ export default function AdminBookingDetail() {
         .update({ pickup_date: editPickup, return_date: editReturn })
         .eq('id', id);
       if (error) throw error;
-      setBooking(prev => ({ ...prev, pickup_date: editPickup, return_date: editReturn }));
+      setBooking((prev) => ({ ...prev, pickup_date: editPickup, return_date: editReturn }));
       setEditingDates(false);
       toast.success('Dates updated!');
     } catch (err) {
@@ -194,7 +230,8 @@ export default function AdminBookingDetail() {
       if (error) throw error;
 
       // Also mark the deposit payment record as completed
-      await supabase.from('bubatrent_booking_payments')
+      await supabase
+        .from('bubatrent_booking_payments')
         .update({ status: 'completed' })
         .eq('booking_id', id)
         .eq('payment_type', 'deposit');
@@ -207,7 +244,8 @@ export default function AdminBookingDetail() {
           .eq('id', booking.user_id)
           .single();
         const currentCredit = Number(profileData.data?.deposit_credit || 0);
-        await supabase.from('bubatrent_booking_profiles')
+        await supabase
+          .from('bubatrent_booking_profiles')
           .update({ deposit_credit: currentCredit + Number(booking.deposit_amount) })
           .eq('id', booking.user_id);
         await supabase.from('bubatrent_booking_credit_transactions').insert({
@@ -241,7 +279,7 @@ export default function AdminBookingDetail() {
         .update({ deposit_status: 'rejected' })
         .eq('id', id);
       if (error) throw error;
-      setBooking(prev => ({ ...prev, deposit_status: 'rejected' }));
+      setBooking((prev) => ({ ...prev, deposit_status: 'rejected' }));
       toast.success('Deposit receipt rejected.');
     } catch (err) {
       toast.error(err.message);
@@ -265,7 +303,8 @@ export default function AdminBookingDetail() {
         .maybeSingle();
 
       if (existing) {
-        await supabase.from('bubatrent_booking_payments')
+        await supabase
+          .from('bubatrent_booking_payments')
           .update({ status: 'completed' })
           .eq('id', existing.id);
       } else {
@@ -294,18 +333,31 @@ export default function AdminBookingDetail() {
   }
 
   async function handleUploadFullPayment() {
-    if (!fullPaymentFile) { toast.error('Select a receipt file first.'); return; }
+    if (!fullPaymentFile) {
+      toast.error('Select a receipt file first.');
+      return;
+    }
     setUploadingReceipt(true);
     try {
       const ext = fullPaymentFile.name.split('.').pop();
       const path = `receipts/${id}/full_payment_${Date.now()}.${ext}`;
-      const { error: upErr } = await uploadFileRobust('customer-documents', path, fullPaymentFile, toast);
+      const { error: upErr } = await uploadFileRobust(
+        'customer-documents',
+        path,
+        fullPaymentFile,
+        toast
+      );
       if (upErr) throw upErr;
-      const { error } = await supabase.from('bubatrent_booking_bookings')
+      const { error } = await supabase
+        .from('bubatrent_booking_bookings')
         .update({ full_payment_receipt_path: path, full_payment_status: 'uploaded' })
         .eq('id', id);
       if (error) throw error;
-      setBooking(prev => ({ ...prev, full_payment_receipt_path: path, full_payment_status: 'uploaded' }));
+      setBooking((prev) => ({
+        ...prev,
+        full_payment_receipt_path: path,
+        full_payment_status: 'uploaded',
+      }));
       setFullPaymentFile(null);
       toast.success('Full payment receipt uploaded!');
     } catch (err) {
@@ -338,14 +390,25 @@ export default function AdminBookingDetail() {
     }
   }
 
-  if (loading) return <AdminLayout><LoadingSpinner fullScreen /></AdminLayout>;
-  if (notFound || !booking) return (
-    <AdminLayout>
-      <p className="text-red-400">Booking not found or you don't have access.</p>
-      <p className="text-xs text-slate-500 mt-1">ID: {id}</p>
-      <Link to="/admin/bookings" className="text-violet-400 text-sm mt-3 inline-block hover:underline">← Back to Bookings</Link>
-    </AdminLayout>
-  );
+  if (loading)
+    return (
+      <AdminLayout>
+        <LoadingSpinner fullScreen />
+      </AdminLayout>
+    );
+  if (notFound || !booking)
+    return (
+      <AdminLayout>
+        <p className="text-red-400">Booking not found or you don&apos;t have access.</p>
+        <p className="text-xs text-slate-500 mt-1">ID: {id}</p>
+        <Link
+          to="/admin/bookings"
+          className="text-violet-400 text-sm mt-3 inline-block hover:underline"
+        >
+          ← Back to Bookings
+        </Link>
+      </AdminLayout>
+    );
 
   const car = booking.bubatrent_booking_cars;
   const payment = booking.bubatrent_booking_payments?.[0];
@@ -353,7 +416,10 @@ export default function AdminBookingDetail() {
 
   return (
     <AdminLayout>
-      <Link to="/admin/bookings" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6">
+      <Link
+        to="/admin/bookings"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6"
+      >
         <ArrowLeft className="w-4 h-4" /> All Bookings
       </Link>
 
@@ -365,25 +431,46 @@ export default function AdminBookingDetail() {
           <p className="text-xs text-slate-500 mt-1 font-mono">{booking.id}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {nextStatuses.map(ns => (
-            <button key={ns} onClick={() => {
-              if (booking.status === 'EXPIRED') { setShowReactivate(true); return; }
-              handleStatusChange(ns);
-            }}
+          {nextStatuses.map((ns) => (
+            <button
+              key={ns}
+              onClick={() => {
+                if (booking.status === 'EXPIRED') {
+                  setShowReactivate(true);
+                  return;
+                }
+                handleStatusChange(ns);
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                ns === 'CANCELLED' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' :
-                ns === 'RETURNED' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' :
-                'bg-green-500/10 text-green-400 hover:bg-green-500/20'
-              }`}>
-              {ns === 'DEPOSIT_PAID' ? (booking.status === 'EXPIRED' ? 'Reactivate → Deposit Paid' : 'Mark Deposit Paid') :
-               ns === 'CONFIRMED' ? (booking.status === 'EXPIRED' ? 'Reactivate → Confirmed' : 'Confirm') :
-               ns === 'PICKUP' ? 'Mark Picked Up' :
-               ns === 'RETURNED' ? 'Mark Returned' :
-               ns === 'CANCELLED' ? 'Cancel' : ns}
+                ns === 'CANCELLED'
+                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                  : ns === 'RETURNED'
+                    ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                    : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
+              }`}
+            >
+              {ns === 'DEPOSIT_PAID'
+                ? booking.status === 'EXPIRED'
+                  ? 'Reactivate → Deposit Paid'
+                  : 'Mark Deposit Paid'
+                : ns === 'CONFIRMED'
+                  ? booking.status === 'EXPIRED'
+                    ? 'Reactivate → Confirmed'
+                    : 'Confirm'
+                  : ns === 'PICKUP'
+                    ? 'Mark Picked Up'
+                    : ns === 'RETURNED'
+                      ? 'Mark Returned'
+                      : ns === 'CANCELLED'
+                        ? 'Cancel'
+                        : ns}
             </button>
           ))}
-          <button onClick={handleDeleteBooking} disabled={deleting}
-            className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-1.5">
+          <button
+            onClick={handleDeleteBooking}
+            disabled={deleting}
+            className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-1.5"
+          >
             <Trash2 className="w-3.5 h-3.5" />
             {deleting ? 'Deleting...' : 'Delete'}
           </button>
@@ -392,20 +479,29 @@ export default function AdminBookingDetail() {
 
       {/* Rental Agreement Status Card */}
       {['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
-        <div className={`glass-card mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 ${agreement ? 'border-green-500/20 bg-green-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+        <div
+          className={`glass-card mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 ${agreement ? 'border-green-500/20 bg-green-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}
+        >
           <div className="flex items-center gap-3 flex-1">
-            <FileSignature className={`w-6 h-6 shrink-0 ${agreement ? 'text-green-400' : 'text-amber-400'}`} />
+            <FileSignature
+              className={`w-6 h-6 shrink-0 ${agreement ? 'text-green-400' : 'text-amber-400'}`}
+            />
             <div>
-              <p className={`text-sm font-medium ${agreement ? 'text-green-300' : 'text-amber-300'}`}>
+              <p
+                className={`text-sm font-medium ${agreement ? 'text-green-300' : 'text-amber-300'}`}
+              >
                 {agreement ? 'Rental Agreement Signed' : 'Rental Agreement Not Signed'}
               </p>
               <p className="text-xs text-slate-500">
-                {agreement ? `Signed by ${agreement.customer_name} on ${new Date(agreement.agreed_at).toLocaleString()}` : 'Customer must sign the agreement before vehicle pickup.'}
+                {agreement
+                  ? `Signed by ${agreement.customer_name} on ${new Date(agreement.agreed_at).toLocaleString()}`
+                  : 'Customer must sign the agreement before vehicle pickup.'}
               </p>
             </div>
           </div>
           {!agreement && (
-            <button onClick={copyAgreementLink}
+            <button
+              onClick={copyAgreementLink}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 transition-colors whitespace-nowrap"
             >
               <ClipboardCopy className="w-4 h-4" />
@@ -416,10 +512,17 @@ export default function AdminBookingDetail() {
             <div className="flex items-center gap-3">
               {agreement.signature_data && (
                 <div className="bg-white rounded-lg p-2 w-32 h-16">
-                  <img src={agreement.signature_data} alt="Signature" className="w-full h-full object-contain" />
+                  <img
+                    src={agreement.signature_data}
+                    alt="Signature"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
               )}
-              <a href={`/booking/${id}/agreement`} target="_blank" rel="noreferrer"
+              <a
+                href={`/booking/${id}/agreement`}
+                target="_blank"
+                rel="noreferrer"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors whitespace-nowrap"
               >
                 <Eye className="w-3.5 h-3.5" /> View Full Agreement
@@ -431,71 +534,88 @@ export default function AdminBookingDetail() {
 
       {/* Reactivation Modal */}
       {showReactivate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowReactivate(false)}>
-          <div className="glass-card w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowReactivate(false)}
+        >
+          <div
+            className="glass-card w-full max-w-md animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-white mb-2">Reactivate Expired Booking</h3>
-            <p className="text-sm text-slate-400 mb-4">This booking expired. Provide a reason for reactivation:</p>
+            <p className="text-sm text-slate-400 mb-4">
+              This booking expired. Provide a reason for reactivation:
+            </p>
             <textarea
               value={reactivateReason}
-              onChange={e => setReactivateReason(e.target.value)}
+              onChange={(e) => setReactivateReason(e.target.value)}
               className="input-field mb-4"
               rows={3}
               placeholder="Reason for reactivation (required)..."
             />
             <div className="flex flex-col sm:flex-row gap-2">
-              <button onClick={() => setShowReactivate(false)} className="btn-secondary flex-1">Cancel</button>
-              {nextStatuses.filter(s => s !== 'CANCELLED').map(ns => (
-                <button
-                  key={ns}
-                  disabled={!reactivateReason.trim() || reactivating}
-                  onClick={async () => {
-                    setReactivating(true);
-                    try {
-                      // Check date overlap
-                      const { data: overlapping } = await supabase
-                        .from('bubatrent_booking_bookings')
-                        .select('id')
-                        .eq('car_id', booking.car_id)
-                        .in('status', ['HOLD','DEPOSIT_PAID','CONFIRMED','PICKUP'])
-                        .lte('pickup_date', booking.return_date)
-                        .gte('return_date', booking.pickup_date)
-                        .neq('id', booking.id)
-                        .limit(1);
-                      if (overlapping?.length > 0) {
-                        toast.error('Cannot reactivate: date overlap with another booking. Edit dates first.');
+              <button onClick={() => setShowReactivate(false)} className="btn-secondary flex-1">
+                Cancel
+              </button>
+              {nextStatuses
+                .filter((s) => s !== 'CANCELLED')
+                .map((ns) => (
+                  <button
+                    key={ns}
+                    disabled={!reactivateReason.trim() || reactivating}
+                    onClick={async () => {
+                      setReactivating(true);
+                      try {
+                        // Check date overlap
+                        const { data: overlapping } = await supabase
+                          .from('bubatrent_booking_bookings')
+                          .select('id')
+                          .eq('car_id', booking.car_id)
+                          .in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'])
+                          .lte('pickup_date', booking.return_date)
+                          .gte('return_date', booking.pickup_date)
+                          .neq('id', booking.id)
+                          .limit(1);
+                        if (overlapping?.length > 0) {
+                          toast.error(
+                            'Cannot reactivate: date overlap with another booking. Edit dates first.'
+                          );
+                          setReactivating(false);
+                          return;
+                        }
+                        await supabase
+                          .from('bubatrent_booking_bookings')
+                          .update({
+                            status: ns,
+                            reactivated_by: user.id,
+                            reactivated_at: new Date().toISOString(),
+                            reactivation_reason: reactivateReason,
+                          })
+                          .eq('id', booking.id);
+                        await supabase.from('bubatrent_booking_audit_logs').insert({
+                          admin_id: user.id,
+                          action: 'REACTIVATE_EXPIRED',
+                          resource_type: 'booking',
+                          resource_id: booking.id,
+                          details: { new_status: ns, reason: reactivateReason },
+                        });
+                        setBooking((prev) => ({ ...prev, status: ns }));
+                        toast.success(`Booking reactivated → ${ns}`);
+                        setShowReactivate(false);
+                        setReactivateReason('');
+                      } catch (err) {
+                        toast.error(err.message);
+                      } finally {
                         setReactivating(false);
-                        return;
                       }
-                      await supabase.from('bubatrent_booking_bookings')
-                        .update({
-                          status: ns,
-                          reactivated_by: user.id,
-                          reactivated_at: new Date().toISOString(),
-                          reactivation_reason: reactivateReason,
-                        })
-                        .eq('id', booking.id);
-                      await supabase.from('bubatrent_booking_audit_logs').insert({
-                        admin_id: user.id,
-                        action: 'REACTIVATE_EXPIRED',
-                        resource_type: 'booking',
-                        resource_id: booking.id,
-                        details: { new_status: ns, reason: reactivateReason },
-                      });
-                      setBooking(prev => ({ ...prev, status: ns }));
-                      toast.success(`Booking reactivated → ${ns}`);
-                      setShowReactivate(false);
-                      setReactivateReason('');
-                    } catch (err) {
-                      toast.error(err.message);
-                    } finally {
-                      setReactivating(false);
-                    }
-                  }}
-                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/20 transition-all disabled:opacity-30"
-                >
-                  {reactivating ? 'Activating...' : `→ ${ns === 'DEPOSIT_PAID' ? 'Deposit Paid' : 'Confirmed'}`}
-                </button>
-              ))}
+                    }}
+                    className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/20 transition-all disabled:opacity-30"
+                  >
+                    {reactivating
+                      ? 'Activating...'
+                      : `→ ${ns === 'DEPOSIT_PAID' ? 'Deposit Paid' : 'Confirmed'}`}
+                  </button>
+                ))}
             </div>
           </div>
         </div>
@@ -507,16 +627,25 @@ export default function AdminBookingDetail() {
           {/* Car & Dates */}
           <div className="glass-card">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Rental Details</h3>
-              {!editingDates && ['HOLD','DEPOSIT_PAID','CONFIRMED'].includes(booking.status) && (
-                <button onClick={() => setEditingDates(true)} className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300">
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                Rental Details
+              </h3>
+              {!editingDates && ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED'].includes(booking.status) && (
+                <button
+                  onClick={() => setEditingDates(true)}
+                  className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300"
+                >
                   <Edit3 className="w-3.5 h-3.5" /> Edit Dates
                 </button>
               )}
             </div>
             <div className="flex items-center gap-4 mb-4">
               {car?.image_url && (
-                <img src={car.image_url} alt={car?.name} className="w-24 h-16 rounded-xl object-cover" />
+                <img
+                  src={car.image_url}
+                  alt={car?.name}
+                  className="w-24 h-16 rounded-xl object-cover"
+                />
               )}
               <div>
                 <div className="flex items-center gap-2">
@@ -527,14 +656,21 @@ export default function AdminBookingDetail() {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500">{car?.brand} {car?.model} · {car?.year}</p>
+                <p className="text-xs text-slate-500">
+                  {car?.brand} {car?.model} · {car?.year}
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-xs text-slate-500 mb-1">Pick-up</p>
                 {editingDates ? (
-                  <input type="date" value={editPickup} onChange={e => setEditPickup(e.target.value)} className="input-field !py-1.5 text-sm" />
+                  <input
+                    type="date"
+                    value={editPickup}
+                    onChange={(e) => setEditPickup(e.target.value)}
+                    className="input-field !py-1.5 text-sm"
+                  />
                 ) : (
                   <p className="text-white">{formatDate(booking.pickup_date)}</p>
                 )}
@@ -542,7 +678,12 @@ export default function AdminBookingDetail() {
               <div>
                 <p className="text-xs text-slate-500 mb-1">Return</p>
                 {editingDates ? (
-                  <input type="date" value={editReturn} onChange={e => setEditReturn(e.target.value)} className="input-field !py-1.5 text-sm" />
+                  <input
+                    type="date"
+                    value={editReturn}
+                    onChange={(e) => setEditReturn(e.target.value)}
+                    className="input-field !py-1.5 text-sm"
+                  />
                 ) : (
                   <p className="text-white">{formatDate(booking.return_date)}</p>
                 )}
@@ -558,17 +699,29 @@ export default function AdminBookingDetail() {
             </div>
             {editingDates && (
               <div className="flex gap-2 mt-4">
-                <button onClick={handleSaveDates} disabled={savingDates} className="btn-primary !px-4 !py-2 text-sm flex items-center gap-1">
+                <button
+                  onClick={handleSaveDates}
+                  disabled={savingDates}
+                  className="btn-primary !px-4 !py-2 text-sm flex items-center gap-1"
+                >
                   <Save className="w-3.5 h-3.5" /> {savingDates ? 'Saving...' : 'Save'}
                 </button>
-                <button onClick={() => { setEditingDates(false); setEditPickup(booking.pickup_date); setEditReturn(booking.return_date); }}
-                  className="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    setEditingDates(false);
+                    setEditPickup(booking.pickup_date);
+                    setEditReturn(booking.return_date);
+                  }}
+                  className="btn-secondary !px-4 !py-2 text-sm flex items-center gap-1"
+                >
                   <X className="w-3.5 h-3.5" /> Cancel
                 </button>
               </div>
             )}
             {booking.actual_return_date && (
-              <p className="text-xs text-emerald-400 mt-3">Actual return: {formatDate(booking.actual_return_date)}</p>
+              <p className="text-xs text-emerald-400 mt-3">
+                Actual return: {formatDate(booking.actual_return_date)}
+              </p>
             )}
             {Number(booking.credit_applied || 0) > 0 && (
               <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
@@ -579,7 +732,9 @@ export default function AdminBookingDetail() {
 
           {/* Customer Info */}
           <div className="glass-card">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Customer</h3>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+              Customer
+            </h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-violet-400" />
@@ -612,26 +767,46 @@ export default function AdminBookingDetail() {
               <div className="bg-white/[0.02] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm text-white font-medium">Deposit Receipt</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    booking.deposit_status === 'verified' ? 'bg-green-500/10 text-green-400' :
-                    booking.deposit_status === 'uploaded' ? 'bg-yellow-500/10 text-yellow-400' :
-                    booking.deposit_status === 'rejected' ? 'bg-red-500/10 text-red-400' :
-                    'bg-slate-500/10 text-slate-400'
-                  }`}>{booking.deposit_status || 'pending'}</span>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${
+                      booking.deposit_status === 'verified'
+                        ? 'bg-green-500/10 text-green-400'
+                        : booking.deposit_status === 'uploaded'
+                          ? 'bg-yellow-500/10 text-yellow-400'
+                          : booking.deposit_status === 'rejected'
+                            ? 'bg-red-500/10 text-red-400'
+                            : 'bg-slate-500/10 text-slate-400'
+                    }`}
+                  >
+                    {booking.deposit_status || 'pending'}
+                  </span>
                 </div>
                 {booking.deposit_receipt_path && (
-                  <a href={supabase.storage.from('customer-documents').getPublicUrl(booking.deposit_receipt_path).data.publicUrl}
-                    target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 mb-2">
+                  <a
+                    href={
+                      supabase.storage
+                        .from('customer-documents')
+                        .getPublicUrl(booking.deposit_receipt_path).data.publicUrl
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 mb-2"
+                  >
                     <Eye className="w-3 h-3" /> View Receipt
                   </a>
                 )}
                 {booking.deposit_status === 'uploaded' && (
                   <div className="flex gap-2 mt-2">
-                    <button onClick={handleVerifyDeposit} className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors">
+                    <button
+                      onClick={handleVerifyDeposit}
+                      className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
+                    >
                       ✓ Verify
                     </button>
-                    <button onClick={handleRejectDeposit} className="px-3 py-1.5 rounded-lg text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
+                    <button
+                      onClick={handleRejectDeposit}
+                      className="px-3 py-1.5 rounded-lg text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                    >
                       ✗ Reject
                     </button>
                   </div>
@@ -641,56 +816,86 @@ export default function AdminBookingDetail() {
               {/* Full Payment */}
               <div className="bg-white/[0.02] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-white font-medium">Full Payment ({formatMYR(booking.full_payment_amount || booking.total_price)})</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    booking.full_payment_status === 'verified' ? 'bg-green-500/10 text-green-400' :
-                    booking.full_payment_status === 'uploaded' ? 'bg-yellow-500/10 text-yellow-400' :
-                    'bg-slate-500/10 text-slate-400'
-                  }`}>{booking.full_payment_status || 'pending'}</span>
+                  <p className="text-sm text-white font-medium">
+                    Full Payment ({formatMYR(booking.full_payment_amount || booking.total_price)})
+                  </p>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${
+                      booking.full_payment_status === 'verified'
+                        ? 'bg-green-500/10 text-green-400'
+                        : booking.full_payment_status === 'uploaded'
+                          ? 'bg-yellow-500/10 text-yellow-400'
+                          : 'bg-slate-500/10 text-slate-400'
+                    }`}
+                  >
+                    {booking.full_payment_status || 'pending'}
+                  </span>
                 </div>
                 {booking.full_payment_receipt_path && (
-                  <a href={supabase.storage.from('customer-documents').getPublicUrl(booking.full_payment_receipt_path).data.publicUrl}
-                    target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 mb-2">
+                  <a
+                    href={
+                      supabase.storage
+                        .from('customer-documents')
+                        .getPublicUrl(booking.full_payment_receipt_path).data.publicUrl
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 mb-2"
+                  >
                     <Eye className="w-3 h-3" /> View Receipt
                   </a>
                 )}
                 {booking.full_payment_status === 'uploaded' && (
-                  <button onClick={handleVerifyFullPayment}
-                    className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2">
+                  <button
+                    onClick={handleVerifyFullPayment}
+                    className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2"
+                  >
                     ✓ Verify Full Payment
                   </button>
                 )}
                 {/* Allow admin to upload full payment receipt on behalf of customer */}
-                {['CONFIRMED','PICKUP'].includes(booking.status) && !booking.full_payment_receipt_path && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
-                      <FileImage className="w-3.5 h-3.5" />
-                      {fullPaymentFile ? fullPaymentFile.name : 'Upload receipt'}
-                      <input type="file" accept="image/*,.pdf" className="hidden"
-                        onChange={e => setFullPaymentFile(e.target.files[0])} />
-                    </label>
-                    {fullPaymentFile && (
-                      <button onClick={handleUploadFullPayment} disabled={uploadingReceipt}
-                        className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20">
-                        {uploadingReceipt ? 'Uploading...' : 'Upload'}
-                      </button>
-                    )}
-                  </div>
-                )}
+                {['CONFIRMED', 'PICKUP'].includes(booking.status) &&
+                  !booking.full_payment_receipt_path && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                        <FileImage className="w-3.5 h-3.5" />
+                        {fullPaymentFile ? fullPaymentFile.name : 'Upload receipt'}
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          onChange={(e) => setFullPaymentFile(e.target.files[0])}
+                        />
+                      </label>
+                      {fullPaymentFile && (
+                        <button
+                          onClick={handleUploadFullPayment}
+                          disabled={uploadingReceipt}
+                          className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20"
+                        >
+                          {uploadingReceipt ? 'Uploading...' : 'Upload'}
+                        </button>
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
 
             {/* Official Invoice */}
-            {(booking.deposit_status === 'verified' || booking.full_payment_status === 'verified') && (
+            {(booking.deposit_status === 'verified' ||
+              booking.full_payment_status === 'verified') && (
               <div className="bg-violet-500/5 border border-violet-500/10 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white font-medium">Official Invoice / Receipt</p>
                     <p className="text-xs text-slate-500">Auto-generated company invoice</p>
                   </div>
-                  <a href={`/booking/${id}/invoice`} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-colors whitespace-nowrap">
+                  <a
+                    href={`/booking/${id}/invoice`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-colors whitespace-nowrap"
+                  >
                     <Eye className="w-3.5 h-3.5" /> View Invoice
                   </a>
                 </div>
@@ -707,7 +912,7 @@ export default function AdminBookingDetail() {
               <p className="text-sm text-slate-500">No documents uploaded yet.</p>
             ) : (
               <div className="space-y-3">
-                {documents.map(doc => (
+                {documents.map((doc) => (
                   <div key={doc.id} className="bg-white/[0.02] rounded-xl p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -719,8 +924,10 @@ export default function AdminBookingDetail() {
                           <CheckCircle className="w-3.5 h-3.5" /> Verified
                         </span>
                       ) : (
-                        <button onClick={() => handleVerify(doc.id)}
-                          className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors">
+                        <button
+                          onClick={() => handleVerify(doc.id)}
+                          className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors"
+                        >
                           Verify
                         </button>
                       )}
@@ -749,11 +956,15 @@ export default function AdminBookingDetail() {
           {/* Payment */}
           {payment && (
             <div className="glass-card">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Payment Record</h3>
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+                Payment Record
+              </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Type</span>
-                  <span className="text-slate-300 capitalize">{payment.payment_type || 'deposit'}</span>
+                  <span className="text-slate-300 capitalize">
+                    {payment.payment_type || 'deposit'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Amount</span>
@@ -769,7 +980,9 @@ export default function AdminBookingDetail() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Reference</span>
-                  <span className="text-xs font-mono text-slate-300">{payment.reference_number}</span>
+                  <span className="text-xs font-mono text-slate-300">
+                    {payment.reference_number}
+                  </span>
                 </div>
               </div>
             </div>
@@ -784,13 +997,14 @@ export default function AdminBookingDetail() {
               <p className="text-xs text-slate-500">No audit entries.</p>
             ) : (
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {auditLogs.map(log => (
+                {auditLogs.map((log) => (
                   <div key={log.id} className="flex items-start gap-2 text-xs">
                     <Clock className="w-3.5 h-3.5 text-slate-600 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-slate-300">{log.action.replace('_', ' ')}</p>
                       <p className="text-slate-600">
-                        {log.bubatrent_booking_profiles?.display_name || 'Admin'} · {formatDateTime(log.created_at)}
+                        {log.bubatrent_booking_profiles?.display_name || 'Admin'} ·{' '}
+                        {formatDateTime(log.created_at)}
                       </p>
                     </div>
                   </div>
@@ -801,7 +1015,9 @@ export default function AdminBookingDetail() {
 
           {/* Timeline */}
           <div className="glass-card">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Timeline</h3>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+              Timeline
+            </h3>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-500">Created</span>
