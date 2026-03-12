@@ -85,6 +85,16 @@
     box-shadow: none;
   }
 
+  /* ─── Mobile Touch Fixes ─── */
+  button,
+  [type='submit'],
+  [type='button'],
+  label[class*='cursor-pointer'] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 44px; /* Apple HIG minimum tap target */
+  }
+
   .btn-secondary {
     @apply px-6 py-3 rounded-xl font-medium transition-all duration-300 cursor-pointer;
     background: rgba(255, 255, 255, 0.05);

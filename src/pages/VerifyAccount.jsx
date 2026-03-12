@@ -345,7 +345,6 @@ export default function VerifyAccount() {
                     <FileImage className="w-6 h-6 text-slate-500" />
                     <div>
                       <p className="text-sm text-slate-300">
-                        Didn&apos;t receive code?{' '}
                         {icFile ? icFile.name : 'Click to upload IC photo'}
                       </p>
                       <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
