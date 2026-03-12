@@ -1,20 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
 const HOLD_DURATION_MINUTES = 10;
 
 export function useBookings(userId) {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchBookings = useCallback(async () => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
+  const {
+    data: bookings = [],
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: ['bookings', userId],
+    queryFn: async () => {
       const { data, error: fetchError } = await supabase
         .from('bubatrent_booking_bookings')
         .select('*, bubatrent_booking_cars(name, brand, model, image_url)')
@@ -22,19 +19,13 @@ export function useBookings(userId) {
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
-      setBookings(data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
+      return data || [];
+    },
+    enabled: !!userId,
+    staleTime: 60 * 1000, // 1 min cache
+  });
 
-  useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
-
-  return { bookings, loading, error, refetch: fetchBookings };
+  return { bookings, loading, error: queryError?.message || null, refetch };
 }
 
 export async function expireOldHolds() {
