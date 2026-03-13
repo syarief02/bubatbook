@@ -39,9 +39,14 @@ export function ToastProvider({ children }) {
 }
 
 export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within ToastProvider');
-  return ctx;
+  const addToast = useContext(ToastContext);
+  if (!addToast) throw new Error('useToast must be used within ToastProvider');
+  return {
+    success: (msg, duration) => addToast(msg, 'success', duration),
+    error: (msg, duration) => addToast(msg, 'error', duration),
+    info: (msg, duration) => addToast(msg, 'info', duration),
+    warn: (msg, duration) => addToast(msg, 'info', duration), // map warn → info style
+  };
 }
 
 const iconMap = {
