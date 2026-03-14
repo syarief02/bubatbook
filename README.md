@@ -2,7 +2,7 @@
 
 > A full-stack car rental booking platform built for the Malaysian market. Customers browse cars, book with date selection, pay deposits via receipt upload, and manage their profiles. Admins manage bookings, verify customers, track revenue, and handle expenses.
 
-🌐 **Live:** [bubatbook.vercel.app](https://bubatbook.vercel.app)
+🌐 **Live:** [rent2go.my](https://rent2go.my)
 
 ---
 
@@ -272,7 +272,7 @@ If you are a **Super Admin** or belong to multiple groups, you can switch your a
 - **Company:** Bubat Resources
 - **Email:** bubatresources@gmail.com
 - **WhatsApp:** +60 16-256 9733 (Amira)
-- **Website:** [bubatbook.vercel.app](https://bubatbook.vercel.app)
+- **Website:** [rent2go.my](https://rent2go.my)
 
 ---
 
