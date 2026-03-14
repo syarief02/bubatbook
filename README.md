@@ -21,7 +21,7 @@
 
 - **Dashboard** — Quick stats, active bookings, fleet overview
 - **Booking Management** — Full status flow (HOLD → DEPOSIT_PAID → CONFIRMED → PICKUP → RETURNED), date editing, receipt verification
-- **Customer Management** — Verify/unverify users, view documents, manage deposit credits, role assignment
+- **Customer Management** — Create walk-in customers (with email & GDL license support), verify/unverify users, view documents, manage deposit credits, role assignment
 - **Sales Dashboard** — Revenue tracking with date filters (today/month/custom), per-car breakdown
 - **Expense Claims** — Submit claims with invoice images, mark completed with payment receipt, "Others" for general expenses
 
