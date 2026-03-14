@@ -28,11 +28,13 @@ export default function CarCard({ car, pickupDate, returnDate }) {
             <Calendar className="w-12 h-12 text-slate-700" />
           </div>
         )}
-        <div className="absolute top-3 right-3">
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
-            {formatMYR(car.price_per_day)}/day
-          </span>
-        </div>
+        {car.price_per_day > 0 && (
+          <div className="absolute top-3 right-3">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
+              {formatMYR(car.price_per_day)}/day
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Car Info */}

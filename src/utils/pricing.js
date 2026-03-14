@@ -15,6 +15,7 @@ export function calculatePrice(pricePerDay, pickupDate, returnDate) {
 }
 
 export function formatMYR(amount) {
+  if (amount == null || isNaN(amount)) return 'RM 0';
   return new Intl.NumberFormat('ms-MY', {
     style: 'currency',
     currency: 'MYR',
