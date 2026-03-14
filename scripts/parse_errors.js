@@ -1,4 +1,3 @@
-/* eslint-disable */
 import fs from 'fs/promises';
 
 async function parseErrors() {

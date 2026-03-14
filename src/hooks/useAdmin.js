@@ -156,7 +156,13 @@ export function useAdminCustomers(filters = {}) {
     error: queryError,
     refetch,
   } = useQuery({
-    queryKey: ['admin-customers', filters.role, filters.search, filters.fleetId, filters.verification],
+    queryKey: [
+      'admin-customers',
+      filters.role,
+      filters.search,
+      filters.fleetId,
+      filters.verification,
+    ],
     queryFn: async () => {
       let query = supabase
         .from('bubatrent_booking_profiles')

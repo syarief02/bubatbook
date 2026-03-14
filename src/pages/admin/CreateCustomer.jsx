@@ -79,6 +79,7 @@ export default function CreateCustomer() {
     if (!form.licence_expiry) e.licence_expiry = 'Licence expiry date is required';
     if (!icFile) e.ic = 'IC image upload is required';
     if (!licenceFile) e.licence = 'Licence image upload is required';
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email address';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -127,8 +128,18 @@ export default function CreateCustomer() {
         p_ic_file_path: icPath,
         p_licence_file_path: licPath,
         p_admin_id: user.id,
+        p_email: form.email || null,
+        p_gdl_license: form.gdl_license !== 'NONE' ? form.gdl_license : null,
       });
-      if (profileErr) throw profileErr;
+      if (profileErr) {
+        if (
+          profileErr.message?.includes('auth.users_email_key') ||
+          profileErr.message?.includes('duplicate key value')
+        ) {
+          throw new Error('Email address is already in use by another account');
+        }
+        throw profileErr;
+      }
 
       // Audit log
       await supabase.from('bubatrent_booking_audit_logs').insert({
@@ -220,6 +231,7 @@ export default function CreateCustomer() {
                 className="input-field"
                 placeholder="customer@email.com"
               />
+              {errors.email && <p className="text-[10px] text-red-400 mt-1">{errors.email}</p>}
             </div>
           </div>
 
