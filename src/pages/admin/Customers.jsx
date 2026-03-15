@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
@@ -43,7 +42,7 @@ import { uploadFileRobust } from '../../lib/uploadHelper';
 
 export default function Customers() {
   const { user, isSuperAdmin } = useAuth();
-  const { activeFleetId, isSuperGroup, canWrite, canAccessSensitiveData } = useFleet();
+  const { activeFleetId, isSuperGroup } = useFleet();
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -464,7 +463,7 @@ export default function Customers() {
                               )}
                               {customer.gdl_license && customer.gdl_license !== 'NONE' && (
                                 <p>
-                                  <span className="text-slate-500">License Type:</span>{' '}
+                                  <span className="text-slate-500">GDL License:</span>{' '}
                                   <span className="text-amber-400">{customer.gdl_license}</span>
                                 </p>
                               )}
@@ -743,6 +742,17 @@ export default function Customers() {
                                 className="input-field !py-1.5 text-xs"
                                 placeholder="Postcode"
                               />
+                              <select
+                                value={editForm.gdl_license || 'NONE'}
+                                onChange={(e) =>
+                                  setEditForm((f) => ({ ...f, gdl_license: e.target.value }))
+                                }
+                                className="input-field !py-1.5 text-xs"
+                              >
+                                <option value="NONE">No GDL License</option>
+                                <option value="VAN">GDL - VAN</option>
+                                <option value="LORRY">GDL - LORRY / TRUCK</option>
+                              </select>
                             </div>
 
                             {/* Document uploads */}
@@ -801,6 +811,7 @@ export default function Customers() {
                                     'state',
                                     'postcode',
                                     'licence_expiry',
+                                    'gdl_license',
                                   ];
 
                                   const directUpdates = {};
@@ -1026,6 +1037,7 @@ export default function Customers() {
                                 city: customer.city || '',
                                 state: customer.state || '',
                                 postcode: customer.postcode || '',
+                                gdl_license: customer.gdl_license || 'NONE',
                               });
                             }}
                             className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 transition-all mt-2"
@@ -1133,7 +1145,7 @@ export default function Customers() {
                                 if (upErr) throw upErr;
 
                                 // Update credit balance
-                                const newCredit = Number(customer.deposit_credit || 0) + amt;
+                                const newCredit = Number(customer.fleet_credit || 0) + amt;
                                 const { error: dbErr } = await supabase
                                   .from('bubatrent_booking_profiles')
                                   .update({ deposit_credit: newCredit })
@@ -1181,7 +1193,7 @@ export default function Customers() {
                         </div>
 
                         {/* Deduct Credit */}
-                        <div className="space-y-2">
+                        <div className="glass-card !p-3 border border-red-500/20 space-y-2">
                           <h5 className="text-[10px] font-semibold text-red-300 uppercase">
                             Deduct Credit
                           </h5>
@@ -1189,14 +1201,14 @@ export default function Customers() {
                             type="number"
                             min="0"
                             step="0.01"
-                            value={deductAmount}
+                            value={expandedId === customer.id ? deductAmount || '' : ''}
                             onChange={(e) => setDeductAmount(e.target.value)}
                             className="input-field !py-1.5 text-xs"
                             placeholder="Amount to deduct"
                           />
                           <input
                             type="text"
-                            value={deductReason}
+                            value={expandedId === customer.id ? deductReason || '' : ''}
                             onChange={(e) => setDeductReason(e.target.value)}
                             className="input-field !py-1.5 text-xs"
                             placeholder="Reason (e.g. fine, damage)"
@@ -1207,14 +1219,14 @@ export default function Customers() {
                                 toast.error('Enter a valid amount');
                                 return;
                               }
-                              if (Number(deductAmount) > Number(customer.deposit_credit || 0)) {
+                              if (Number(deductAmount) > Number(customer.fleet_credit || 0)) {
                                 toast.error('Cannot deduct more than balance');
                                 return;
                               }
                               setDeductingId(customer.id);
                               try {
                                 const newCredit =
-                                  Number(customer.deposit_credit || 0) - Number(deductAmount);
+                                  Number(customer.fleet_credit || 0) - Number(deductAmount);
                                 const { error: upErr } = await supabase
                                   .from('bubatrent_booking_profiles')
                                   .update({ deposit_credit: newCredit })

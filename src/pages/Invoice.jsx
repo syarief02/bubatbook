@@ -54,7 +54,7 @@ export default function Invoice() {
       }
     }
     fetchData();
-  }, [id, user.id, isAdmin]);
+  }, [id, user.id, isAdmin, navigate, toast]);
 
   if (loading)
     return (

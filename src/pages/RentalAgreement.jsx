@@ -73,7 +73,7 @@ export default function RentalAgreement() {
       }
     }
     fetchBooking();
-  }, [id, user.id]);
+  }, [id, user.id, isAdmin, navigate, toast]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -137,12 +137,10 @@ export default function RentalAgreement() {
 
   const car = booking.bubatrent_booking_cars;
 
-  // Already signed — show full agreement with signature
   if (existingAgreement) {
     return (
       <div className="min-h-screen py-8 px-4">
         <div className="max-w-3xl mx-auto">
-          {/* Header */}
           <div className="glass-card mb-6 text-center bg-green-500/5 border-green-500/20">
             <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-2" />
             <h1 className="text-2xl font-bold text-white mb-1">PERJANJIAN SEWAAN KENDERAAN</h1>
@@ -152,7 +150,6 @@ export default function RentalAgreement() {
             </p>
           </div>
 
-          {/* Agreement Details */}
           <div className="glass-card mb-6">
             <h2 className="text-lg font-semibold text-white mb-4">BUTIRAN PENYEWA & KENDERAAN</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -197,7 +194,6 @@ export default function RentalAgreement() {
             </div>
           </div>
 
-          {/* Terms & Conditions */}
           <div className="glass-card mb-6">
             <h2 className="text-lg font-semibold text-white mb-4">
               TERMA & SYARAT (Terms & Conditions)
@@ -248,7 +244,6 @@ export default function RentalAgreement() {
             </div>
           </div>
 
-          {/* Insurance / Mutual Agreement */}
           <div className="glass-card mb-6">
             <h2 className="text-lg font-semibold text-white mb-4">INSURAN / PERSETUJUAN BERSAMA</h2>
             <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
@@ -269,7 +264,6 @@ export default function RentalAgreement() {
                 </li>
               </ol>
 
-              {/* Liability Table */}
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-xs border-collapse">
                   <thead>
@@ -324,7 +318,6 @@ export default function RentalAgreement() {
             </div>
           </div>
 
-          {/* Signature */}
           <div className="glass-card mb-6">
             <h2 className="text-lg font-semibold text-white mb-4">
               TANDATANGAN PENYEWA (Customer Signature)
@@ -356,13 +349,11 @@ export default function RentalAgreement() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="glass-card mb-6 text-center">
           <h1 className="text-2xl font-bold text-white mb-1">PERJANJIAN SEWAAN KENDERAAN</h1>
           <p className="text-slate-400 text-sm">Rental Agreement / Surat Perjanjian Sewa Kereta</p>
         </div>
 
-        {/* Auto-filled Booking Details */}
         <div className="glass-card mb-6">
           <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 text-violet-400" />
@@ -388,7 +379,6 @@ export default function RentalAgreement() {
           </div>
         </div>
 
-        {/* Vehicle & Booking Info */}
         <div className="glass-card mb-6">
           <h2 className="text-lg font-semibold text-white mb-4">
             BUTIRAN KENDERAAN (Vehicle Details)
@@ -427,7 +417,6 @@ export default function RentalAgreement() {
           </div>
         </div>
 
-        {/* Terms & Conditions */}
         <div className="glass-card mb-6">
           <h2 className="text-lg font-semibold text-white mb-4">
             TERMA & SYARAT (Terms & Conditions)
@@ -478,7 +467,6 @@ export default function RentalAgreement() {
           </div>
         </div>
 
-        {/* Insurance / Mutual Agreement */}
         <div className="glass-card mb-6">
           <h2 className="text-lg font-semibold text-white mb-4">INSURAN / PERSETUJUAN BERSAMA</h2>
           <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
@@ -499,7 +487,6 @@ export default function RentalAgreement() {
               </li>
             </ol>
 
-            {/* Liability Table */}
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-xs border-collapse">
                 <thead>
@@ -554,7 +541,6 @@ export default function RentalAgreement() {
           </div>
         </div>
 
-        {/* Warning */}
         <div className="flex gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
           <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <p className="text-sm text-amber-200">
@@ -564,7 +550,6 @@ export default function RentalAgreement() {
           </p>
         </div>
 
-        {/* Signature Section */}
         <form onSubmit={handleSubmit}>
           <div className="glass-card mb-6">
             <h2 className="text-lg font-semibold text-white mb-4">
@@ -573,7 +558,6 @@ export default function RentalAgreement() {
             <SignatureCanvas onSignatureChange={setSignatureData} />
           </div>
 
-          {/* Agreement checkbox */}
           <label className="flex items-start gap-3 mb-6 cursor-pointer select-none">
             <input
               type="checkbox"

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useViewAs } from './ViewAsContext';
@@ -140,12 +141,7 @@ export function AuthProvider({ children }) {
   const realIsSuperAdmin = profile?.role === 'super_admin';
 
   // ViewAs overrides
-  let viewAsContext;
-  try {
-    viewAsContext = useViewAs();
-  } catch {
-    viewAsContext = { isViewMode: false, viewAs: null };
-  }
+  const viewAsContext = useViewAs();
   const { isViewMode, viewAs } = viewAsContext;
 
   let isAdmin = realIsAdmin;

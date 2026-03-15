@@ -110,88 +110,88 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
     file_size: file.size,
   };
 
-  return new Promise(async (resolve) => {
-    try {
-      if (toast) toast.info('Step 1: Preparing file...');
+  try {
+    if (toast) toast.info('Step 1: Preparing file...');
+    logUploadStep(
+      'preflight',
+      `Starting upload: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`,
+      logMeta,
+      accessToken
+    );
+
+    // 0. Pre-flight checks
+    if (file.name.match(/\.(heic|heif)$/i) || file.type.match(/heic|heif/i)) {
+      logUploadStep('error', 'HEIC format rejected', logMeta, accessToken);
+      return {
+        data: null,
+        error: new Error(
+          'HEIC format not supported. Please change camera settings to JPEG or use a different file.'
+        ),
+      };
+    }
+    if (file.size > 10 * 1024 * 1024) {
       logUploadStep(
-        'preflight',
-        `Starting upload: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`,
+        'error',
+        `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
         logMeta,
         accessToken
       );
+      return {
+        data: null,
+        error: new Error(
+          `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max allowed size is 10MB.`
+        ),
+      };
+    }
 
-      // 0. Pre-flight checks
-      if (file.name.match(/\.(heic|heif)$/i) || file.type.match(/heic|heif/i)) {
-        logUploadStep('error', 'HEIC format rejected', logMeta, accessToken);
-        return resolve({
-          data: null,
-          error: new Error(
-            'HEIC format not supported. Please change camera settings to JPEG or use a different file.'
-          ),
+    // Get auth token — use provided token or fall back to getSessionWithTimeout
+    let token = accessToken;
+    if (!token) {
+      const { session, error: sessionErr } = await getSessionWithTimeout(8000);
+      if (sessionErr || !session) {
+        logUploadStep('error', 'Not authenticated', {
+          ...logMeta,
+          sessionErr: sessionErr?.message,
         });
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        logUploadStep(
-          'error',
-          `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
-          logMeta,
-          accessToken
-        );
-        return resolve({
+        return {
           data: null,
-          error: new Error(
-            `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max allowed size is 10MB.`
-          ),
-        });
+          error: sessionErr || new Error('Not authenticated. Please log in again.'),
+        };
       }
+      token = session.access_token;
+    }
 
-      // Get auth token — use provided token or fall back to getSessionWithTimeout
-      let token = accessToken;
-      if (!token) {
-        const { session, error: sessionErr } = await getSessionWithTimeout(8000);
-        if (sessionErr || !session) {
-          logUploadStep('error', 'Not authenticated', {
-            ...logMeta,
-            sessionErr: sessionErr?.message,
-          });
-          return resolve({
-            data: null,
-            error: sessionErr || new Error('Not authenticated. Please log in again.'),
-          });
-        }
-        token = session.access_token;
-      }
-
-      // Warn user about large files (> 5MB) — they still upload but may be slow on mobile
-      if (file.size > 5 * 1024 * 1024 && toast) {
-        toast.warn(
-          `Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) — upload may take a moment on mobile.`
-        );
-      }
-
-      const kbSize = Math.round(file.size / 1024);
-      if (toast) toast.info(`Step 2: Uploading ${kbSize}KB...`);
-      logUploadStep(
-        'uploading',
-        `XHR upload starting: ${kbSize}KB to ${bucket}/${path}`,
-        { ...logMeta, kbSize },
-        accessToken
+    // Warn user about large files (> 5MB) — they still upload but may be slow on mobile
+    if (file.size > 5 * 1024 * 1024 && toast) {
+      toast.warn(
+        `Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) — upload may take a moment on mobile.`
       );
-      console.log(`[UploadHelper] Starting upload of ${kbSize}KB to ${bucket}/${path}`);
+    }
 
-      // Determine MIME type — Android often returns file.type = "" for gallery images
-      const mimeType = file.type || guessMimeFromName(file.name) || 'application/octet-stream';
+    const kbSize = Math.round(file.size / 1024);
+    if (toast) toast.info(`Step 2: Uploading ${kbSize}KB...`);
+    logUploadStep(
+      'uploading',
+      `XHR upload starting: ${kbSize}KB to ${bucket}/${path}`,
+      { ...logMeta, kbSize },
+      accessToken
+    );
+    console.log(`[UploadHelper] Starting upload of ${kbSize}KB to ${bucket}/${path}`);
 
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/${bucket}/${path}`;
+    // Determine MIME type — Android often returns file.type = "" for gallery images
+    const mimeType = file.type || guessMimeFromName(file.name) || 'application/octet-stream';
+
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/${bucket}/${path}`;
+
+    return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
-
       xhr.open('POST', url, true);
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_ANON_KEY);
       xhr.setRequestHeader('Content-Type', mimeType);
-      xhr.setRequestHeader('x-upsert', 'false'); // Critical: true causes RLS hangs on insert-only buckets
+      xhr.setRequestHeader('x-upsert', 'false');
 
-      xhr.timeout = 90000; // 90s timeout for slower mobile networks
+      xhr.timeout = 90000;
 
       if (toast) {
         xhr.upload.onprogress = (e) => {
@@ -257,22 +257,18 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
         });
       };
 
-      // Send the File object directly — XHR streams it from disk without
-      // loading the entire file into JS heap memory.  This is the key fix
-      // for Android browsers where FileReader.readAsArrayBuffer() + Uint8Array
-      // copy would double RAM usage and freeze the JS thread.
       xhr.send(file);
-    } catch (err) {
-      console.error('[UploadHelper] Unexpected error:', err);
-      logUploadStep(
-        'error',
-        `Unexpected error: ${err.message}`,
-        { ...logMeta, stack: err.stack?.substring(0, 500) },
-        accessToken
-      );
-      resolve({ data: null, error: err });
-    }
-  });
+    });
+  } catch (err) {
+    console.error('[UploadHelper] Unexpected error:', err);
+    logUploadStep(
+      'error',
+      `Unexpected error: ${err.message}`,
+      { ...logMeta, stack: err.stack?.substring(0, 500) },
+      accessToken
+    );
+    return { data: null, error: err };
+  }
 }
 
 /**
