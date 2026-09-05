@@ -372,95 +372,56 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
     if (toast) toast.info(`Step 2: Uploading ${kbSize}KB...`);
     logUploadStep(
       'uploading',
-      `XHR upload starting: ${kbSize}KB to ${bucket}/${path}`,
+      `Upload starting: ${kbSize}KB to ${bucket}/${path}`,
       { ...logMeta, kbSize },
       accessToken
     );
     console.log(`[UploadHelper] Starting upload of ${kbSize}KB to ${bucket}/${path}`);
 
     // Determine MIME type — Android often returns file.type = "" for gallery images
-    const mimeType = file.type || guessMimeFromName(file.name) || 'application/octet-stream';
+    const mimeType = file.type || guessMimeFromName(file.name) || 'image/jpeg';
 
-    // Safely encode path segments to handle spaces and special characters
-    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/${bucket}/${encodedPath}`;
-
-    return new Promise((resolve) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', url, true);
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_ANON_KEY);
-      xhr.setRequestHeader('Content-Type', mimeType);
-      xhr.setRequestHeader('x-upsert', 'true');
-
-      xhr.timeout = 45000;
-
-      if (toast) {
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const percent = Math.round((e.loaded / e.total) * 100);
-            if (percent === 50 || percent === 100) {
-              console.log(`[UploadHelper] Progress: ${percent}%`);
-              if (percent === 50) {
-                toast.info(`Uploading: 50%...`);
-                logUploadStep('progress', 'Upload 50%', { ...logMeta, percent }, accessToken);
-              }
-            }
-          }
-        };
+    // Create a client explicitly authorized with the current token
+    const { createClient } = await import('@supabase/supabase-js');
+    const authedClient = createClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
       }
+    );
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          console.log(`[UploadHelper] Upload success! HTTP ${xhr.status}`);
-          logUploadStep(
-            'success',
-            `Upload complete! HTTP ${xhr.status}`,
-            { ...logMeta, httpStatus: xhr.status },
-            accessToken
-          );
-          resolve({ data: { path }, error: null });
-        } else {
-          console.error(`[UploadHelper] Upload error: HTTP ${xhr.status}`, xhr.responseText);
-          let errMsg;
-          try {
-            const errBody = JSON.parse(xhr.responseText);
-            errMsg = `Upload failed (HTTP ${xhr.status}): ${errBody.message || errBody.error}`;
-          } catch {
-            errMsg = `Upload failed (HTTP ${xhr.status}): ${xhr.statusText}`;
-          }
-          logUploadStep(
-            'error',
-            errMsg,
-            { ...logMeta, httpStatus: xhr.status, response: xhr.responseText?.substring(0, 500) },
-            accessToken
-          );
-          resolve({ data: null, error: new Error(errMsg) });
-        }
-      };
-
-      xhr.onerror = () => {
-        console.error('[UploadHelper] XHR network error.');
-        logUploadStep(
-          'network_error',
-          'XHR network error — connection lost or CORS issue',
-          logMeta,
-          accessToken
-        );
-        resolve({ data: null, error: new Error('Network error during upload. Check connection.') });
-      };
-
-      xhr.ontimeout = () => {
-        console.error('[UploadHelper] XHR timeout after 90s.');
-        logUploadStep('timeout', 'XHR timed out after 90 seconds', logMeta, accessToken);
-        resolve({
-          data: null,
-          error: new Error('Upload timed out after 90s. Please check your network connection.'),
-        });
-      };
-
-      xhr.send(file);
+    // Strict 35-second timeout so the upload NEVER hangs on mobile
+    const uploadPromise = authedClient.storage.from(bucket).upload(path, file, {
+      upsert: true,
+      contentType: mimeType,
     });
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new Error('Upload timed out after 35 seconds. Please check your network connection.')
+          ),
+        35000
+      )
+    );
+
+    const { data, error: uploadErr } = await Promise.race([uploadPromise, timeoutPromise]);
+
+    if (uploadErr) {
+      console.error('[UploadHelper] Storage upload error:', uploadErr);
+      logUploadStep('error', uploadErr.message || 'Storage upload failed', logMeta, accessToken);
+      return { data: null, error: uploadErr };
+    }
+
+    console.log(`[UploadHelper] Upload success!`, data);
+    logUploadStep('success', `Upload complete! Path: ${path}`, logMeta, accessToken);
+    return { data: { path }, error: null };
   } catch (err) {
     console.error('[UploadHelper] Unexpected error:', err);
     logUploadStep(
