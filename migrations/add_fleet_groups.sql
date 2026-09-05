@@ -84,12 +84,10 @@ WHERE fleet_group_id IS NULL;
 -- Create fleet memberships for existing admins
 -- Syarief (super_admin) -> fleet_admin of BuBat Resources
 INSERT INTO bubatrent_booking_fleet_memberships (user_id, fleet_group_id, role)
-VALUES ('dfeac68e-f3cf-4013-90da-1926659b2977', 'a0000000-0000-0000-0000-000000000001', 'fleet_admin')
-ON CONFLICT (user_id, fleet_group_id) DO NOTHING;
-
--- Amira (admin) -> fleet_admin of BuBat Resources
-INSERT INTO bubatrent_booking_fleet_memberships (user_id, fleet_group_id, role)
-VALUES ('c2dc8a51-1c71-4574-bd1f-c2eab63f0151', 'a0000000-0000-0000-0000-000000000001', 'fleet_admin')
+SELECT id, 'a0000000-0000-0000-0000-000000000001', 'fleet_admin'
+FROM bubatrent_booking_profiles
+WHERE id IN ('dfeac68e-f3cf-4013-90da-1926659b2977', 'c2dc8a51-1c71-4574-bd1f-c2eab63f0151')
+   OR role IN ('admin', 'super_admin')
 ON CONFLICT (user_id, fleet_group_id) DO NOTHING;
 
 -- =====================================================
@@ -115,16 +113,20 @@ ALTER TABLE bubatrent_booking_fleet_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bubatrent_booking_fleet_memberships ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies for fleet_groups (readable by all authenticated)
+DROP POLICY IF EXISTS "Fleet groups readable by authenticated users" ON bubatrent_booking_fleet_groups;
 CREATE POLICY "Fleet groups readable by authenticated users" ON bubatrent_booking_fleet_groups
   FOR SELECT TO authenticated USING (true);
 
+DROP POLICY IF EXISTS "Fleet groups insertable by authenticated users" ON bubatrent_booking_fleet_groups;
 CREATE POLICY "Fleet groups insertable by authenticated users" ON bubatrent_booking_fleet_groups
   FOR INSERT TO authenticated WITH CHECK (true);
 
 -- RLS policies for fleet_memberships
+DROP POLICY IF EXISTS "Users can read own memberships" ON bubatrent_booking_fleet_memberships;
 CREATE POLICY "Users can read own memberships" ON bubatrent_booking_fleet_memberships
   FOR SELECT TO authenticated USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Fleet admins can manage memberships" ON bubatrent_booking_fleet_memberships;
 CREATE POLICY "Fleet admins can manage memberships" ON bubatrent_booking_fleet_memberships
   FOR ALL TO authenticated USING (
     EXISTS (
@@ -135,6 +137,7 @@ CREATE POLICY "Fleet admins can manage memberships" ON bubatrent_booking_fleet_m
     )
   );
 
+DROP POLICY IF EXISTS "Super admins can manage all memberships" ON bubatrent_booking_fleet_memberships;
 CREATE POLICY "Super admins can manage all memberships" ON bubatrent_booking_fleet_memberships
   FOR ALL TO authenticated USING (
     EXISTS (
