@@ -57,6 +57,7 @@ export default function AdminBookingDetail() {
   const [notFound, setNotFound] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [agreement, setAgreement] = useState(null);
+  const [customerProfile, setCustomerProfile] = useState(null);
 
   // Date editing
   const [editingDates, setEditingDates] = useState(false);
@@ -125,8 +126,17 @@ export default function AdminBookingDetail() {
           setDocuments(docsData);
           setAuditLogs(logsData);
           setAgreement(agreementData);
+
+          if (bookingData.user_id) {
+            const { data: prof } = await supabase
+              .from('bubatrent_booking_profiles')
+              .select('*')
+              .eq('id', bookingData.user_id)
+              .maybeSingle();
+            setCustomerProfile(prof);
+          }
         } catch (subErr) {
-          console.warn('[BookingDetail] Error fetching docs/logs:', subErr);
+          console.warn('[BookingDetail] Error fetching docs/logs/profile:', subErr);
         }
       } catch (err) {
         console.error('[BookingDetail] Error fetching booking:', err);
@@ -905,48 +915,188 @@ export default function AdminBookingDetail() {
 
           {/* Documents */}
           <div className="glass-card">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Shield className="w-4 h-4" /> Identity Documents
-            </h3>
-            {documents.length === 0 ? (
-              <p className="text-sm text-slate-500">No documents uploaded yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {documents.map((doc) => (
-                  <div key={doc.id} className="bg-white/[0.02] rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <FileCheck className="w-4 h-4 text-violet-400" />
-                        <span className="text-sm text-white">Driving Licence</span>
-                      </div>
-                      {doc.verified_at ? (
-                        <span className="flex items-center gap-1 text-xs text-green-400">
-                          <CheckCircle className="w-3.5 h-3.5" /> Verified
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleVerify(doc.id)}
-                          className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors"
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <Shield className="w-4 h-4" /> Identity Documents
+              </h3>
+              {customerProfile?.is_verified && (
+                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
+                  <CheckCircle className="w-3.5 h-3.5" /> Customer Verified
+                </span>
+              )}
+            </div>
+
+            {/* Profile-level documents */}
+            {customerProfile &&
+              (customerProfile.ic_file_path || customerProfile.licence_file_path) && (
+                <div className="mb-4 space-y-3">
+                  <p className="text-xs text-slate-400 font-medium">Customer Profile Documents:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* IC */}
+                    <div
+                      className={`rounded-xl border p-3 ${customerProfile.ic_file_path ? 'border-green-500/20 bg-green-500/5' : 'border-white/5 bg-white/[0.02]'}`}
+                    >
+                      <p className="text-[11px] font-medium text-slate-400 mb-2">IC Document</p>
+                      {customerProfile.ic_file_path ? (
+                        <a
+                          href={
+                            supabase.storage
+                              .from('customer-documents')
+                              .getPublicUrl(customerProfile.ic_file_path).data.publicUrl
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
                         >
-                          Verify
-                        </button>
+                          {customerProfile.ic_file_path.toLowerCase().endsWith('.pdf') ? (
+                            <div className="flex items-center justify-center gap-2 h-20 rounded-lg bg-red-500/10 text-xs text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/20 font-semibold">
+                              <FileText className="w-5 h-5" /> View IC (PDF)
+                            </div>
+                          ) : (
+                            <img
+                              src={
+                                supabase.storage
+                                  .from('customer-documents')
+                                  .getPublicUrl(customerProfile.ic_file_path).data.publicUrl
+                              }
+                              alt="IC Document"
+                              className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                            />
+                          )}
+                        </a>
+                      ) : (
+                        <p className="text-xs text-slate-500 italic">Not uploaded</p>
+                      )}
+                      {customerProfile.ic_number && (
+                        <p className="text-xs text-slate-400 mt-2">
+                          <span className="text-slate-500">IC:</span> {customerProfile.ic_number}
+                        </p>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      {doc.ic_number && (
-                        <div>
-                          <p className="text-slate-500">IC No.</p>
-                          <p className="text-slate-200">{maskSensitive(doc.ic_number)}</p>
-                        </div>
+
+                    {/* Licence */}
+                    <div
+                      className={`rounded-xl border p-3 ${customerProfile.licence_file_path ? 'border-green-500/20 bg-green-500/5' : 'border-white/5 bg-white/[0.02]'}`}
+                    >
+                      <p className="text-[11px] font-medium text-slate-400 mb-2">Driving Licence</p>
+                      {customerProfile.licence_file_path ? (
+                        <a
+                          href={
+                            supabase.storage
+                              .from('customer-documents')
+                              .getPublicUrl(customerProfile.licence_file_path).data.publicUrl
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          {customerProfile.licence_file_path.toLowerCase().endsWith('.pdf') ? (
+                            <div className="flex items-center justify-center gap-2 h-20 rounded-lg bg-blue-500/10 text-xs text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/20 font-semibold">
+                              <FileText className="w-5 h-5" /> View Licence (PDF)
+                            </div>
+                          ) : (
+                            <img
+                              src={
+                                supabase.storage
+                                  .from('customer-documents')
+                                  .getPublicUrl(customerProfile.licence_file_path).data.publicUrl
+                              }
+                              alt="Driving Licence"
+                              className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                            />
+                          )}
+                        </a>
+                      ) : (
+                        <p className="text-xs text-slate-500 italic">Not uploaded</p>
                       )}
-                      <div>
-                        <p className="text-slate-500">Expiry</p>
-                        <p className="text-slate-200">{formatDate(doc.licence_expiry)}</p>
-                      </div>
+                      {customerProfile.licence_expiry && (
+                        <p className="text-xs text-slate-400 mt-2">
+                          <span className="text-slate-500">Expiry:</span>{' '}
+                          {formatDate(customerProfile.licence_expiry)}
+                        </p>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+            {/* Booking-level documents */}
+            {documents.length === 0 &&
+            (!customerProfile ||
+              (!customerProfile.ic_file_path && !customerProfile.licence_file_path)) ? (
+              <p className="text-sm text-slate-500">No documents uploaded yet.</p>
+            ) : (
+              documents.length > 0 && (
+                <div className="space-y-3">
+                  {documents.map((doc) => (
+                    <div key={doc.id} className="bg-white/[0.02] rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <FileCheck className="w-4 h-4 text-violet-400" />
+                          <span className="text-sm text-white">Booking Document</span>
+                        </div>
+                        {doc.verified_at ? (
+                          <span className="flex items-center gap-1 text-xs text-green-400">
+                            <CheckCircle className="w-3.5 h-3.5" /> Verified
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleVerify(doc.id)}
+                            className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors"
+                          >
+                            Verify
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                        {doc.ic_number && (
+                          <div>
+                            <p className="text-slate-500">IC No.</p>
+                            <p className="text-slate-200">{maskSensitive(doc.ic_number)}</p>
+                          </div>
+                        )}
+                        {doc.licence_expiry && (
+                          <div>
+                            <p className="text-slate-500">Expiry</p>
+                            <p className="text-slate-200">{formatDate(doc.licence_expiry)}</p>
+                          </div>
+                        )}
+                      </div>
+                      {/* Document file links */}
+                      <div className="flex gap-3 text-xs mt-2">
+                        {doc.ic_file_path && (
+                          <a
+                            href={
+                              supabase.storage
+                                .from('customer-documents')
+                                .getPublicUrl(doc.ic_file_path).data.publicUrl
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-violet-400 hover:text-violet-300 flex items-center gap-1"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View IC
+                          </a>
+                        )}
+                        {doc.licence_file_path && (
+                          <a
+                            href={
+                              supabase.storage
+                                .from('customer-documents')
+                                .getPublicUrl(doc.licence_file_path).data.publicUrl
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-violet-400 hover:text-violet-300 flex items-center gap-1"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View Licence
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         </div>

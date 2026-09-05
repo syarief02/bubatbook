@@ -158,10 +158,15 @@ export default function VerifyAccount() {
           });
         if (insertErr) throw insertErr;
       } else {
-        // First-time: update profile directly (still needs admin approval)
-        const { error: updateErr } = await supabase
-          .from('bubatrent_booking_profiles')
-          .update({
+        // First-time: update or insert profile directly (still needs admin approval)
+        const { error: updateErr } = await supabase.from('bubatrent_booking_profiles').upsert(
+          {
+            id: user.id,
+            email: user.email,
+            display_name:
+              profile?.display_name ||
+              user.user_metadata?.display_name ||
+              user.email?.split('@')[0],
             ic_number: icNumber.trim(),
             licence_expiry: licenceExpiry,
             ic_file_path: icPath,
@@ -172,8 +177,9 @@ export default function VerifyAccount() {
             city: city.trim(),
             state: state.trim(),
             postcode: postcode.trim(),
-          })
-          .eq('id', user.id);
+          },
+          { onConflict: 'id' }
+        );
         if (updateErr) throw updateErr;
       }
 

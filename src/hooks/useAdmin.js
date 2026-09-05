@@ -188,9 +188,9 @@ export function useAdminCustomers(filters = {}) {
       if (filters.verification === 'verified') {
         query = query.eq('is_verified', true);
       } else if (filters.verification === 'not_verified') {
-        query = query.eq('is_verified', false).is('ic_number', null);
+        query = query.eq('is_verified', false).is('ic_number', null).is('ic_file_path', null);
       } else if (filters.verification === 'pending') {
-        query = query.eq('is_verified', false).not('ic_number', 'is', null);
+        query = query.eq('is_verified', false).or('ic_number.not.is.null,ic_file_path.not.is.null');
       }
 
       const { data, error: fetchError } = await query;

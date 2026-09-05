@@ -33,6 +33,7 @@ import {
   Wallet,
   Edit3,
   FileImage,
+  FileText,
   Loader2,
   UserPlus,
 } from 'lucide-react';
@@ -436,7 +437,10 @@ export default function Customers() {
                         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">
                           Verification & Details
                         </h4>
-                        {customer.ic_number || customer.licence_number ? (
+                        {customer.ic_number ||
+                        customer.licence_number ||
+                        customer.ic_file_path ||
+                        customer.licence_file_path ? (
                           <div className="space-y-2">
                             <div className="text-xs text-slate-400 space-y-1">
                               {customer.ic_number && (
@@ -455,16 +459,24 @@ export default function Customers() {
                                   <span className="text-slate-500">Phone:</span> {customer.phone}
                                 </p>
                               )}
-                              {customer.address_line1 && (
-                                <p>
-                                  <span className="text-slate-500">Address:</span>{' '}
-                                  {customer.address_line1}, {customer.city} {customer.state}
-                                </p>
-                              )}
                               {customer.gdl_license && customer.gdl_license !== 'NONE' && (
                                 <p>
-                                  <span className="text-slate-500">GDL License:</span>{' '}
-                                  <span className="text-amber-400">{customer.gdl_license}</span>
+                                  <span className="text-slate-500">GDL:</span>{' '}
+                                  {customer.gdl_license}
+                                </p>
+                              )}
+                              {(customer.address_line1 || customer.city) && (
+                                <p>
+                                  <span className="text-slate-500">Address:</span>{' '}
+                                  {[
+                                    customer.address_line1,
+                                    customer.address_line2,
+                                    customer.city || customer.address_city,
+                                    customer.postcode || customer.address_postcode,
+                                    customer.state || customer.address_state,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(', ')}
                                 </p>
                               )}
                             </div>
@@ -479,7 +491,7 @@ export default function Customers() {
                                 <div
                                   className={`rounded-xl border p-2 ${customer.ic_file_path ? 'border-green-500/20 bg-green-500/5' : 'border-red-500/20 bg-red-500/5'}`}
                                 >
-                                  <p className="text-[10px] text-slate-500 mb-1">IC Image</p>
+                                  <p className="text-[10px] text-slate-500 mb-1">IC Document</p>
                                   {customer.ic_file_path ? (
                                     <a
                                       href={
@@ -491,24 +503,37 @@ export default function Customers() {
                                       rel="noopener noreferrer"
                                       className="block"
                                     >
-                                      <img
-                                        src={
-                                          supabase.storage
-                                            .from('customer-documents')
-                                            .getPublicUrl(customer.ic_file_path).data.publicUrl
-                                        }
-                                        alt="IC Document"
-                                        className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
-                                        onError={(e) => {
-                                          e.target.style.display = 'none';
-                                          const fallback =
-                                            e.target.parentElement.querySelector('.doc-fallback');
-                                          if (fallback) fallback.style.display = 'flex';
-                                        }}
-                                      />
-                                      <div className="doc-fallback hidden items-center justify-center gap-1 h-20 rounded-lg bg-green-500/10 text-xs text-green-400 hover:bg-green-500/20 transition-colors cursor-pointer">
-                                        <FileImage className="w-4 h-4" /> Click to view
-                                      </div>
+                                      {customer.ic_file_path.toLowerCase().endsWith('.pdf') ? (
+                                        <div className="flex flex-col items-center justify-center gap-1.5 h-20 rounded-lg bg-red-500/10 text-xs text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer border border-red-500/20">
+                                          <FileText className="w-6 h-6" />
+                                          <span className="font-semibold text-[11px]">
+                                            View IC (PDF)
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <img
+                                            src={
+                                              supabase.storage
+                                                .from('customer-documents')
+                                                .getPublicUrl(customer.ic_file_path).data.publicUrl
+                                            }
+                                            alt="IC Document"
+                                            className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
+                                            onError={(e) => {
+                                              e.target.style.display = 'none';
+                                              const fallback =
+                                                e.target.parentElement.querySelector(
+                                                  '.doc-fallback'
+                                                );
+                                              if (fallback) fallback.style.display = 'flex';
+                                            }}
+                                          />
+                                          <div className="doc-fallback hidden items-center justify-center gap-1 h-20 rounded-lg bg-green-500/10 text-xs text-green-400 hover:bg-green-500/20 transition-colors cursor-pointer">
+                                            <FileImage className="w-4 h-4" /> Click to view
+                                          </div>
+                                        </>
+                                      )}
                                     </a>
                                   ) : (
                                     <p className="text-[10px] text-red-400 flex items-center gap-1">
@@ -532,24 +557,38 @@ export default function Customers() {
                                       rel="noopener noreferrer"
                                       className="block"
                                     >
-                                      <img
-                                        src={
-                                          supabase.storage
-                                            .from('customer-documents')
-                                            .getPublicUrl(customer.licence_file_path).data.publicUrl
-                                        }
-                                        alt="Licence Document"
-                                        className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
-                                        onError={(e) => {
-                                          e.target.style.display = 'none';
-                                          const fallback =
-                                            e.target.parentElement.querySelector('.doc-fallback');
-                                          if (fallback) fallback.style.display = 'flex';
-                                        }}
-                                      />
-                                      <div className="doc-fallback hidden items-center justify-center gap-1 h-20 rounded-lg bg-green-500/10 text-xs text-green-400 hover:bg-green-500/20 transition-colors cursor-pointer">
-                                        <FileImage className="w-4 h-4" /> Click to view
-                                      </div>
+                                      {customer.licence_file_path.toLowerCase().endsWith('.pdf') ? (
+                                        <div className="flex flex-col items-center justify-center gap-1.5 h-20 rounded-lg bg-blue-500/10 text-xs text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer border border-blue-500/20">
+                                          <FileText className="w-6 h-6" />
+                                          <span className="font-semibold text-[11px]">
+                                            View Licence (PDF)
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <img
+                                            src={
+                                              supabase.storage
+                                                .from('customer-documents')
+                                                .getPublicUrl(customer.licence_file_path).data
+                                                .publicUrl
+                                            }
+                                            alt="Licence Document"
+                                            className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
+                                            onError={(e) => {
+                                              e.target.style.display = 'none';
+                                              const fallback =
+                                                e.target.parentElement.querySelector(
+                                                  '.doc-fallback'
+                                                );
+                                              if (fallback) fallback.style.display = 'flex';
+                                            }}
+                                          />
+                                          <div className="doc-fallback hidden items-center justify-center gap-1 h-20 rounded-lg bg-green-500/10 text-xs text-green-400 hover:bg-green-500/20 transition-colors cursor-pointer">
+                                            <FileImage className="w-4 h-4" /> Click to view
+                                          </div>
+                                        </>
+                                      )}
                                     </a>
                                   ) : (
                                     <p className="text-[10px] text-red-400 flex items-center gap-1">
@@ -591,8 +630,9 @@ export default function Customers() {
 
                             {/* Reject Verification — only for pending (not verified, docs exist) */}
                             {!customer.is_verified &&
-                              customer.ic_number &&
-                              customer.ic_file_path &&
+                              (customer.ic_file_path ||
+                                customer.licence_file_path ||
+                                customer.ic_number) &&
                               (showRejectConfirm === customer.id ? (
                                 <div className="glass-card !p-3 border border-red-500/20 mt-2 space-y-2">
                                   <p className="text-xs text-red-400 font-medium">
