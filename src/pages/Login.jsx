@@ -36,6 +36,15 @@ export default function Login() {
     return () => clearInterval(interval);
   }, [lockedUntil]);
 
+  // If user arrived here via password reset recovery link, redirect to reset-password page
+  const isRecovery =
+    window.location.hash.includes('type=recovery') ||
+    searchParams.get('type') === 'recovery';
+
+  if (isRecovery) {
+    return <Navigate to={`/reset-password${window.location.hash}`} replace />;
+  }
+
   if (user) return <Navigate to={returnTo} replace />;
 
   async function handleSubmit(e) {

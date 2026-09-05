@@ -17,6 +17,7 @@ const Home = lazy(() => import('./pages/Home'));
 const CarDetail = lazy(() => import('./pages/CarDetail'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const BookingConfirmation = lazy(() => import('./pages/BookingConfirmation'));
 const DocumentUploadPage = lazy(() => import('./pages/DocumentUploadPage'));
@@ -80,6 +81,7 @@ function AppRoutes() {
             <Route path="/cars/:id" element={<CarDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/checkout/:carId"
               element={
