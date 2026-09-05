@@ -1,11 +1,73 @@
 import { supabase } from './supabase';
 
 /**
- * Wrap supabase.auth.getSession() with a hard timeout.
- * On Android Chrome, the silent JWT refresh can hang indefinitely —
- * this ensures we always resolve or fallback to localStorage within `timeoutMs`.
+ * Synchronously inspect localStorage for any existing Supabase session.
+ * 0ms, synchronous, never hangs on Android.
  */
-export async function getSessionWithTimeout(timeoutMs = 6000) {
+export function getStoredSession() {
+  try {
+    // 1. Direct rent2go-auth key
+    const direct = localStorage.getItem('rent2go-auth');
+    if (direct) {
+      const parsed = JSON.parse(direct);
+      if (parsed?.access_token) return parsed;
+    }
+    // 2. Scan all keys for Supabase auth token (e.g. sb-blqsgijvdvzwnqeltoje-auth-token)
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (
+        key &&
+        (key.startsWith('sb-') || key.includes('auth-token') || key.includes('rent2go-auth'))
+      ) {
+        try {
+          const val = JSON.parse(localStorage.getItem(key));
+          if (val?.access_token) return val;
+          if (val?.currentSession?.access_token) return val.currentSession;
+        } catch {
+          // ignore non-JSON items
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[getStoredSession] localStorage error:', e);
+  }
+  return null;
+}
+
+/**
+ * Synchronously extract the user UUID directly from a JWT access token payload.
+ * 0ms, zero network calls, never hangs or times out.
+ */
+function getUserIdFromToken(token) {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const parsed = JSON.parse(jsonPayload);
+    return parsed?.sub || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Wrap supabase.auth.getSession() with instant localStorage fallback.
+ * Checks localStorage first (0ms) so Android Chrome never hangs on silent JWT refresh.
+ */
+export async function getSessionWithTimeout(timeoutMs = 3000) {
+  const stored = getStoredSession();
+  if (stored?.access_token) {
+    return { session: stored, error: null };
+  }
+
   try {
     const result = await Promise.race([
       supabase.auth.getSession(),
@@ -20,121 +82,183 @@ export async function getSessionWithTimeout(timeoutMs = 6000) {
     console.warn('[getSessionWithTimeout] Promise.race check:', err);
   }
 
-  // Instant fallback to localStorage for mobile browsers
-  try {
-    const raw = localStorage.getItem('rent2go-auth');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed?.access_token) {
-        return { session: parsed, error: null };
-      }
-    }
-  } catch (lsErr) {
-    console.warn('[getSessionWithTimeout] localStorage fallback error:', lsErr);
+  const fallback = getStoredSession();
+  if (fallback?.access_token) {
+    return { session: fallback, error: null };
   }
 
   return { session: null, error: new Error('Not authenticated. Please log in again.') };
 }
 
 /**
- * Automatically compress image if needed (especially for mobile camera photos > 1.2MB).
- * Does not touch PDFs.
- * Returns compressed File or original File.
+ * Ultra-safe mobile image compressor with strict 3.5s timeout.
+ * Uses native createImageBitmap with hardware DCT resizeWidth when supported,
+ * falling back to HTMLImageElement + canvas, and finally falling back to original file.
+ * NEVER hangs or blocks upload.
  */
 export async function prepareFileForUpload(file) {
   if (!file) return file;
   if (file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf')) {
     return file;
   }
-  const isImage =
-    file.type?.startsWith('image/') ||
-    file.type === '' ||
-    /\.(jpe?g|png|webp)$/i.test(file.name || '');
-
-  if (isImage && file.size > 1.2 * 1024 * 1024) {
-    try {
-      const bitmap = await createImageBitmap(file);
-      const MAX_DIM = 2048;
-      let { width, height } = bitmap;
-      if (width > MAX_DIM || height > MAX_DIM) {
-        if (width > height) {
-          height = Math.round((height * MAX_DIM) / width);
-          width = MAX_DIM;
-        } else {
-          width = Math.round((width * MAX_DIM) / height);
-          height = MAX_DIM;
-        }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(bitmap, 0, 0, width, height);
-
-      const blob = await new Promise((resolve) => {
-        canvas.toBlob(resolve, 'image/jpeg', 0.85);
-      });
-
-      if (blob && blob.size < file.size) {
-        return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-          type: 'image/jpeg',
-          lastModified: Date.now(),
-        });
-      }
-    } catch (e) {
-      console.warn('[UploadHelper] Image compression fallback to original:', e);
-    }
+  if (file.name?.match(/\.(heic|heif)$/i) || file.type?.match(/heic|heif/i)) {
+    return file;
   }
-  return file;
+  // If file is already small (<= 1.2MB), skip compression completely
+  if (file.size <= 1.2 * 1024 * 1024) {
+    return file;
+  }
+
+  // Hard timeout: compression must finish within 3500ms or fallback to original file
+  return await Promise.race([
+    compressImageInternal(file),
+    new Promise((resolve) =>
+      setTimeout(() => {
+        console.warn('[UploadHelper] Compression timed out after 3.5s — using original file');
+        resolve(file);
+      }, 3500)
+    ),
+  ]);
+}
+
+async function compressImageInternal(file) {
+  try {
+    // 1. Try createImageBitmap with native downsampling (fastest, lowest memory on Android)
+    if (typeof createImageBitmap === 'function') {
+      try {
+        const bitmap = await createImageBitmap(file, {
+          resizeWidth: 1600,
+          resizeQuality: 'medium',
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(bitmap, 0, 0);
+          bitmap.close?.(); // Free bitmap memory immediately
+          const blob = await new Promise((res) => {
+            const t = setTimeout(() => res(null), 2000);
+            canvas.toBlob(
+              (b) => {
+                clearTimeout(t);
+                res(b);
+              },
+              'image/jpeg',
+              0.82
+            );
+          });
+          if (blob && blob.size < file.size) {
+            return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+          }
+        }
+      } catch (bitmapErr) {
+        console.warn(
+          '[UploadHelper] createImageBitmap with resize failed, trying Image fallback:',
+          bitmapErr
+        );
+      }
+    }
+
+    // 2. Fallback to HTMLImageElement + canvas (universal Android/iOS support)
+    return await new Promise((resolve) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      const cleanup = () => {
+        try {
+          URL.revokeObjectURL(objectUrl);
+        } catch {
+          // ignore
+        }
+      };
+
+      img.onload = () => {
+        try {
+          const MAX_DIM = 1600;
+          let { width, height } = img;
+          if (width > MAX_DIM || height > MAX_DIM) {
+            if (width > height) {
+              height = Math.round((height * MAX_DIM) / width);
+              width = MAX_DIM;
+            } else {
+              width = Math.round((width * MAX_DIM) / height);
+              height = MAX_DIM;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            cleanup();
+            return resolve(file);
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          cleanup();
+
+          const timeout = setTimeout(() => resolve(file), 2000);
+          canvas.toBlob(
+            (blob) => {
+              clearTimeout(timeout);
+              if (blob && blob.size < file.size) {
+                resolve(
+                  new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  })
+                );
+              } else {
+                resolve(file);
+              }
+            },
+            'image/jpeg',
+            0.82
+          );
+        } catch {
+          cleanup();
+          resolve(file);
+        }
+      };
+
+      img.onerror = () => {
+        cleanup();
+        resolve(file);
+      };
+
+      img.src = objectUrl;
+    });
+  } catch (err) {
+    console.warn('[UploadHelper] compressImageInternal unexpected error:', err);
+    return file;
+  }
 }
 
 /**
  * Log an upload step to the database for remote debugging.
  * Fire-and-forget — never blocks the upload flow.
- * Uses a 3-second timeout on getSession() to avoid hanging on Android.
+ * Uses instant JWT parsing to derive user_id with 0 network calls.
  */
 async function logUploadStep(step, message, metadata = {}, accessToken = null) {
   try {
     let token = accessToken;
     if (!token) {
+      const stored = getStoredSession();
+      token = stored?.access_token;
+    }
+    if (!token) {
       const result = await Promise.race([
         supabase.auth.getSession(),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('log-timeout')), 3000)),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('log-timeout')), 2000)),
       ]);
       token = result?.data?.session?.access_token;
     }
     if (!token) return;
 
-    // We still need the user_id for the log entry — derive from the session
-    // If we only have a token (passed in), do a quick getUser or just get the session data
-    let userId = null;
-    if (accessToken) {
-      // Token was passed in — try to get user id from current session cache
-      // (this won't trigger a refresh since we already have a valid token)
-      try {
-        const {
-          data: { session: cachedSession },
-        } = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise((_, rej) => setTimeout(() => rej(new Error('log-uid-timeout')), 2000)),
-        ]);
-        userId = cachedSession?.user?.id;
-      } catch {
-        // Can't get user_id — skip logging
-        return;
-      }
-    } else {
-      // We got the session from the getSession call above — re-extract user_id
-      try {
-        const result2 = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise((_, rej) => setTimeout(() => rej(new Error('log-uid-timeout')), 2000)),
-        ]);
-        userId = result2?.data?.session?.user?.id;
-      } catch {
-        return;
-      }
-    }
+    // Instantly extract userId from token payload without network calls
+    const userId = getUserIdFromToken(token);
     if (!userId) return;
 
     await supabase.from('bubatrent_booking_upload_logs').insert({
@@ -177,23 +301,15 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
     file_size: file.size,
   };
 
+  // IMMEDIATELY log preflight so we have an audit log in DB right away
+  logUploadStep(
+    'preflight',
+    `Starting upload: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`,
+    logMeta,
+    accessToken
+  );
+
   try {
-    if (toast) toast.info('Step 1: Preparing file...');
-
-    // Auto-compress high-resolution mobile photos to prevent mobile OOM and timeout
-    file = await prepareFileForUpload(file);
-
-    logMeta.file_name = file.name;
-    logMeta.file_type = file.type;
-    logMeta.file_size = file.size;
-
-    logUploadStep(
-      'preflight',
-      `Starting upload: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`,
-      logMeta,
-      accessToken
-    );
-
     // 0. Pre-flight checks
     if (file.name.match(/\.(heic|heif)$/i) || file.type.match(/heic|heif/i)) {
       logUploadStep('error', 'HEIC format rejected', logMeta, accessToken);
@@ -204,7 +320,7 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
         ),
       };
     }
-    if (file.size > 12 * 1024 * 1024) {
+    if (file.size > 15 * 1024 * 1024) {
       logUploadStep(
         'error',
         `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
@@ -214,15 +330,31 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
       return {
         data: null,
         error: new Error(
-          `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max allowed size is 12MB.`
+          `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max allowed size is 15MB.`
         ),
       };
     }
 
+    if (toast) toast.info('Step 1: Preparing file...');
+
+    // Auto-compress high-resolution mobile photos to prevent mobile OOM and timeout
+    file = await prepareFileForUpload(file);
+
+    logMeta.file_name = file.name;
+    logMeta.file_type = file.type;
+    logMeta.file_size = file.size;
+
+    logUploadStep(
+      'prepared',
+      `File prepared: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`,
+      logMeta,
+      accessToken
+    );
+
     // Get auth token — use provided token or fall back to getSessionWithTimeout
     let token = accessToken;
     if (!token) {
-      const { session, error: sessionErr } = await getSessionWithTimeout(8000);
+      const { session, error: sessionErr } = await getSessionWithTimeout(4000);
       if (sessionErr || !session) {
         logUploadStep('error', 'Not authenticated', {
           ...logMeta,
@@ -234,13 +366,6 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
         };
       }
       token = session.access_token;
-    }
-
-    // Warn user about large files (> 5MB) — they still upload but may be slow on mobile
-    if (file.size > 5 * 1024 * 1024 && toast) {
-      toast.warn(
-        `Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) — upload may take a moment on mobile.`
-      );
     }
 
     const kbSize = Math.round(file.size / 1024);
@@ -268,7 +393,7 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
       xhr.setRequestHeader('Content-Type', mimeType);
       xhr.setRequestHeader('x-upsert', 'true');
 
-      xhr.timeout = 90000;
+      xhr.timeout = 45000;
 
       if (toast) {
         xhr.upload.onprogress = (e) => {

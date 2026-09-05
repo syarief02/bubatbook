@@ -40,15 +40,16 @@ export default function VerifyAccount() {
   const [icFile, setIcFile] = useState(null);
   const [licenceFile, setLicenceFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const MAX_FILE_SIZE = 12 * 1024 * 1024;
+  const MAX_FILE_SIZE = 15 * 1024 * 1024;
   const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
 
   function validateFile(file, label) {
     if (!file) return `${label} image is required`;
-    if (file.size > MAX_FILE_SIZE) return `${label} file exceeds 12MB limit`;
+    if (file.size > MAX_FILE_SIZE) return `${label} file exceeds 15MB limit`;
     const ext = file.name?.split('.').pop()?.toLowerCase();
     const isAllowedExt = ext && ALLOWED_EXTS.includes(ext);
     const isAllowedType =
@@ -131,22 +132,31 @@ export default function VerifyAccount() {
       }
     }
 
-    // Get session once with timeout — avoids Android getSession() hang
-    const { session, error: sessionErr } = await getSessionWithTimeout(8000);
-    if (sessionErr || !session) {
-      setError('Session expired. Please refresh the page and log in again.');
-      return;
-    }
-    const token = session.access_token;
-
     setUploading(true);
+    setUploadStatus('Verifying session...');
     try {
+      // Get session once with instant localStorage check
+      const { session, error: sessionErr } = await getSessionWithTimeout(4000);
+      if (sessionErr || !session) {
+        setError('Session expired. Please refresh the page and log in again.');
+        setUploading(false);
+        return;
+      }
+      const token = session.access_token;
+
       let icPath = profile?.ic_file_path || null;
       let licencePath = profile?.licence_file_path || null;
 
-      if (icFile) icPath = await uploadFile(icFile, 'ic', token);
-      if (licenceFile) licencePath = await uploadFile(licenceFile, 'licence', token);
+      if (icFile) {
+        setUploadStatus('Uploading IC / MyKad (1/2)...');
+        icPath = await uploadFile(icFile, 'ic', token);
+      }
+      if (licenceFile) {
+        setUploadStatus('Uploading Driving Licence (2/2)...');
+        licencePath = await uploadFile(licenceFile, 'licence', token);
+      }
 
+      setUploadStatus('Saving profile...');
       if (isUpdate) {
         // Submit as pending verification update (old stays valid)
         const { error: insertErr } = await supabase
@@ -200,6 +210,7 @@ export default function VerifyAccount() {
       setError(err.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
+      setUploadStatus('');
     }
   }
 
@@ -491,7 +502,8 @@ export default function VerifyAccount() {
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> Uploading...
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>{uploadStatus || 'Uploading Documents...'}</span>
                 </>
               ) : (
                 <>
