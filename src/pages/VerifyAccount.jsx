@@ -43,13 +43,21 @@ export default function VerifyAccount() {
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+  const MAX_FILE_SIZE = 12 * 1024 * 1024;
+  const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
 
   function validateFile(file, label) {
     if (!file) return `${label} image is required`;
-    if (file.size > MAX_FILE_SIZE) return `${label} file exceeds 5MB limit`;
-    if (!ALLOWED_TYPES.includes(file.type)) return `${label}: only JPG, PNG, WebP, or PDF allowed`;
+    if (file.size > MAX_FILE_SIZE) return `${label} file exceeds 12MB limit`;
+    const ext = file.name?.split('.').pop()?.toLowerCase();
+    const isAllowedExt = ext && ALLOWED_EXTS.includes(ext);
+    const isAllowedType =
+      file.type?.startsWith('image/') ||
+      file.type === 'application/pdf' ||
+      file.type === ''; // Android gallery empty mime fallback
+    if (!isAllowedExt && !isAllowedType) {
+      return `${label}: only JPG, PNG, WebP, or PDF allowed`;
+    }
     return null;
   }
 
@@ -347,40 +355,40 @@ export default function VerifyAccount() {
                 </div>
                 <div>
                   <label className="input-label">IC / MyKad Image *</label>
-                  <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors">
-                    <FileImage className="w-6 h-6 text-slate-500" />
-                    <div>
-                      <p className="text-sm text-slate-300">
-                        {icFile ? icFile.name : 'Click to upload IC photo'}
-                      </p>
-                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
-                    </div>
+                  <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
                     <input
                       type="file"
                       accept="image/*,.pdf"
                       onChange={(e) => setIcFile(e.target.files[0])}
-                      className="hidden"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       disabled={uploading}
                     />
+                    <FileImage className="w-6 h-6 text-slate-500" />
+                    <div>
+                      <p className="text-sm text-slate-300">
+                        {icFile ? icFile.name : 'Click or tap to upload IC photo'}
+                      </p>
+                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)</p>
+                    </div>
                   </label>
                 </div>
                 <div>
                   <label className="input-label">Driving Licence Image *</label>
-                  <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors">
-                    <FileImage className="w-6 h-6 text-slate-500" />
-                    <div>
-                      <p className="text-sm text-slate-300">
-                        {licenceFile ? licenceFile.name : 'Click to upload licence photo'}
-                      </p>
-                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
-                    </div>
+                  <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
                     <input
                       type="file"
                       accept="image/*,.pdf"
                       onChange={(e) => setLicenceFile(e.target.files[0])}
-                      className="hidden"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       disabled={uploading}
                     />
+                    <FileImage className="w-6 h-6 text-slate-500" />
+                    <div>
+                      <p className="text-sm text-slate-300">
+                        {licenceFile ? licenceFile.name : 'Click or tap to upload licence photo'}
+                      </p>
+                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)</p>
+                    </div>
                   </label>
                 </div>
               </div>

@@ -166,15 +166,17 @@ export default function MyBookings() {
                           Upload your full rental payment receipt ({formatMYR(booking.total_price)})
                         </p>
                         <div className="flex items-center gap-2">
-                          <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer bg-white/5 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors">
-                            <FileImage className="w-3.5 h-3.5" />
-                            {receiptFile ? receiptFile.name : 'Choose file'}
+                          <label className="relative flex items-center gap-2 text-xs text-slate-400 cursor-pointer bg-white/5 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors overflow-hidden">
                             <input
                               type="file"
                               accept="image/*,.pdf"
-                              className="hidden"
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                               onChange={(e) => setReceiptFile(e.target.files[0])}
                             />
+                            <FileImage className="w-3.5 h-3.5" />
+                            <span className="truncate max-w-[140px]">
+                              {receiptFile ? receiptFile.name : 'Choose file'}
+                            </span>
                           </label>
                           {receiptFile && (
                             <button

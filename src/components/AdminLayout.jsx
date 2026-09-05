@@ -30,6 +30,7 @@ const navItems = [
   { to: '/admin/expenses', label: 'Expenses', icon: Receipt },
   { to: '/admin/fleet', label: 'Fleet Settings', icon: Building2 },
   { to: '/admin/fleet/members', label: 'Members', icon: Users2 },
+  { to: '/admin/upload-logs', label: 'Upload Logs', icon: Upload },
   { to: '/admin/manual', label: 'User Manual', icon: BookOpen },
 ];
 
@@ -101,17 +102,6 @@ export default function AdminLayout({ children, title }) {
               {/* View As — only for REAL super admin (not viewAs-overridden) */}
               {realIsSuperAdmin && (
                 <div className="mt-3 pt-3 border-t border-white/5">
-                  <Link
-                    to="/admin/upload-logs"
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      location.pathname === '/admin/upload-logs'
-                        ? 'bg-violet-500/15 text-violet-300 border border-violet-500/20'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload Logs
-                  </Link>
                   <button
                     onClick={() => setShowViewAs(true)}
                     className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-amber-400 hover:bg-amber-500/10 transition-all"

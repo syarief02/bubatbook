@@ -801,38 +801,38 @@ export default function Customers() {
                                 <label className="text-[10px] text-slate-500 mb-1 block">
                                   IC Image (auto-verified)
                                 </label>
-                                <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
-                                  <FileImage className="w-3.5 h-3.5 text-slate-400" />
-                                  <span className="text-slate-300 truncate">
-                                    {editFiles.ic?.name || 'Choose IC image...'}
-                                  </span>
+                                <label className="relative flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors overflow-hidden">
                                   <input
                                     type="file"
                                     accept="image/*,.pdf"
-                                    className="hidden"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     onChange={(e) =>
                                       setEditFiles((f) => ({ ...f, ic: e.target.files[0] }))
                                     }
                                   />
+                                  <FileImage className="w-3.5 h-3.5 text-slate-400" />
+                                  <span className="text-slate-300 truncate">
+                                    {editFiles.ic?.name || 'Choose IC image...'}
+                                  </span>
                                 </label>
                               </div>
                               <div>
                                 <label className="text-[10px] text-slate-500 mb-1 block">
                                   Licence Image (auto-verified)
                                 </label>
-                                <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
-                                  <FileImage className="w-3.5 h-3.5 text-slate-400" />
-                                  <span className="text-slate-300 truncate">
-                                    {editFiles.licence?.name || 'Choose licence image...'}
-                                  </span>
+                                <label className="relative flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors overflow-hidden">
                                   <input
                                     type="file"
                                     accept="image/*,.pdf"
-                                    className="hidden"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     onChange={(e) =>
                                       setEditFiles((f) => ({ ...f, licence: e.target.files[0] }))
                                     }
                                   />
+                                  <FileImage className="w-3.5 h-3.5 text-slate-400" />
+                                  <span className="text-slate-300 truncate">
+                                    {editFiles.licence?.name || 'Choose licence image...'}
+                                  </span>
                                 </label>
                               </div>
                             </div>
@@ -1145,19 +1145,19 @@ export default function Customers() {
                             <label className="text-[10px] text-slate-500 mb-1 block">
                               Transfer Receipt (proof) *
                             </label>
-                            <label className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
-                              <FileImage className="w-3.5 h-3.5 text-slate-400" />
-                              <span className="text-slate-300 truncate">
-                                {addCreditForm.receipt?.name || 'Upload receipt...'}
-                              </span>
+                            <label className="relative flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors overflow-hidden">
                               <input
                                 type="file"
                                 accept="image/*,.pdf"
-                                className="hidden"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 onChange={(e) =>
                                   setAddCreditForm((f) => ({ ...f, receipt: e.target.files[0] }))
                                 }
                               />
+                              <FileImage className="w-3.5 h-3.5 text-slate-400" />
+                              <span className="text-slate-300 truncate">
+                                {addCreditForm.receipt?.name || 'Upload receipt...'}
+                              </span>
                             </label>
                           </div>
                           <button

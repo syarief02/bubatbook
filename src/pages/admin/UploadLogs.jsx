@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -17,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   Trash2,
+  WifiOff,
 } from 'lucide-react';
 
 const STEP_CONFIG = {
@@ -45,7 +45,7 @@ function isMobile(ua) {
 }
 
 export default function UploadLogs() {
-  const { isSuperAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin } = useAuth();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, errors, success
@@ -102,10 +102,10 @@ export default function UploadLogs() {
     fetchLogs();
   }
 
-  if (!isSuperAdmin) {
+  if (!isAdmin && !isSuperAdmin) {
     return (
       <AdminLayout title="Upload Logs">
-        <p className="text-red-400">Access denied. Super admin only.</p>
+        <p className="text-red-400">Access denied. Admin access only.</p>
       </AdminLayout>
     );
   }

@@ -318,16 +318,16 @@ export default function CreateCustomer() {
                 <FileImage className="w-3.5 h-3.5 text-violet-400" /> IC Image *
               </label>
               <label
-                className={`flex items-center gap-2 px-3 py-3 rounded-xl text-xs cursor-pointer transition-colors border ${icFile ? 'bg-green-500/5 border-green-500/20 text-green-300' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}
+                className={`relative flex items-center gap-2 px-3 py-3 rounded-xl text-xs cursor-pointer transition-colors border overflow-hidden ${icFile ? 'bg-green-500/5 border-green-500/20 text-green-300' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}
               >
-                <FileImage className="w-4 h-4" />
-                <span className="truncate">{icFile?.name || 'Choose IC image...'}</span>
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  className="hidden"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   onChange={(e) => setIcFile(e.target.files[0])}
                 />
+                <FileImage className="w-4 h-4" />
+                <span className="truncate">{icFile?.name || 'Choose IC image...'}</span>
               </label>
               {errors.ic && <p className="text-[10px] text-red-400 mt-1">{errors.ic}</p>}
             </div>
@@ -336,16 +336,16 @@ export default function CreateCustomer() {
                 <FileImage className="w-3.5 h-3.5 text-violet-400" /> Driving Licence Image *
               </label>
               <label
-                className={`flex items-center gap-2 px-3 py-3 rounded-xl text-xs cursor-pointer transition-colors border ${licenceFile ? 'bg-green-500/5 border-green-500/20 text-green-300' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}
+                className={`relative flex items-center gap-2 px-3 py-3 rounded-xl text-xs cursor-pointer transition-colors border overflow-hidden ${licenceFile ? 'bg-green-500/5 border-green-500/20 text-green-300' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}
               >
-                <FileImage className="w-4 h-4" />
-                <span className="truncate">{licenceFile?.name || 'Choose licence image...'}</span>
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  className="hidden"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   onChange={(e) => setLicenceFile(e.target.files[0])}
                 />
+                <FileImage className="w-4 h-4" />
+                <span className="truncate">{licenceFile?.name || 'Choose licence image...'}</span>
               </label>
               {errors.licence && <p className="text-[10px] text-red-400 mt-1">{errors.licence}</p>}
             </div>

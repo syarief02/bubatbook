@@ -491,21 +491,21 @@ export default function Checkout() {
                         <span>WhatsApp Admin for Bank Details</span>
                       </a>
 
-                      <label className="flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6">
-                        <FileImage className="w-6 h-6 text-slate-500" />
-                        <div>
-                          <p className="text-sm text-slate-300">
-                            {receiptFile ? receiptFile.name : 'Click to upload payment receipt'}
-                          </p>
-                          <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Max 5MB</p>
-                        </div>
+                      <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6 overflow-hidden">
                         <input
                           type="file"
                           accept="image/*,.pdf"
                           onChange={(e) => setReceiptFile(e.target.files[0])}
-                          className="hidden"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           disabled={uploading}
                         />
+                        <FileImage className="w-6 h-6 text-slate-500" />
+                        <div>
+                          <p className="text-sm text-slate-300">
+                            {receiptFile ? receiptFile.name : 'Click or tap to upload payment receipt'}
+                          </p>
+                          <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Up to 12MB</p>
+                        </div>
                       </label>
                     </>
                   );
