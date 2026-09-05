@@ -235,7 +235,7 @@ export function useAdminCustomers(filters = {}) {
       return filtered.map((c) => ({
         ...c,
         booking_count: bookingCounts[c.id] || 0,
-        fleet_credit: creditByUser[c.id] || 0,
+        fleet_credit: filters.fleetId ? creditByUser[c.id] || 0 : Number(c.deposit_credit || 0),
       }));
     },
     staleTime: 60 * 1000, // 1 min cache

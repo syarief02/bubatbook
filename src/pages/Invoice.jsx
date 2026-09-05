@@ -10,7 +10,7 @@ import { Printer, ArrowLeft } from 'lucide-react';
 
 export default function Invoice() {
   const { id } = useParams();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [booking, setBooking] = useState(null);
@@ -19,6 +19,12 @@ export default function Invoice() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!isAdmin && !user) {
+      navigate('/login?returnTo=' + encodeURIComponent(`/invoice/${id}`));
+      return;
+    }
+
     async function fetchData() {
       try {
         // Fetch booking with car info
@@ -26,7 +32,7 @@ export default function Invoice() {
           .from('bubatrent_booking_bookings')
           .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
           .eq('id', id);
-        if (!isAdmin) query = query.eq('user_id', user.id);
+        if (!isAdmin && user?.id) query = query.eq('user_id', user.id);
         const { data: bookingData, error: bErr } = await query.maybeSingle();
         if (bErr) throw bErr;
         if (!bookingData) {
@@ -54,7 +60,7 @@ export default function Invoice() {
       }
     }
     fetchData();
-  }, [id, user.id, isAdmin, navigate, toast]);
+  }, [id, user, isAdmin, authLoading, navigate, toast]);
 
   if (loading)
     return (

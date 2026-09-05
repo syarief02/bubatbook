@@ -254,6 +254,7 @@ export default function Checkout() {
         payment_type: 'deposit',
         receipt_path: receiptPath,
         reference_number: `DEP-${Date.now().toString(36).toUpperCase()}`,
+        fleet_group_id: booking.fleet_group_id || car?.fleet_group_id || null,
       });
       if (payErr) throw payErr;
 
@@ -273,6 +274,7 @@ export default function Checkout() {
           amount: -creditApplied,
           type: 'applied',
           description: `Credit applied to booking deposit`,
+          fleet_group_id: booking.fleet_group_id || car?.fleet_group_id || null,
         });
 
         await refreshProfile();

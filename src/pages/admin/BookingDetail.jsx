@@ -251,9 +251,10 @@ export default function AdminBookingDetail() {
           user_id: booking.user_id,
           booking_id: id,
           amount: Number(booking.deposit_amount),
-          type: 'deposit_paid',
+          type: 'deposit_return',
           description: `Deposit verified — credit added`,
           admin_id: user.id,
+          fleet_group_id: booking.fleet_group_id || null,
         });
       }
 

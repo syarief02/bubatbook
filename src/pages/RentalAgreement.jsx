@@ -20,7 +20,7 @@ const LIABILITY_TABLE = [
 
 export default function RentalAgreement() {
   const { id } = useParams(); // booking id
-  const { user, profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -33,6 +33,12 @@ export default function RentalAgreement() {
   const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!isAdmin && !user) {
+      navigate('/login?returnTo=' + encodeURIComponent(`/rental-agreement/${id}`));
+      return;
+    }
+
     async function fetchBooking() {
       try {
         // Fetch booking with car info
@@ -42,7 +48,7 @@ export default function RentalAgreement() {
           .eq('id', id);
 
         // Non-admins can only view their own bookings
-        if (!isAdmin) {
+        if (!isAdmin && user?.id) {
           query = query.eq('user_id', user.id);
         }
 
@@ -55,7 +61,7 @@ export default function RentalAgreement() {
           return;
         }
         setBooking(bookingData);
-        setIsOwner(bookingData.user_id === user.id);
+        setIsOwner(Boolean(user?.id && bookingData.user_id === user.id));
 
         // Check if already signed
         const { data: agreement } = await supabase
@@ -73,7 +79,7 @@ export default function RentalAgreement() {
       }
     }
     fetchBooking();
-  }, [id, user.id, isAdmin, navigate, toast]);
+  }, [id, user, isAdmin, authLoading, navigate, toast]);
 
   async function handleSubmit(e) {
     e.preventDefault();

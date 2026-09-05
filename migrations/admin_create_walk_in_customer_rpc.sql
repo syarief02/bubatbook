@@ -11,13 +11,24 @@ CREATE OR REPLACE FUNCTION admin_create_walk_in_customer(
   p_licence_expiry DATE,
   p_ic_file_path TEXT,
   p_licence_file_path TEXT,
-  p_admin_id UUID
+  p_admin_id UUID,
+  p_email TEXT DEFAULT NULL,
+  p_gdl_license TEXT DEFAULT 'NONE'
 ) RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_email TEXT;
 BEGIN
+  -- Determine email: use provided email or generate walk-in fallback
+  IF p_email IS NOT NULL AND trim(p_email) <> '' THEN
+    v_email := trim(p_email);
+  ELSE
+    v_email := 'walkin_' || p_id || '@bubatrent.local';
+  END IF;
+
   -- Insert dummy user into auth.users to satisfy foreign key constraints
   INSERT INTO auth.users (
     id,
@@ -35,7 +46,7 @@ BEGIN
     '00000000-0000-0000-0000-000000000000',
     'authenticated',
     'authenticated',
-    'walkin_' || p_id || '@bubatrent.local',
+    v_email,
     crypt('dummy_password', gen_salt('bf')),
     now(),
     jsonb_build_object('name', p_display_name, 'is_walk_in', true),
@@ -49,34 +60,40 @@ BEGIN
     display_name,
     ic_number,
     phone,
+    email,
     address_line1,
     address_line2,
     city,
     state,
     postcode,
     licence_expiry,
+    gdl_license,
     ic_file_path,
     licence_file_path,
     created_by_admin,
     verified_by,
     verified_at,
+    is_verified,
     role
   ) VALUES (
     p_id,
     p_display_name,
     p_ic_number,
     p_phone,
+    v_email,
     p_address_line1,
     p_address_line2,
     p_city,
     p_state,
     p_postcode,
     p_licence_expiry,
+    COALESCE(p_gdl_license, 'NONE'),
     p_ic_file_path,
     p_licence_file_path,
     p_admin_id,
     p_admin_id,
     now(),
+    true,
     'customer'
   );
 END;

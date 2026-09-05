@@ -1054,8 +1054,13 @@ export default function Customers() {
                       <div className="flex items-center gap-2 mb-2">
                         <Wallet className="w-4 h-4 text-green-400" />
                         <span className="text-sm text-white font-semibold">
-                          {formatMYR(customer.fleet_credit || 0)}
+                          {formatMYR(customer.deposit_credit || 0)}
                         </span>
+                        {activeFleetId && (
+                          <span className="text-xs text-slate-400">
+                            (Fleet: {formatMYR(customer.fleet_credit || 0)})
+                          </span>
+                        )}
                       </div>
                       <div className="space-y-2">
                         {/* Add Credit */}
@@ -1145,7 +1150,8 @@ export default function Customers() {
                                 if (upErr) throw upErr;
 
                                 // Update credit balance
-                                const newCredit = Number(customer.fleet_credit || 0) + amt;
+                                const currentCredit = Number(customer.deposit_credit || 0);
+                                const newCredit = currentCredit + amt;
                                 const { error: dbErr } = await supabase
                                   .from('bubatrent_booking_profiles')
                                   .update({ deposit_credit: newCredit })
@@ -1219,14 +1225,14 @@ export default function Customers() {
                                 toast.error('Enter a valid amount');
                                 return;
                               }
-                              if (Number(deductAmount) > Number(customer.fleet_credit || 0)) {
+                              const currentCredit = Number(customer.deposit_credit || 0);
+                              if (Number(deductAmount) > currentCredit) {
                                 toast.error('Cannot deduct more than balance');
                                 return;
                               }
                               setDeductingId(customer.id);
                               try {
-                                const newCredit =
-                                  Number(customer.fleet_credit || 0) - Number(deductAmount);
+                                const newCredit = currentCredit - Number(deductAmount);
                                 const { error: upErr } = await supabase
                                   .from('bubatrent_booking_profiles')
                                   .update({ deposit_credit: newCredit })

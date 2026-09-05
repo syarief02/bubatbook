@@ -4,12 +4,12 @@ import { useCars } from '../hooks/useCars';
 import CarCard from '../components/CarCard';
 import DateRangePicker from '../components/DateRangePicker';
 import EmptyState from '../components/EmptyState';
-import { Car, Shield, Zap, CreditCard, Search } from 'lucide-react';
+import { Car, Shield, Zap, CreditCard, Search, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { Button } from '../components/ui/button';
 
 export default function Home() {
-  const { cars, loading, error } = useCars();
+  const { cars, loading, error, refetch } = useCars();
   const [searchParams] = useSearchParams();
   const [pickupDate, setPickupDate] = useState(searchParams.get('pickup') || '');
   const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
@@ -135,8 +135,22 @@ export default function Home() {
             ))}
           </div>
         ) : error ? (
-          <div className="glass-card text-center">
-            <p className="text-red-400">{error}</p>
+          <div className="glass-card text-center py-10 px-6 max-w-lg mx-auto border border-red-500/20">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">Unable to Load Fleet</h3>
+            <p className="text-sm text-slate-400 mb-4 leading-relaxed">
+              {error.includes('Failed to fetch') || error.includes('NetworkError')
+                ? 'Could not connect to the database. If your Supabase free tier project is paused due to inactivity, please unpause it from the Supabase Dashboard.'
+                : error}
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 rounded-xl text-xs font-medium bg-violet-600 hover:bg-violet-700 text-white inline-flex items-center gap-2 mx-auto transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Retry Connection
+            </button>
           </div>
         ) : filteredCars.length === 0 ? (
           <EmptyState
