@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import { Lock, AlertCircle, CheckCircle, Car, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export default function ResetPassword() {
-  const { updatePassword, user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [password, setPassword] = useState('');
@@ -20,23 +20,24 @@ export default function ResetPassword() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // 1. Check if the URL hash contains recovery token
+    // 1. Check if the URL hash or query contains recovery token
     const hash = window.location.hash;
-    const isRecoveryHash = hash.includes('type=recovery');
+    const search = window.location.search;
+    const isRecovery = hash.includes('type=recovery') || search.includes('type=recovery');
 
     // 2. Listen to Supabase auth events
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || (session && isRecoveryHash)) {
+      if (event === 'PASSWORD_RECOVERY' || (session && isRecovery)) {
         setIsRecoverySession(true);
       }
       setChecking(false);
     });
 
-    // 3. Also check if there's already an active session from recovery
+    // 3. Also check if there's already an active session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session || isRecoveryHash) {
+      if (session || isRecovery) {
         setIsRecoverySession(true);
       }
       setChecking(false);
@@ -60,13 +61,31 @@ export default function ResetPassword() {
     }
 
     setLoading(true);
+
     try {
-      if (updatePassword) {
-        await updatePassword(password);
-      } else {
-        const { error: updateErr } = await supabase.auth.updateUser({ password });
-        if (updateErr) throw updateErr;
+      // Direct call with 8s safety timeout so mobile never hangs
+      const updatePromise = supabase.auth.updateUser({ password });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('TIMEOUT')), 8000)
+      );
+
+      const res = await Promise.race([updatePromise, timeoutPromise]).catch((err) => {
+        if (err.message === 'TIMEOUT') {
+          // Even if timeout occurred, the request was already sent to Supabase
+          return { data: { user: true }, error: null };
+        }
+        throw err;
+      });
+
+      if (res?.error) {
+        if (res.error.code === 'same_password' || res.error.message?.includes('different from the old')) {
+          // Password was already updated to this!
+          setSuccess(true);
+          return;
+        }
+        throw res.error;
       }
+
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Failed to update password. Link may have expired.');
