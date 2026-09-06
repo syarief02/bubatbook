@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * Synchronously inspect localStorage for any existing Supabase session.
@@ -381,12 +382,18 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
     // Determine MIME type — Android often returns file.type = "" for gallery images
     const mimeType = file.type || guessMimeFromName(file.name) || 'image/jpeg';
 
-    // Create a client explicitly authorized with the current token
-    const { createClient } = await import('@supabase/supabase-js');
+    // Create an isolated storage client explicitly authorized with current token.
+    // Bypass Navigator LockManager to completely eliminate mobile lock deadlocks.
     const authedClient = createClient(
       import.meta.env.VITE_SUPABASE_URL,
       import.meta.env.VITE_SUPABASE_ANON_KEY,
       {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+          lock: async (_name, _acquireTimeout, fn) => await fn(),
+        },
         global: {
           headers: {
             Authorization: `Bearer ${token}`,
