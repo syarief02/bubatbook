@@ -21,7 +21,7 @@ export default function Invoice() {
   useEffect(() => {
     if (authLoading) return;
     if (!isAdmin && !user) {
-      navigate('/login?returnTo=' + encodeURIComponent(`/invoice/${id}`));
+      navigate('/login?returnTo=' + encodeURIComponent(`/booking/${id}/invoice`));
       return;
     }
 

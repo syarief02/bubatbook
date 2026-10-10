@@ -41,6 +41,7 @@ import { useToast } from '../../components/Toast';
 import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
 
+import { SignedLink, SignedImage } from '../../components/SignedFile';
 export default function Customers() {
   const { user, isSuperAdmin } = useAuth();
   const { activeFleetId, isSuperGroup } = useFleet();
@@ -493,12 +494,8 @@ export default function Customers() {
                                 >
                                   <p className="text-[10px] text-slate-500 mb-1">IC Document</p>
                                   {customer.ic_file_path ? (
-                                    <a
-                                      href={
-                                        supabase.storage
-                                          .from('customer-documents')
-                                          .getPublicUrl(customer.ic_file_path).data.publicUrl
-                                      }
+                                    <SignedLink
+                                      path={customer.ic_file_path}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="block"
@@ -512,12 +509,8 @@ export default function Customers() {
                                         </div>
                                       ) : (
                                         <>
-                                          <img
-                                            src={
-                                              supabase.storage
-                                                .from('customer-documents')
-                                                .getPublicUrl(customer.ic_file_path).data.publicUrl
-                                            }
+                                          <SignedImage
+                                            path={customer.ic_file_path}
                                             alt="IC Document"
                                             className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
                                             onError={(e) => {
@@ -534,7 +527,7 @@ export default function Customers() {
                                           </div>
                                         </>
                                       )}
-                                    </a>
+                                    </SignedLink>
                                   ) : (
                                     <p className="text-[10px] text-red-400 flex items-center gap-1">
                                       <AlertTriangle className="w-3 h-3" /> Missing
@@ -547,12 +540,8 @@ export default function Customers() {
                                 >
                                   <p className="text-[10px] text-slate-500 mb-1">Driving Licence</p>
                                   {customer.licence_file_path ? (
-                                    <a
-                                      href={
-                                        supabase.storage
-                                          .from('customer-documents')
-                                          .getPublicUrl(customer.licence_file_path).data.publicUrl
-                                      }
+                                    <SignedLink
+                                      path={customer.licence_file_path}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="block"
@@ -566,13 +555,8 @@ export default function Customers() {
                                         </div>
                                       ) : (
                                         <>
-                                          <img
-                                            src={
-                                              supabase.storage
-                                                .from('customer-documents')
-                                                .getPublicUrl(customer.licence_file_path).data
-                                                .publicUrl
-                                            }
+                                          <SignedImage
+                                            path={customer.licence_file_path}
                                             alt="Licence Document"
                                             className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
                                             onError={(e) => {
@@ -589,7 +573,7 @@ export default function Customers() {
                                           </div>
                                         </>
                                       )}
-                                    </a>
+                                    </SignedLink>
                                   ) : (
                                     <p className="text-[10px] text-red-400 flex items-center gap-1">
                                       <AlertTriangle className="w-3 h-3" /> Missing
@@ -1199,7 +1183,7 @@ export default function Customers() {
                                 if (dbErr) throw dbErr;
 
                                 // Log transaction
-                                await supabase
+                                const { error: ledgerErr } = await supabase
                                   .from('bubatrent_booking_credit_transactions')
                                   .insert({
                                     user_id: customer.id,
@@ -1209,6 +1193,7 @@ export default function Customers() {
                                     admin_id: user.id,
                                     fleet_group_id: activeFleetId,
                                   });
+                                if (ledgerErr) throw ledgerErr;
 
                                 // Audit log
                                 await supabase.from('bubatrent_booking_audit_logs').insert({
@@ -1278,7 +1263,7 @@ export default function Customers() {
                                   .update({ deposit_credit: newCredit })
                                   .eq('id', customer.id);
                                 if (upErr) throw upErr;
-                                await supabase
+                                const { error: ledgerErr } = await supabase
                                   .from('bubatrent_booking_credit_transactions')
                                   .insert({
                                     user_id: customer.id,
@@ -1288,6 +1273,7 @@ export default function Customers() {
                                     admin_id: user.id,
                                     fleet_group_id: activeFleetId,
                                   });
+                                if (ledgerErr) throw ledgerErr;
                                 toast.success(`Deducted ${formatMYR(deductAmount)}`);
                                 setDeductAmount('');
                                 setDeductReason('');

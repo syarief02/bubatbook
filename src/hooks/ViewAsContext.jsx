@@ -1,16 +1,15 @@
-/* eslint-disable */
 import { createContext, useContext, useState, useCallback } from 'react';
 
 const ViewAsContext = createContext(undefined);
 
 /**
  * ViewAs context — lets Super Admin simulate other roles/groups.
- * 
+ *
  * viewAs modes:
  *   null      → normal (no simulation)
  *   'customer' → simulate logged-in customer
  *   'group_admin' → simulate admin of a specific fleet group
- * 
+ *
  * When active, useAuth and useFleet read overrides from this context.
  */
 export function ViewAsProvider({ children }) {
@@ -28,12 +27,14 @@ export function ViewAsProvider({ children }) {
   const isViewMode = viewAs !== null;
 
   return (
-    <ViewAsContext.Provider value={{
-      viewAs,
-      isViewMode,
-      enterViewAs,
-      exitViewAs,
-    }}>
+    <ViewAsContext.Provider
+      value={{
+        viewAs,
+        isViewMode,
+        enterViewAs,
+        exitViewAs,
+      }}
+    >
       {children}
     </ViewAsContext.Provider>
   );

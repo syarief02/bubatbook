@@ -1,4 +1,3 @@
-/* eslint-disable */
 import AdminLayout from '../../components/AdminLayout';
 import {
   BookOpen,
@@ -8,7 +7,6 @@ import {
   DollarSign,
   Wallet,
   AlertTriangle,
-  MessageCircle,
   FileSignature,
 } from 'lucide-react';
 
@@ -92,8 +90,8 @@ export default function UserManual() {
                 (IC) and Driving License.
               </li>
               <li>
-                Toggle "IC Verified" and &quot;License Verified&quot; if the documents are valid.
-                The customer is now cleared to book.
+                Toggle &quot;IC Verified&quot; and &quot;License Verified&quot; if the documents are
+                valid. The customer is now cleared to book.
               </li>
             </ol>
             <h4 className="text-white font-medium mt-4">Creating a Manual Customer (Walk-in):</h4>

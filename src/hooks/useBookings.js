@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
-const HOLD_DURATION_MINUTES = 10;
-
 export function useBookings(userId) {
   const {
     data: bookings = [],
@@ -28,44 +26,40 @@ export function useBookings(userId) {
   return { bookings, loading, error: queryError?.message || null, refetch };
 }
 
-export async function expireOldHolds() {
-  const now = new Date().toISOString();
-  await supabase
-    .from('bubatrent_booking_bookings')
-    .update({ status: 'EXPIRED' })
-    .eq('status', 'HOLD')
-    .lt('hold_expires_at', now);
+/**
+ * Mark abandoned checkouts (HOLD past hold_expires_at) as EXPIRED for all users,
+ * so they stop blocking the dates. Call before admin-created bookings or date edits.
+ */
+export async function expireStaleHolds() {
+  const { error } = await supabase.rpc('bubatrent_expire_stale_holds');
+  if (error) throw error;
 }
 
-export async function createHoldBooking(
-  carId,
-  userId,
-  pickupDate,
-  returnDate,
-  totalPrice,
-  depositAmount,
-  fleetGroupId
-) {
-  // Clean up expired holds first so exclusion constraint doesn't block valid bookings
-  await expireOldHolds();
+/**
+ * Hold a car for 10 minutes while the customer checks out.
+ * The server computes price and deposit from the car's daily rate and rejects
+ * overlapping dates, so two customers can never hold the same car and day.
+ */
+export async function createHoldBooking(carId, pickupDate, returnDate) {
+  const { data, error } = await supabase.rpc('bubatrent_create_hold_booking', {
+    p_car_id: carId,
+    p_pickup: pickupDate,
+    p_return: returnDate,
+  });
 
-  const holdExpiresAt = new Date(Date.now() + HOLD_DURATION_MINUTES * 60 * 1000).toISOString();
+  if (error) throw error;
+  return data;
+}
 
-  const { data, error } = await supabase
-    .from('bubatrent_booking_bookings')
-    .insert({
-      car_id: carId,
-      user_id: userId,
-      pickup_date: pickupDate,
-      return_date: returnDate,
-      total_price: totalPrice,
-      deposit_amount: depositAmount,
-      status: 'HOLD',
-      hold_expires_at: holdExpiresAt,
-      fleet_group_id: fleetGroupId,
-    })
-    .select()
-    .single();
+/**
+ * Atomically mark the deposit paid, record the payment and apply any credit.
+ * receiptPath may be null only when credit covers the whole deposit.
+ */
+export async function submitBookingDeposit(bookingId, receiptPath) {
+  const { data, error } = await supabase.rpc('bubatrent_submit_booking_deposit', {
+    p_booking_id: bookingId,
+    p_receipt_path: receiptPath,
+  });
 
   if (error) throw error;
   return data;

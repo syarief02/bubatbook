@@ -5,6 +5,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
+import { expireStaleHolds } from '../../hooks/useBookings';
+import { friendlyDbError } from '../../utils/dbErrors';
+import { ilikeAny } from '../../utils/search';
 import { useToast } from '../../components/Toast';
 // Removed unused import normalizePhone
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -61,9 +64,7 @@ export default function AdminBookForCustomer() {
     const { data, error } = await supabase
       .from('bubatrent_booking_profiles')
       .select('id, display_name, username, phone, ic_number, is_verified')
-      .or(
-        `display_name.ilike.%${q}%,phone.ilike.%${q}%,ic_number.ilike.%${q}%,username.ilike.%${q}%`
-      )
+      .or(ilikeAny(['display_name', 'phone', 'ic_number', 'username'], q))
       .limit(10);
     if (error) console.error('[BookForCustomer] Search error:', error);
     setCustResults(data || []);
@@ -161,6 +162,9 @@ export default function AdminBookForCustomer() {
     setCreating(true);
 
     try {
+      // Abandoned customer checkouts must not block this booking
+      await expireStaleHolds();
+
       // Overlap check — only block for confirmed statuses, not HOLD
       const { data: overlapping } = await supabase
         .from('bubatrent_booking_bookings')
@@ -216,7 +220,7 @@ export default function AdminBookForCustomer() {
 
       // If receipt uploaded and status = DEPOSIT_PAID or CONFIRMED, create payment record
       if (receiptUrl && (initialStatus === 'DEPOSIT_PAID' || initialStatus === 'CONFIRMED')) {
-        await supabase.from('bubatrent_booking_payments').insert({
+        const { error: payErr } = await supabase.from('bubatrent_booking_payments').insert({
           booking_id: booking.id,
           amount: depositAmount,
           payment_method: 'bank_transfer',
@@ -224,6 +228,7 @@ export default function AdminBookForCustomer() {
           reference_number: `ADMIN-${Date.now()}`,
           fleet_group_id: activeFleetId,
         });
+        if (payErr) throw payErr;
       }
 
       // Audit log
@@ -245,7 +250,7 @@ export default function AdminBookForCustomer() {
       toast.success('Booking created successfully');
       navigate(`/admin/bookings/${booking.id}`);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(friendlyDbError(err));
     } finally {
       setCreating(false);
     }

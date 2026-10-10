@@ -1,95 +1,4 @@
 import { supabase } from './supabase';
-import { createClient } from '@supabase/supabase-js';
-
-/**
- * Synchronously inspect localStorage for any existing Supabase session.
- * 0ms, synchronous, never hangs on Android.
- */
-export function getStoredSession() {
-  try {
-    // 1. Direct rent2go-auth key
-    const direct = localStorage.getItem('rent2go-auth');
-    if (direct) {
-      const parsed = JSON.parse(direct);
-      if (parsed?.access_token) return parsed;
-    }
-    // 2. Scan all keys for Supabase auth token (e.g. sb-blqsgijvdvzwnqeltoje-auth-token)
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (
-        key &&
-        (key.startsWith('sb-') || key.includes('auth-token') || key.includes('rent2go-auth'))
-      ) {
-        try {
-          const val = JSON.parse(localStorage.getItem(key));
-          if (val?.access_token) return val;
-          if (val?.currentSession?.access_token) return val.currentSession;
-        } catch {
-          // ignore non-JSON items
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('[getStoredSession] localStorage error:', e);
-  }
-  return null;
-}
-
-/**
- * Synchronously extract the user UUID directly from a JWT access token payload.
- * 0ms, zero network calls, never hangs or times out.
- */
-function getUserIdFromToken(token) {
-  if (!token) return null;
-  try {
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    const parsed = JSON.parse(jsonPayload);
-    return parsed?.sub || null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Wrap supabase.auth.getSession() with instant localStorage fallback.
- * Checks localStorage first (0ms) so Android Chrome never hangs on silent JWT refresh.
- */
-export async function getSessionWithTimeout(timeoutMs = 3000) {
-  const stored = getStoredSession();
-  if (stored?.access_token) {
-    return { session: stored, error: null };
-  }
-
-  try {
-    const result = await Promise.race([
-      supabase.auth.getSession(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Auth timed out. Trying fallback...')), timeoutMs)
-      ),
-    ]);
-    if (result?.data?.session) {
-      return { session: result.data.session, error: null };
-    }
-  } catch (err) {
-    console.warn('[getSessionWithTimeout] Promise.race check:', err);
-  }
-
-  const fallback = getStoredSession();
-  if (fallback?.access_token) {
-    return { session: fallback, error: null };
-  }
-
-  return { session: null, error: new Error('Not authenticated. Please log in again.') };
-}
 
 /**
  * Ultra-safe mobile image compressor with strict 3.5s timeout.
@@ -239,27 +148,14 @@ async function compressImageInternal(file) {
 
 /**
  * Log an upload step to the database for remote debugging.
- * Fire-and-forget — never blocks the upload flow.
- * Uses instant JWT parsing to derive user_id with 0 network calls.
+ * Fire-and-forget — never blocks or breaks the upload flow.
  */
-async function logUploadStep(step, message, metadata = {}, accessToken = null) {
+async function logUploadStep(step, message, metadata = {}) {
   try {
-    let token = accessToken;
-    if (!token) {
-      const stored = getStoredSession();
-      token = stored?.access_token;
-    }
-    if (!token) {
-      const result = await Promise.race([
-        supabase.auth.getSession(),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('log-timeout')), 2000)),
-      ]);
-      token = result?.data?.session?.access_token;
-    }
-    if (!token) return;
-
-    // Instantly extract userId from token payload without network calls
-    const userId = getUserIdFromToken(token);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
     if (!userId) return;
 
     await supabase.from('bubatrent_booking_upload_logs').insert({
@@ -279,16 +175,14 @@ async function logUploadStep(step, message, metadata = {}, accessToken = null) {
 }
 
 /**
- * Robust mobile-friendly upload function.
- * 1. Sends the File object directly via XHR — no FileReader or ArrayBuffer copy,
- *    so Android browsers don't freeze from doubled memory usage.
- * 2. Uses XMLHttpRequest for maximum compatibility and progress tracking.
- * 3. Explicitly uses x-upsert: false to avoid RLS deadlocks.
- * 4. Logs each step to bubatrent_booking_upload_logs for remote debugging.
- * 5. Warns users when files exceed 5MB (still allows up to 10MB max).
- * 6. Accepts an optional accessToken to skip getSession() entirely (Android fix).
+ * Mobile-friendly upload:
+ * 1. Rejects HEIC and oversized files up front with a clear message.
+ * 2. Compresses large photos so phones don't run out of memory.
+ * 3. Falls back to a MIME type from the extension (Android often reports "").
+ * 4. Times out after 35s instead of hanging on a bad connection.
+ * 5. Logs each step to bubatrent_booking_upload_logs for remote debugging.
  */
-export async function uploadFileRobust(bucket, path, file, toast = null, accessToken = null) {
+export async function uploadFileRobust(bucket, path, file, toast = null) {
   // Extract booking_id from path if possible (e.g. receipts/{bookingId}/...)
   const bookingIdMatch = path.match(/(?:receipts|documents|uploads)\/([a-f0-9-]+)\//i);
   const booking_id = bookingIdMatch ? bookingIdMatch[1] : null;
@@ -302,18 +196,15 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
     file_size: file.size,
   };
 
-  // IMMEDIATELY log preflight so we have an audit log in DB right away
   logUploadStep(
     'preflight',
     `Starting upload: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`,
-    logMeta,
-    accessToken
+    logMeta
   );
 
   try {
-    // 0. Pre-flight checks
     if (file.name.match(/\.(heic|heif)$/i) || file.type.match(/heic|heif/i)) {
-      logUploadStep('error', 'HEIC format rejected', logMeta, accessToken);
+      logUploadStep('error', 'HEIC format rejected', logMeta);
       return {
         data: null,
         error: new Error(
@@ -322,12 +213,7 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
       };
     }
     if (file.size > 15 * 1024 * 1024) {
-      logUploadStep(
-        'error',
-        `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
-        logMeta,
-        accessToken
-      );
+      logUploadStep('error', `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB`, logMeta);
       return {
         data: null,
         error: new Error(
@@ -344,99 +230,58 @@ export async function uploadFileRobust(bucket, path, file, toast = null, accessT
     logMeta.file_name = file.name;
     logMeta.file_type = file.type;
     logMeta.file_size = file.size;
-
     logUploadStep(
       'prepared',
       `File prepared: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`,
-      logMeta,
-      accessToken
+      logMeta
     );
-
-    // Get auth token — use provided token or fall back to getSessionWithTimeout
-    let token = accessToken;
-    if (!token) {
-      const { session, error: sessionErr } = await getSessionWithTimeout(4000);
-      if (sessionErr || !session) {
-        logUploadStep('error', 'Not authenticated', {
-          ...logMeta,
-          sessionErr: sessionErr?.message,
-        });
-        return {
-          data: null,
-          error: sessionErr || new Error('Not authenticated. Please log in again.'),
-        };
-      }
-      token = session.access_token;
-    }
 
     const kbSize = Math.round(file.size / 1024);
     if (toast) toast.info(`Step 2: Uploading ${kbSize}KB...`);
-    logUploadStep(
-      'uploading',
-      `Upload starting: ${kbSize}KB to ${bucket}/${path}`,
-      { ...logMeta, kbSize },
-      accessToken
-    );
-    console.log(`[UploadHelper] Starting upload of ${kbSize}KB to ${bucket}/${path}`);
-
-    // Determine MIME type — Android often returns file.type = "" for gallery images
-    const mimeType = file.type || guessMimeFromName(file.name) || 'image/jpeg';
-
-    // Create an isolated storage client explicitly authorized with current token.
-    // Bypass Navigator LockManager to completely eliminate mobile lock deadlocks.
-    const authedClient = createClient(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-          lock: async (_name, _acquireTimeout, fn) => await fn(),
-        },
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Strict 35-second timeout so the upload NEVER hangs on mobile
-    const uploadPromise = authedClient.storage.from(bucket).upload(path, file, {
-      upsert: true,
-      contentType: mimeType,
+    logUploadStep('uploading', `Upload starting: ${kbSize}KB to ${bucket}/${path}`, {
+      ...logMeta,
+      kbSize,
     });
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(
+    // Android gallery often returns file.type = "" — fall back to the extension
+    const mimeType = file.type || guessMimeFromName(file.name) || 'image/jpeg';
+
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(
         () =>
           reject(
             new Error('Upload timed out after 35 seconds. Please check your network connection.')
           ),
         35000
-      )
-    );
+      );
+    });
+    const uploadPromise = supabase.storage.from(bucket).upload(path, file, {
+      upsert: true,
+      contentType: mimeType,
+    });
 
-    const { data, error: uploadErr } = await Promise.race([uploadPromise, timeoutPromise]);
+    let uploadErr;
+    try {
+      ({ error: uploadErr } = await Promise.race([uploadPromise, timeoutPromise]));
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (uploadErr) {
       console.error('[UploadHelper] Storage upload error:', uploadErr);
-      logUploadStep('error', uploadErr.message || 'Storage upload failed', logMeta, accessToken);
+      logUploadStep('error', uploadErr.message || 'Storage upload failed', logMeta);
       return { data: null, error: uploadErr };
     }
 
-    console.log(`[UploadHelper] Upload success!`, data);
-    logUploadStep('success', `Upload complete! Path: ${path}`, logMeta, accessToken);
+    logUploadStep('success', `Upload complete! Path: ${path}`, logMeta);
     return { data: { path }, error: null };
   } catch (err) {
     console.error('[UploadHelper] Unexpected error:', err);
-    logUploadStep(
-      'error',
-      `Unexpected error: ${err.message}`,
-      { ...logMeta, stack: err.stack?.substring(0, 500) },
-      accessToken
-    );
+    logUploadStep('error', `Unexpected error: ${err.message}`, {
+      ...logMeta,
+      stack: err.stack?.substring(0, 500),
+    });
     return { data: null, error: err };
   }
 }

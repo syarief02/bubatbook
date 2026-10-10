@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminStats } from '../../hooks/useAdmin';
@@ -25,16 +24,36 @@ const textColorMap = {
 };
 
 export default function AdminDashboard() {
-  const { activeFleetId, activeFleet } = useFleet();
+  const { activeFleetId } = useFleet();
   const { stats, loading } = useAdminStats(activeFleetId);
 
-  if (loading) return <AdminLayout title="Dashboard"><LoadingSpinner /></AdminLayout>;
+  if (loading)
+    return (
+      <AdminLayout title="Dashboard">
+        <LoadingSpinner />
+      </AdminLayout>
+    );
 
   const cards = [
-    { label: 'Total Bookings', value: stats?.totalBookings || 0, icon: CalendarDays, color: 'violet' },
-    { label: 'Active Bookings', value: stats?.activeBookings || 0, icon: TrendingUp, color: 'green' },
+    {
+      label: 'Total Bookings',
+      value: stats?.totalBookings || 0,
+      icon: CalendarDays,
+      color: 'violet',
+    },
+    {
+      label: 'Active Bookings',
+      value: stats?.activeBookings || 0,
+      icon: TrendingUp,
+      color: 'green',
+    },
     { label: 'Fleet Size', value: stats?.totalCars || 0, icon: Car, color: 'indigo' },
-    { label: 'Pending Verifications', value: stats?.pendingVerifications || 0, icon: FileCheck, color: 'yellow' },
+    {
+      label: 'Pending Verifications',
+      value: stats?.pendingVerifications || 0,
+      icon: FileCheck,
+      color: 'yellow',
+    },
     { label: 'Registered Users', value: stats?.totalCustomers || 0, icon: Users, color: 'cyan' },
   ];
 
@@ -49,7 +68,9 @@ export default function AdminDashboard() {
             style={{ animationDelay: `${i * 80}ms` }}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl ${bgColorMap[color]} flex items-center justify-center`}>
+              <div
+                className={`w-10 h-10 rounded-xl ${bgColorMap[color]} flex items-center justify-center`}
+              >
                 <Icon className={`w-5 h-5 ${textColorMap[color]}`} />
               </div>
             </div>
@@ -67,7 +88,9 @@ export default function AdminDashboard() {
           </div>
           <div>
             <p className="text-xs text-slate-500">Total Revenue (Deposits)</p>
-            <p className="text-3xl font-bold gradient-text">{formatMYR(stats?.totalRevenue || 0)}</p>
+            <p className="text-3xl font-bold gradient-text">
+              {formatMYR(stats?.totalRevenue || 0)}
+            </p>
           </div>
         </div>
       </div>

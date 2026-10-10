@@ -5,6 +5,7 @@ import { useBookings, cancelBooking } from '../hooks/useBookings';
 import { supabase } from '../lib/supabase';
 import { uploadFileRobust } from '../lib/uploadHelper';
 import { useToast } from '../components/Toast';
+import { SignedLink } from '../components/SignedFile';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
@@ -225,14 +226,12 @@ export default function MyBookings() {
                       )}
 
                       {booking.deposit_receipt_path && (
-                        <a
-                          href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-documents/${booking.deposit_receipt_path}`}
-                          target="_blank"
-                          rel="noreferrer"
+                        <SignedLink
+                          path={booking.deposit_receipt_path}
                           className="text-xs text-emerald-500/70 hover:text-emerald-400 flex items-center gap-1"
                         >
                           <Receipt className="w-3 h-3" /> Deposit Receipt
-                        </a>
+                        </SignedLink>
                       )}
 
                       {(booking.deposit_status === 'verified' ||

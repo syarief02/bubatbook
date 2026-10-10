@@ -28,7 +28,7 @@
 ### System Features
 
 - **Two-Part Payment** — Deposit (min RM100 or 30%) + full rental payment, each with receipt upload
-- **Deposit Credit** — Auto-returned on RETURNED, auto-applied on next booking, admin deduction
+- **Deposit Credit** — Credited to the customer when an admin verifies the deposit receipt, auto-applied on next booking, admin deduction
 - **Licence Expiry** — Auto-invalidates verification when licence expires
 - **Login Redirect** — Dates and destination preserved through login flow
 - **Scroll-to-Top** — Automatic on every page navigation
@@ -168,11 +168,19 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-### Database Migration
+Only `VITE_`-prefixed variables reach the browser. Never commit `.env.local`, and never put
+the service-role key, database password or any admin login in a script or file in this repo.
+
+### Database Migrations
+
+Schema changes live in `supabase/migrations/` (timestamped SQL files) and are applied in order,
+either with `supabase db push` or by pasting the file into the Supabase SQL editor. The older SQL
+files in the repo root and `migrations/` are historical and do not match the live database.
+
+After any database or storage change, verify what an anonymous visitor can reach:
 
 ```bash
-# Run the full migration (requires DATABASE_URL in .env.local)
-node run_migration.cjs
+npm run check:security   # exits 1 if profiles, bookings or documents are exposed
 ```
 
 ### Development
@@ -181,44 +189,59 @@ node run_migration.cjs
 npm run dev        # Start dev server (http://localhost:5173)
 npm run build      # Production build
 npm run preview    # Preview production build
+npm run lint       # ESLint + Prettier
 ```
 
-### ✅ Android Upload Smoke Test Checklist
+### ✅ Mobile Upload Smoke Test Checklist
 
-Due to historical issues with Android Chrome and `supabase-js`, we use a custom `XMLHttpRequest` wrapper to read files into memory (`ArrayBuffer`) and bypass the buggy streaming API.
-When testing on Android devices, verify the following:
+Opening the camera or file picker on a phone sends the page to the background. When it comes
+back, supabase-js re-checks the session while holding its auth lock and calls
+`onAuthStateChange` listeners. That listener in `useAuth.jsx` must stay synchronous and defer any
+Supabase call with `setTimeout`; awaiting a query there deadlocks every later request (the old
+"stuck on Saving…" bug).
 
-1. **Size Limit:** Attempt to upload an image >10MB. Ensure a clear error toast appears.
-2. **Format Limit:** Attempt to upload a `.heic` or `.heif` image. Ensure the "format not supported" error toast appears.
-3. **Progress Tracking:** Upload a valid image (e.g., 2MB JPEG). Ensure the toast shows "Step 1", "Step 2", and "Uploading: 50%...".
-4. **Success State:** Once upload completes, ensure the form submits successfully without hanging on "Saving..." indefinitely.
-5. **Flows to Check:** Test "Add Credit Receipt" (`Customers.jsx`), "Deposit Receipt" (`Checkout.jsx`), and "Customer Verification" (`VerifyAccount.jsx`).
+When testing on Android/iOS, verify:
+
+1. **Size Limit:** Upload an image >15MB. A clear error toast appears.
+2. **Format Limit:** Upload a `.heic` or `.heif` image. The "format not supported" toast appears.
+3. **Progress:** Upload a valid image (e.g. 2MB JPEG). The toast shows "Step 1" then "Step 2".
+4. **Success:** After choosing a photo from the camera or gallery, the form finishes saving and
+   does not hang on "Saving...".
+5. **Flows to Check:** "Deposit Receipt" (`Checkout.jsx`), "Customer Verification"
+   (`VerifyAccount.jsx`), "Full Payment Receipt" (`MyBookings.jsx`) and "Add Credit Receipt"
+   (`Customers.jsx`).
 
 ---
 
 ## 💰 Payment Flow
 
 ```
-1. Customer selects dates + car
-2. Deposit calculated (max of RM100 or 30% of total)
-3. Available credit auto-deducted from deposit
-4. Customer uploads deposit receipt image
-5. Admin verifies deposit receipt
-6. At pickup: customer uploads full rental payment receipt
-7. Admin verifies full payment
-8. On return: deposit auto-returned as credit to customer profile
+1. Customer selects dates + car (availability checked on the server)
+2. Checkout places a 10-minute hold; the server computes price and deposit
+   (max of RM100 or 30% of total)
+3. Customer uploads the deposit receipt; one server call marks the deposit paid,
+   records the payment and applies available credit
+4. Admin verifies deposit receipt
+5. At pickup: customer uploads full rental payment receipt
+6. Admin verifies full payment
+7. When the admin verifies the deposit receipt, the deposit is added to the customer's credit balance
 ```
 
 ---
 
-## � Security
+## 🔒 Security
 
-- **Row Level Security (RLS)** on all Supabase tables
+- **Row Level Security (RLS)** on all Supabase tables; profiles are visible only to their owner and admins
+- **Protected columns** — database triggers stop customers changing their role, verification,
+  credit, booking status, prices or payment flags; only super admins change roles
+- **Bookings and deposits** go through server functions (`bubatrent_create_hold_booking`,
+  `bubatrent_submit_booking_deposit`); a database constraint prevents overlapping bookings
+- **Verification documents** stored in a private bucket, viewed through short-lived signed URLs
+- **Walk-in customers** get a random password and sign in with "Forgot password"
 - **Protected Routes** — auth-gated pages redirect to login with returnTo
 - **Admin Routes** — role-checked before rendering
-- **Verification documents** stored in private Supabase Storage bucket
 - **Sensitive data** — IC numbers masked in admin views
-- **Audit logging** — all admin actions tracked
+- **Audit logging** — admin actions tracked; audit logs cannot be deleted from the app
 
 ---
 

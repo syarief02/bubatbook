@@ -1,10 +1,10 @@
-/* eslint-disable */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { uploadFileRobust, getSessionWithTimeout } from '../lib/uploadHelper';
+import { uploadFileRobust } from '../lib/uploadHelper';
 import { useToast } from '../components/Toast';
+import { normalizePhone } from '../utils/phoneUtils';
 import {
   FileCheck,
   Shield,
@@ -53,16 +53,14 @@ export default function VerifyAccount() {
     const ext = file.name?.split('.').pop()?.toLowerCase();
     const isAllowedExt = ext && ALLOWED_EXTS.includes(ext);
     const isAllowedType =
-      file.type?.startsWith('image/') ||
-      file.type === 'application/pdf' ||
-      file.type === ''; // Android gallery empty mime fallback
+      file.type?.startsWith('image/') || file.type === 'application/pdf' || file.type === ''; // Android gallery empty mime fallback
     if (!isAllowedExt && !isAllowedType) {
       return `${label}: only JPG, PNG, WebP, or PDF allowed`;
     }
     return null;
   }
 
-  async function uploadFile(file, folder, token) {
+  async function uploadFile(file, folder) {
     const ext =
       file.name
         .split('.')
@@ -73,8 +71,7 @@ export default function VerifyAccount() {
       'customer-documents',
       filePath,
       file,
-      toast,
-      token
+      toast
     );
     if (uploadErr) throw uploadErr;
     return filePath;
@@ -133,27 +130,17 @@ export default function VerifyAccount() {
     }
 
     setUploading(true);
-    setUploadStatus('Verifying session...');
     try {
-      // Get session once with instant localStorage check
-      const { session, error: sessionErr } = await getSessionWithTimeout(4000);
-      if (sessionErr || !session) {
-        setError('Session expired. Please refresh the page and log in again.');
-        setUploading(false);
-        return;
-      }
-      const token = session.access_token;
-
       let icPath = profile?.ic_file_path || null;
       let licencePath = profile?.licence_file_path || null;
 
       if (icFile) {
         setUploadStatus('Uploading IC / MyKad (1/2)...');
-        icPath = await uploadFile(icFile, 'ic', token);
+        icPath = await uploadFile(icFile, 'ic');
       }
       if (licenceFile) {
         setUploadStatus('Uploading Driving Licence (2/2)...');
-        licencePath = await uploadFile(licenceFile, 'licence', token);
+        licencePath = await uploadFile(licenceFile, 'licence');
       }
 
       setUploadStatus('Saving profile...');
@@ -167,7 +154,7 @@ export default function VerifyAccount() {
             licence_expiry: licenceExpiry,
             ic_file_path: icPath,
             licence_file_path: licencePath,
-            phone: phone.trim(),
+            phone: normalizePhone(phone),
             address_line1: addressLine1.trim(),
             address_line2: addressLine2.trim(),
             city: city.trim(),
@@ -189,7 +176,7 @@ export default function VerifyAccount() {
             licence_expiry: licenceExpiry,
             ic_file_path: icPath,
             licence_file_path: licencePath,
-            phone: phone.trim(),
+            phone: normalizePhone(phone),
             address_line1: addressLine1.trim(),
             address_line2: addressLine2.trim(),
             city: city.trim(),
@@ -273,7 +260,7 @@ export default function VerifyAccount() {
             Your documents have been submitted and are being reviewed.
           </p>
           <p className="text-xs text-slate-500 mb-6">
-            This usually takes less than 24 hours. You'll be able to book once verified.
+            This usually takes less than 24 hours. You&apos;ll be able to book once verified.
           </p>
           <Link to="/" className="btn-secondary inline-flex items-center gap-2">
             Back to Home
@@ -379,7 +366,9 @@ export default function VerifyAccount() {
                       <p className="text-sm text-slate-300">
                         {icFile ? icFile.name : 'Click or tap to upload IC photo'}
                       </p>
-                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)</p>
+                      <p className="text-xs text-slate-500">
+                        JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)
+                      </p>
                     </div>
                   </label>
                 </div>
@@ -398,7 +387,9 @@ export default function VerifyAccount() {
                       <p className="text-sm text-slate-300">
                         {licenceFile ? licenceFile.name : 'Click or tap to upload licence photo'}
                       </p>
-                      <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)</p>
+                      <p className="text-xs text-slate-500">
+                        JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)
+                      </p>
                     </div>
                   </label>
                 </div>

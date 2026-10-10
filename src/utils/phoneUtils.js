@@ -6,16 +6,16 @@
  *  - 0194961568  → +60194961568
  *  - 60194961568 → +60194961568
  *  - +601...     → keep as-is
+ *  - +65...      → keep as-is (an explicit country code is never rewritten)
  */
 
 export function normalizePhone(raw) {
   if (!raw) return '';
-  // Strip non-digit except leading +
-  let cleaned = raw.replace(/[\s\-()]/g, '');
-  // Remove any + not at start
-  const hasPlus = cleaned.startsWith('+'); // eslint-disable-line no-unused-vars
-  cleaned = cleaned.replace(/\+/g, '');
-  // All digits now
+  const trimmed = raw.trim();
+  // Explicit international number: keep the country code the user typed
+  if (trimmed.startsWith('+')) return '+' + trimmed.replace(/\D/g, '');
+
+  let cleaned = trimmed.replace(/\D/g, '');
   if (cleaned.startsWith('0')) {
     // Local format: 0194961568 → 60194961568
     cleaned = '60' + cleaned.slice(1);

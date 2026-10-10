@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -23,6 +22,7 @@ import {
   Trash2,
 } from 'lucide-react';
 
+import { SignedLink } from '../../components/SignedFile';
 export default function AdminExpenses() {
   const { user } = useAuth();
   const { activeFleetId } = useFleet();
@@ -450,19 +450,15 @@ export default function AdminExpenses() {
                       <p className="text-xs text-slate-500 mb-2">Invoice Images:</p>
                       <div className="flex gap-2 flex-wrap">
                         {claim.bubatrent_booking_expense_images.map((img) => (
-                          <a
+                          <SignedLink
                             key={img.id}
-                            href={
-                              supabase.storage
-                                .from('customer-documents')
-                                .getPublicUrl(img.file_path).data.publicUrl
-                            }
+                            path={img.file_path}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
                           >
                             <FileImage className="w-6 h-6 text-slate-400" />
-                          </a>
+                          </SignedLink>
                         ))}
                       </div>
                     </div>

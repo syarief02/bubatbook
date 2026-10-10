@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '../lib/supabase';
 import { useViewAs } from './ViewAsContext';
@@ -17,13 +16,7 @@ export function FleetProvider({ userId, isSuperAdmin, children }) {
   const [loading, setLoading] = useState(true);
 
   // ViewAs integration
-  let viewAsContext;
-  try {
-    viewAsContext = useViewAs();
-  } catch {
-    viewAsContext = { isViewMode: false, viewAs: null };
-  }
-  const { isViewMode, viewAs } = viewAsContext;
+  const { isViewMode, viewAs } = useViewAs();
 
   useEffect(() => {
     if (!userId) return;

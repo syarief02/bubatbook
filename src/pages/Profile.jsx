@@ -8,6 +8,7 @@ import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
+import { normalizePhone } from '../utils/phoneUtils';
 import {
   User,
   Mail,
@@ -61,7 +62,7 @@ export default function Profile() {
         .from('bubatrent_booking_profiles')
         .update({
           display_name: displayName.trim(),
-          phone: phone.trim(),
+          phone: normalizePhone(phone),
           address_line1: addressLine1.trim(),
           address_line2: addressLine2.trim(),
           city: city.trim(),

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -38,8 +37,7 @@ export default function Login() {
 
   // If user arrived here via password reset recovery link, redirect to reset-password page
   const isRecovery =
-    window.location.hash.includes('type=recovery') ||
-    searchParams.get('type') === 'recovery';
+    window.location.hash.includes('type=recovery') || searchParams.get('type') === 'recovery';
 
   if (isRecovery) {
     return <Navigate to={`/reset-password${window.location.hash}`} replace />;
@@ -121,7 +119,7 @@ export default function Login() {
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">Check your email</h3>
                 <p className="text-sm text-slate-400 mb-6">
-                  We've sent a password reset link to{' '}
+                  We&apos;ve sent a password reset link to{' '}
                   <strong className="text-white">{email}</strong>
                 </p>
                 <button

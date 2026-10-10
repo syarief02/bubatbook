@@ -1,9 +1,9 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
+import { ilikeAny } from '../../utils/search';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
@@ -79,7 +79,7 @@ export default function GroupMembers() {
     const { data } = await supabase
       .from('bubatrent_booking_profiles')
       .select('id, display_name, username, role')
-      .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
+      .or(ilikeAny(['display_name', 'username'], q))
       .in('role', ['admin', 'super_admin'])
       .limit(10);
     // Filter out already-members
@@ -336,7 +336,7 @@ export default function GroupMembers() {
         <EmptyState
           icon={Users}
           title="No members"
-          description="It looks like you don&apos;t have any active groups right now."
+          description="It looks like you don't have any active groups right now."
         />
       ) : (
         <div className="space-y-2">
@@ -420,8 +420,8 @@ export default function GroupMembers() {
           >
             <h3 className="text-lg font-semibold text-white mb-4">Change Role</h3>
             <p className="text-sm text-slate-400 mb-4">
-              Change <strong>{roleChange.bubatrent_booking_profiles?.display_name}</strong>'s role
-              in this group:
+              Change <strong>{roleChange.bubatrent_booking_profiles?.display_name}</strong>&apos;s
+              role in this group:
             </p>
             <div className="space-y-2 mb-4">
               {Object.entries(ROLE_CONFIG).map(([key, cfg]) => (

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { ilikeAny } from '../utils/search';
 
 // ─── Fleet-scoped helper ───
 // Applies fleet_group_id filter unless null (super admin "All Fleets" view)
@@ -8,12 +9,23 @@ function scopeToFleet(query, fleetId) {
   return query;
 }
 
+// Abandoned checkouts stay HOLD until something expires them; do it before
+// counting or listing so admins don't see stale holds. Best-effort only.
+async function expireStaleHoldsQuietly() {
+  try {
+    await supabase.rpc('bubatrent_expire_stale_holds');
+  } catch {
+    // listing must still work if this fails
+  }
+}
+
 // ─── Data-Fetching Hooks (React Query) ───
 
 export function useAdminStats(fleetId) {
   const { data: stats = null, isLoading: loading } = useQuery({
     queryKey: ['admin-stats', fleetId],
     queryFn: async () => {
+      await expireStaleHoldsQuietly();
       let bQuery = supabase
         .from('bubatrent_booking_bookings')
         .select('*', { count: 'exact', head: true })
@@ -92,6 +104,7 @@ export function useAdminBookings(filters = {}) {
   } = useQuery({
     queryKey: ['admin-bookings', filters.status, filters.carId, filters.fleetId],
     queryFn: async () => {
+      await expireStaleHoldsQuietly();
       let query = supabase
         .from('bubatrent_booking_bookings')
         .select('*, bubatrent_booking_cars(name, brand, model, image_url)')
@@ -176,11 +189,8 @@ export function useAdminCustomers(filters = {}) {
 
       // Search filter
       if (filters.search) {
-        const safe = filters.search.replace(/[.,%()]/g, '').trim();
-        if (safe) {
-          query = query.or(
-            `display_name.ilike.%${safe}%,username.ilike.%${safe}%,phone.ilike.%${safe}%`
-          );
+        if (filters.search.trim()) {
+          query = query.or(ilikeAny(['display_name', 'username', 'phone'], filters.search));
         }
       }
 
@@ -306,14 +316,6 @@ export async function getBookingDocuments(bookingId, adminId) {
 }
 
 export async function verifyDocument(documentId, adminId) {
-  await supabase.from('bubatrent_booking_audit_logs').insert({
-    admin_id: adminId,
-    action: 'VERIFY_DOCUMENT',
-    resource_type: 'document',
-    resource_id: documentId,
-    details: { timestamp: new Date().toISOString() },
-  });
-
   const { data, error } = await supabase
     .from('bubatrent_booking_customer_documents')
     .update({ verified_by: adminId, verified_at: new Date().toISOString() })
@@ -322,6 +324,14 @@ export async function verifyDocument(documentId, adminId) {
     .single();
 
   if (error) throw error;
+
+  await supabase.from('bubatrent_booking_audit_logs').insert({
+    admin_id: adminId,
+    action: 'VERIFY_DOCUMENT',
+    resource_type: 'document',
+    resource_id: documentId,
+    details: { timestamp: new Date().toISOString() },
+  });
   return data;
 }
 
@@ -341,14 +351,6 @@ export async function getAuditLogs(bookingId) {
 export async function updateUserRole(userId, newRole, adminId) {
   console.log('[updateUserRole] userId:', userId, 'newRole:', newRole, 'by:', adminId);
 
-  await supabase.from('bubatrent_booking_audit_logs').insert({
-    admin_id: adminId,
-    action: 'CHANGE_ROLE',
-    resource_type: 'profile',
-    resource_id: userId,
-    details: { new_role: newRole, timestamp: new Date().toISOString() },
-  });
-
   const { error } = await supabase
     .from('bubatrent_booking_profiles')
     .update({ role: newRole })
@@ -358,6 +360,13 @@ export async function updateUserRole(userId, newRole, adminId) {
     console.error('[updateUserRole] Update failed:', error);
     throw error;
   }
+  await supabase.from('bubatrent_booking_audit_logs').insert({
+    admin_id: adminId,
+    action: 'CHANGE_ROLE',
+    resource_type: 'profile',
+    resource_id: userId,
+    details: { new_role: newRole, timestamp: new Date().toISOString() },
+  });
   console.log('[updateUserRole] Success');
   return { ok: true };
 }
@@ -379,14 +388,6 @@ export async function getCustomerBookings(userId, fleetId) {
 export async function verifyCustomer(userId, adminId) {
   console.log('[verifyCustomer] userId:', userId, 'by:', adminId);
 
-  await supabase.from('bubatrent_booking_audit_logs').insert({
-    admin_id: adminId,
-    action: 'VERIFY_CUSTOMER',
-    resource_type: 'profile',
-    resource_id: userId,
-    details: { timestamp: new Date().toISOString() },
-  });
-
   const { error } = await supabase
     .from('bubatrent_booking_profiles')
     .update({
@@ -400,20 +401,19 @@ export async function verifyCustomer(userId, adminId) {
     console.error('[verifyCustomer] Failed:', error);
     throw error;
   }
+  await supabase.from('bubatrent_booking_audit_logs').insert({
+    admin_id: adminId,
+    action: 'VERIFY_CUSTOMER',
+    resource_type: 'profile',
+    resource_id: userId,
+    details: { timestamp: new Date().toISOString() },
+  });
   console.log('[verifyCustomer] Success');
   return { ok: true };
 }
 
 export async function unverifyCustomer(userId, adminId) {
   console.log('[unverifyCustomer] userId:', userId, 'by:', adminId);
-
-  await supabase.from('bubatrent_booking_audit_logs').insert({
-    admin_id: adminId,
-    action: 'UNVERIFY_CUSTOMER',
-    resource_type: 'profile',
-    resource_id: userId,
-    details: { timestamp: new Date().toISOString() },
-  });
 
   const { error } = await supabase
     .from('bubatrent_booking_profiles')
@@ -428,6 +428,13 @@ export async function unverifyCustomer(userId, adminId) {
     console.error('[unverifyCustomer] Failed:', error);
     throw error;
   }
+  await supabase.from('bubatrent_booking_audit_logs').insert({
+    admin_id: adminId,
+    action: 'UNVERIFY_CUSTOMER',
+    resource_type: 'profile',
+    resource_id: userId,
+    details: { timestamp: new Date().toISOString() },
+  });
   console.log('[unverifyCustomer] Success');
   return { ok: true };
 }
@@ -438,14 +445,6 @@ export async function unverifyCustomer(userId, adminId) {
  */
 export async function rejectVerification(userId, adminId, reason = '') {
   console.log('[rejectVerification] userId:', userId, 'by:', adminId, 'reason:', reason);
-
-  await supabase.from('bubatrent_booking_audit_logs').insert({
-    admin_id: adminId,
-    action: 'REJECT_VERIFICATION',
-    resource_type: 'profile',
-    resource_id: userId,
-    details: { reason, timestamp: new Date().toISOString() },
-  });
 
   const { error } = await supabase
     .from('bubatrent_booking_profiles')
@@ -464,6 +463,13 @@ export async function rejectVerification(userId, adminId, reason = '') {
     console.error('[rejectVerification] Failed:', error);
     throw error;
   }
+  await supabase.from('bubatrent_booking_audit_logs').insert({
+    admin_id: adminId,
+    action: 'REJECT_VERIFICATION',
+    resource_type: 'profile',
+    resource_id: userId,
+    details: { reason, timestamp: new Date().toISOString() },
+  });
   console.log('[rejectVerification] Success');
   return { ok: true };
 }

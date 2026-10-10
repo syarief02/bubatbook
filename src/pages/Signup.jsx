@@ -113,9 +113,15 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      await signUp(email, password, displayName, phone.trim());
-      toast.success('Account created successfully! Welcome to Rent2Go.');
-      navigate('/');
+      const data = await signUp(email, password, displayName, phone.trim());
+      if (data?.session) {
+        toast.success('Account created successfully! Welcome to Rent2Go.');
+        navigate('/');
+      } else {
+        // Email confirmation is on: there is no session until the link is clicked
+        toast.success('Account created! Check your email to confirm your address, then log in.');
+        navigate('/login');
+      }
     } catch (err) {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -15,10 +14,6 @@ export default function AdminSales() {
   const [dateRange, setDateRange] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-
-  useEffect(() => {
-    fetchData();
-  }, [activeFleetId]);
 
   async function fetchData() {
     setLoading(true);
@@ -37,6 +32,11 @@ export default function AdminSales() {
     setCars(cData || []);
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFleetId]);
 
   function getFilteredBookings() {
     let filtered = bookings;

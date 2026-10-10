@@ -40,15 +40,15 @@ export default function PriceCalculator({ pricePerDay, pickupDate, returnDate })
         <div className="flex items-center justify-between text-sm bg-violet-500/10 rounded-xl px-4 py-3 -mx-1">
           <span className="flex items-center gap-2 text-violet-300">
             <CreditCard className="w-4 h-4" />
-            Deposit (30%)
+            Deposit (30%, min RM100)
           </span>
           <span className="text-violet-300 font-bold text-lg">{formatMYR(deposit)}</span>
         </div>
       </div>
 
       <p className="text-xs text-slate-500">
-        Pay {formatMYR(deposit)} deposit now to lock your booking. Remaining{' '}
-        {formatMYR(total - deposit)} to be paid on pick-up.
+        Pay {formatMYR(deposit)} deposit now to lock your booking. The full rental of{' '}
+        {formatMYR(total)} is paid on pick-up.
       </p>
     </div>
   );

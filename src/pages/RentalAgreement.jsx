@@ -35,7 +35,7 @@ export default function RentalAgreement() {
   useEffect(() => {
     if (authLoading) return;
     if (!isAdmin && !user) {
-      navigate('/login?returnTo=' + encodeURIComponent(`/rental-agreement/${id}`));
+      navigate('/login?returnTo=' + encodeURIComponent(`/booking/${id}/agreement`));
       return;
     }
 
@@ -98,7 +98,7 @@ export default function RentalAgreement() {
       const { error } = await supabase.from('bubatrent_booking_rental_agreements').insert({
         booking_id: booking.id,
         customer_id: user.id,
-        customer_name: profile?.full_name || user.email,
+        customer_name: profile?.display_name || user.email,
         customer_ic: profile?.ic_number || '',
         customer_phone: profile?.phone || '',
         car_model: `${car?.brand || ''} ${car?.model || ''}`.trim(),
@@ -117,7 +117,7 @@ export default function RentalAgreement() {
       setExistingAgreement({
         agreed_at: new Date().toISOString(),
         signature_data: signatureData,
-        customer_name: profile?.full_name || user.email,
+        customer_name: profile?.display_name || user.email,
         customer_ic: profile?.ic_number || '',
         car_model: `${car?.brand || ''} ${car?.model || ''}`.trim(),
         pickup_date: booking.pickup_date,
@@ -368,7 +368,7 @@ export default function RentalAgreement() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-slate-500 text-xs mb-0.5">Nama / Name</p>
-              <p className="text-white font-medium">{profile?.full_name || user.email}</p>
+              <p className="text-white font-medium">{profile?.display_name || user.email}</p>
             </div>
             <div>
               <p className="text-slate-500 text-xs mb-0.5">No. K/P / IC Number</p>

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useCar, checkAvailability } from '../hooks/useCars';
@@ -70,7 +69,7 @@ export default function CarDetail() {
     );
   }
 
-  const { days, total, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
+  const { days, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
 
   function handleBookNow() {
     if (!pickupDate || !returnDate || days <= 0 || !isAvailable) return;

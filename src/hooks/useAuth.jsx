@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useViewAs } from './ViewAsContext';
 
@@ -9,33 +9,30 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const currentUserId = useRef(null);
 
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchProfile(session.user.id);
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.warn('Auth session init failed:', err.message);
-        setUser(null);
-        setLoading(false);
-      });
-
+    // This callback must stay synchronous and must not call Supabase directly.
+    // supabase-js runs it while holding its auth lock (e.g. on every return to
+    // the tab, or from the camera/file picker on mobile). Awaiting a query here
+    // waits on that same lock and deadlocks every later Supabase request.
+    // Deferring with setTimeout lets the lock release first.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      const nextUser = session?.user ?? null;
+      const userChanged = nextUser?.id !== currentUserId.current;
+      currentUserId.current = nextUser?.id ?? null;
+
+      setUser((prev) => (prev?.id === nextUser?.id && event !== 'USER_UPDATED' ? prev : nextUser));
+
+      if (!nextUser) {
         setProfile(null);
         setLoading(false);
+      } else if (userChanged || event === 'USER_UPDATED') {
+        // Hold protected routes on the spinner until the new user's role is known
+        if (userChanged) setLoading(true);
+        setTimeout(() => fetchProfile(nextUser.id), 0);
       }
     });
 
@@ -50,12 +47,12 @@ export function AuthProvider({ children }) {
         .eq('id', userId)
         .single();
       if (error) throw error;
-      setProfile(data);
+      if (currentUserId.current === userId) setProfile(data);
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setProfile(null);
+      if (currentUserId.current === userId) setProfile(null);
     } finally {
-      setLoading(false);
+      if (currentUserId.current === userId) setLoading(false);
     }
   }
 
@@ -74,38 +71,10 @@ export function AuthProvider({ children }) {
     });
     if (error) throw error;
 
-    // Feature C: check if a manual customer profile exists with same phone
-    if (data?.user?.id && normalizedPhone) {
-      try {
-        const { data: existing } = await supabase
-          .from('bubatrent_booking_profiles')
-          .select('id, phone, created_by_admin, is_verified')
-          .eq('phone', normalizedPhone)
-          .not('created_by_admin', 'is', null)
-          .limit(2);
-
-        if (existing && existing.length === 1) {
-          // Link: update the manual profile's id to this auth user
-          const manualProfile = existing[0];
-          await supabase
-            .from('bubatrent_booking_profiles')
-            .update({
-              id: data.user.id,
-              email: email,
-              display_name: displayName,
-            })
-            .eq('id', manualProfile.id);
-          console.log('Linked signup to existing manual customer profile');
-        } else if (existing && existing.length > 1) {
-          console.warn(
-            'Multiple manual profiles with same phone — admin needs to resolve duplicates'
-          );
-        }
-      } catch (linkErr) {
-        console.warn('Phone linking check failed (non-blocking):', linkErr.message);
-      }
-    }
-
+    // Walk-in customers are not auto-linked by phone number here: an unverified
+    // phone number is not proof of identity, so linking would let anyone claim a
+    // verified walk-in account. Walk-in customers sign in with "Forgot password"
+    // using the email the admin registered for them.
     return data;
   }
 

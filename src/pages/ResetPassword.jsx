@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -78,7 +77,10 @@ export default function ResetPassword() {
       });
 
       if (res?.error) {
-        if (res.error.code === 'same_password' || res.error.message?.includes('different from the old')) {
+        if (
+          res.error.code === 'same_password' ||
+          res.error.message?.includes('different from the old')
+        ) {
           // Password was already updated to this!
           setSuccess(true);
           return;
@@ -122,12 +124,10 @@ export default function ResetPassword() {
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Password Updated!</h3>
               <p className="text-sm text-slate-400 mb-6">
-                Your password has been changed successfully. You can now use your new password to sign in.
+                Your password has been changed successfully. You can now use your new password to
+                sign in.
               </p>
-              <button
-                onClick={() => navigate('/login')}
-                className="btn-primary w-full"
-              >
+              <button onClick={() => navigate('/login')} className="btn-primary w-full">
                 Go to Sign In
               </button>
             </div>
@@ -138,7 +138,8 @@ export default function ResetPassword() {
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Invalid or Expired Link</h3>
               <p className="text-sm text-slate-400 mb-6">
-                This password reset link is invalid or has already expired. Please request a new link from the login page.
+                This password reset link is invalid or has already expired. Please request a new
+                link from the login page.
               </p>
               <Link to="/login" className="btn-secondary w-full inline-block text-center">
                 <ArrowLeft className="w-4 h-4 inline mr-1" />
@@ -198,21 +199,24 @@ export default function ResetPassword() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                     tabIndex={-1}
                   >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full"
-              >
+              <button type="submit" disabled={loading} className="btn-primary w-full">
                 {loading ? 'Updating Password...' : 'Update Password'}
               </button>
 
               <div className="text-center pt-2">
-                <Link to="/login" className="text-xs text-slate-400 hover:text-white transition-colors">
+                <Link
+                  to="/login"
+                  className="text-xs text-slate-400 hover:text-white transition-colors"
+                >
                   <ArrowLeft className="w-3.5 h-3.5 inline mr-1" />
                   Cancel and return to Sign In
                 </Link>

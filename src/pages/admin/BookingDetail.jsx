@@ -8,6 +8,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
+import { expireStaleHolds } from '../../hooks/useBookings';
+import { friendlyDbError } from '../../utils/dbErrors';
 import { useToast } from '../../components/Toast';
 import { formatDate, formatDateTime } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
@@ -33,6 +35,7 @@ import {
   FileSignature,
 } from 'lucide-react';
 
+import { SignedLink, SignedImage } from '../../components/SignedFile';
 // Status flow definition
 const STATUS_FLOW = {
   HOLD: ['DEPOSIT_PAID', 'CANCELLED'],
@@ -196,7 +199,7 @@ export default function AdminBookingDetail() {
       setBooking((prev) => ({ ...prev, ...updates }));
       toast.success(`Status updated to ${newStatus}`);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(friendlyDbError(err));
     }
   }
 
@@ -215,6 +218,7 @@ export default function AdminBookingDetail() {
   async function handleSaveDates() {
     setSavingDates(true);
     try {
+      await expireStaleHolds();
       const { error } = await supabase
         .from('bubatrent_booking_bookings')
         .update({ pickup_date: editPickup, return_date: editReturn })
@@ -224,7 +228,7 @@ export default function AdminBookingDetail() {
       setEditingDates(false);
       toast.success('Dates updated!');
     } catch (err) {
-      toast.error(err.message);
+      toast.error(friendlyDbError(err));
     } finally {
       setSavingDates(false);
     }
@@ -232,40 +236,53 @@ export default function AdminBookingDetail() {
 
   async function handleVerifyDeposit() {
     try {
-      const { error } = await supabase
+      // Only the first verification counts, so a double-click cannot credit twice
+      const { data: verified, error } = await supabase
         .from('bubatrent_booking_bookings')
         .update({ deposit_status: 'verified' })
-        .eq('id', id);
+        .eq('id', id)
+        .neq('deposit_status', 'verified')
+        .select('id');
       if (error) throw error;
+      if (!verified?.length) {
+        toast.info('This deposit was already verified.');
+        return;
+      }
 
       // Also mark the deposit payment record as completed
-      await supabase
+      const { error: payErr } = await supabase
         .from('bubatrent_booking_payments')
         .update({ status: 'completed' })
         .eq('booking_id', id)
         .eq('payment_type', 'deposit');
+      if (payErr) throw payErr;
 
       // Increase customer deposit credit by the deposit amount
       if (booking.deposit_amount > 0) {
-        const profileData = await supabase
+        const { data: profileData, error: profileErr } = await supabase
           .from('bubatrent_booking_profiles')
           .select('deposit_credit')
           .eq('id', booking.user_id)
           .single();
-        const currentCredit = Number(profileData.data?.deposit_credit || 0);
-        await supabase
+        if (profileErr) throw profileErr;
+        const currentCredit = Number(profileData?.deposit_credit || 0);
+        const { error: creditErr } = await supabase
           .from('bubatrent_booking_profiles')
           .update({ deposit_credit: currentCredit + Number(booking.deposit_amount) })
           .eq('id', booking.user_id);
-        await supabase.from('bubatrent_booking_credit_transactions').insert({
-          user_id: booking.user_id,
-          booking_id: id,
-          amount: Number(booking.deposit_amount),
-          type: 'deposit_return',
-          description: `Deposit verified — credit added`,
-          admin_id: user.id,
-          fleet_group_id: booking.fleet_group_id || null,
-        });
+        if (creditErr) throw creditErr;
+        const { error: ledgerErr } = await supabase
+          .from('bubatrent_booking_credit_transactions')
+          .insert({
+            user_id: booking.user_id,
+            booking_id: id,
+            amount: Number(booking.deposit_amount),
+            type: 'deposit_return',
+            description: `Deposit verified — credit added`,
+            admin_id: user.id,
+            fleet_group_id: booking.fleet_group_id || null,
+          });
+        if (ledgerErr) throw ledgerErr;
       }
 
       // Refresh booking with updated payment data
@@ -305,28 +322,29 @@ export default function AdminBookingDetail() {
       if (error) throw error;
 
       // Update or create the full payment record as completed
-      const { data: existing } = await supabase
+      const { data: existing, error: findErr } = await supabase
         .from('bubatrent_booking_payments')
         .select('id')
         .eq('booking_id', id)
         .eq('payment_type', 'full_payment')
         .maybeSingle();
+      if (findErr) throw findErr;
 
-      if (existing) {
-        await supabase
-          .from('bubatrent_booking_payments')
-          .update({ status: 'completed' })
-          .eq('id', existing.id);
-      } else {
-        await supabase.from('bubatrent_booking_payments').insert({
-          booking_id: id,
-          amount: booking.full_payment_amount || booking.total_price,
-          payment_method: 'bank_transfer',
-          status: 'completed',
-          payment_type: 'full_payment',
-          reference_number: `FP-${Date.now().toString(36).toUpperCase()}`,
-        });
-      }
+      const { error: payErr } = existing
+        ? await supabase
+            .from('bubatrent_booking_payments')
+            .update({ status: 'completed' })
+            .eq('id', existing.id)
+        : await supabase.from('bubatrent_booking_payments').insert({
+            booking_id: id,
+            amount: booking.full_payment_amount || booking.total_price,
+            payment_method: 'bank_transfer',
+            status: 'completed',
+            payment_type: 'full_payment',
+            reference_number: `FP-${Date.now().toString(36).toUpperCase()}`,
+            fleet_group_id: booking.fleet_group_id || null,
+          });
+      if (payErr) throw payErr;
 
       // Refresh booking with updated payment data
       const { data: refreshed } = await supabase
@@ -379,18 +397,31 @@ export default function AdminBookingDetail() {
 
   // Delete booking and all related records
   async function handleDeleteBooking() {
-    const confirmMsg = `Are you sure you want to DELETE this booking?\n\nCar: ${booking.bubatrent_booking_cars?.name || 'Unknown'}\nDates: ${booking.pickup_date} → ${booking.return_date}\nStatus: ${booking.status}\n\nThis will permanently delete:\n• The booking record\n• Associated payments\n• Audit logs\n\nThis action CANNOT be undone.`;
+    const confirmMsg = `Are you sure you want to DELETE this booking?\n\nCar: ${booking.bubatrent_booking_cars?.name || 'Unknown'}\nDates: ${booking.pickup_date} → ${booking.return_date}\nStatus: ${booking.status}\n\nThis will permanently delete:\n• The booking record\n• Associated payments and credit records\n\nAudit logs are kept. This action CANNOT be undone.`;
     if (!window.confirm(confirmMsg)) return;
 
     setDeleting(true);
     try {
       // Delete related records in dependency order
-      await supabase.from('bubatrent_booking_credit_transactions').delete().eq('booking_id', id);
-      await supabase.from('bubatrent_booking_payments').delete().eq('booking_id', id);
-      await supabase.from('bubatrent_booking_audit_logs').delete().eq('resource_id', id);
+      const { error: creditErr } = await supabase
+        .from('bubatrent_booking_credit_transactions')
+        .delete()
+        .eq('booking_id', id);
+      if (creditErr) throw creditErr;
+      const { error: payErr } = await supabase
+        .from('bubatrent_booking_payments')
+        .delete()
+        .eq('booking_id', id);
+      if (payErr) throw payErr;
       // Delete the booking itself
-      const { error } = await supabase.from('bubatrent_booking_bookings').delete().eq('id', id);
+      const { data: deleted, error } = await supabase
+        .from('bubatrent_booking_bookings')
+        .delete()
+        .eq('id', id)
+        .select('id');
       if (error) throw error;
+      if (!deleted?.length)
+        throw new Error('The booking could not be deleted (permission denied).');
 
       toast.success('Booking deleted successfully');
       navigate('/admin/bookings');
@@ -576,6 +607,7 @@ export default function AdminBookingDetail() {
                     onClick={async () => {
                       setReactivating(true);
                       try {
+                        await expireStaleHolds();
                         // Check date overlap
                         const { data: overlapping } = await supabase
                           .from('bubatrent_booking_bookings')
@@ -593,7 +625,7 @@ export default function AdminBookingDetail() {
                           setReactivating(false);
                           return;
                         }
-                        await supabase
+                        const { error: reactivateErr } = await supabase
                           .from('bubatrent_booking_bookings')
                           .update({
                             status: ns,
@@ -602,6 +634,7 @@ export default function AdminBookingDetail() {
                             reactivation_reason: reactivateReason,
                           })
                           .eq('id', booking.id);
+                        if (reactivateErr) throw reactivateErr;
                         await supabase.from('bubatrent_booking_audit_logs').insert({
                           admin_id: user.id,
                           action: 'REACTIVATE_EXPIRED',
@@ -614,7 +647,7 @@ export default function AdminBookingDetail() {
                         setShowReactivate(false);
                         setReactivateReason('');
                       } catch (err) {
-                        toast.error(err.message);
+                        toast.error(friendlyDbError(err));
                       } finally {
                         setReactivating(false);
                       }
@@ -792,18 +825,14 @@ export default function AdminBookingDetail() {
                   </span>
                 </div>
                 {booking.deposit_receipt_path && (
-                  <a
-                    href={
-                      supabase.storage
-                        .from('customer-documents')
-                        .getPublicUrl(booking.deposit_receipt_path).data.publicUrl
-                    }
+                  <SignedLink
+                    path={booking.deposit_receipt_path}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 mb-2"
                   >
                     <Eye className="w-3 h-3" /> View Receipt
-                  </a>
+                  </SignedLink>
                 )}
                 {booking.deposit_status === 'uploaded' && (
                   <div className="flex gap-2 mt-2">
@@ -842,18 +871,14 @@ export default function AdminBookingDetail() {
                   </span>
                 </div>
                 {booking.full_payment_receipt_path && (
-                  <a
-                    href={
-                      supabase.storage
-                        .from('customer-documents')
-                        .getPublicUrl(booking.full_payment_receipt_path).data.publicUrl
-                    }
+                  <SignedLink
+                    path={booking.full_payment_receipt_path}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 mb-2"
                   >
                     <Eye className="w-3 h-3" /> View Receipt
-                  </a>
+                  </SignedLink>
                 )}
                 {booking.full_payment_status === 'uploaded' && (
                   <button
@@ -938,12 +963,8 @@ export default function AdminBookingDetail() {
                     >
                       <p className="text-[11px] font-medium text-slate-400 mb-2">IC Document</p>
                       {customerProfile.ic_file_path ? (
-                        <a
-                          href={
-                            supabase.storage
-                              .from('customer-documents')
-                              .getPublicUrl(customerProfile.ic_file_path).data.publicUrl
-                          }
+                        <SignedLink
+                          path={customerProfile.ic_file_path}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block"
@@ -953,17 +974,13 @@ export default function AdminBookingDetail() {
                               <FileText className="w-5 h-5" /> View IC (PDF)
                             </div>
                           ) : (
-                            <img
-                              src={
-                                supabase.storage
-                                  .from('customer-documents')
-                                  .getPublicUrl(customerProfile.ic_file_path).data.publicUrl
-                              }
+                            <SignedImage
+                              path={customerProfile.ic_file_path}
                               alt="IC Document"
                               className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity"
                             />
                           )}
-                        </a>
+                        </SignedLink>
                       ) : (
                         <p className="text-xs text-slate-500 italic">Not uploaded</p>
                       )}
@@ -980,12 +997,8 @@ export default function AdminBookingDetail() {
                     >
                       <p className="text-[11px] font-medium text-slate-400 mb-2">Driving Licence</p>
                       {customerProfile.licence_file_path ? (
-                        <a
-                          href={
-                            supabase.storage
-                              .from('customer-documents')
-                              .getPublicUrl(customerProfile.licence_file_path).data.publicUrl
-                          }
+                        <SignedLink
+                          path={customerProfile.licence_file_path}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block"
@@ -995,17 +1008,13 @@ export default function AdminBookingDetail() {
                               <FileText className="w-5 h-5" /> View Licence (PDF)
                             </div>
                           ) : (
-                            <img
-                              src={
-                                supabase.storage
-                                  .from('customer-documents')
-                                  .getPublicUrl(customerProfile.licence_file_path).data.publicUrl
-                              }
+                            <SignedImage
+                              path={customerProfile.licence_file_path}
                               alt="Driving Licence"
                               className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity"
                             />
                           )}
-                        </a>
+                        </SignedLink>
                       ) : (
                         <p className="text-xs text-slate-500 italic">Not uploaded</p>
                       )}
@@ -1065,32 +1074,24 @@ export default function AdminBookingDetail() {
                       {/* Document file links */}
                       <div className="flex gap-3 text-xs mt-2">
                         {doc.ic_file_path && (
-                          <a
-                            href={
-                              supabase.storage
-                                .from('customer-documents')
-                                .getPublicUrl(doc.ic_file_path).data.publicUrl
-                            }
+                          <SignedLink
+                            path={doc.ic_file_path}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-violet-400 hover:text-violet-300 flex items-center gap-1"
                           >
                             <Eye className="w-3.5 h-3.5" /> View IC
-                          </a>
+                          </SignedLink>
                         )}
                         {doc.licence_file_path && (
-                          <a
-                            href={
-                              supabase.storage
-                                .from('customer-documents')
-                                .getPublicUrl(doc.licence_file_path).data.publicUrl
-                            }
+                          <SignedLink
+                            path={doc.licence_file_path}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-violet-400 hover:text-violet-300 flex items-center gap-1"
                           >
                             <Eye className="w-3.5 h-3.5" /> View Licence
-                          </a>
+                          </SignedLink>
                         )}
                       </div>
                     </div>

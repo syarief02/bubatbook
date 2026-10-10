@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { expireOldHolds } from './useBookings';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -65,18 +64,17 @@ export function useCar(id) {
   return { car, loading, error: error?.message };
 }
 
+/**
+ * True when no active booking or unexpired hold overlaps the dates.
+ * Runs on the server so it sees every customer's bookings, not just the caller's.
+ */
 export async function checkAvailability(carId, pickupDate, returnDate) {
-  // Clean up expired holds first
-  await expireOldHolds();
-
-  const { data, error } = await supabase
-    .from('bubatrent_booking_bookings')
-    .select('id')
-    .eq('car_id', carId)
-    .in('status', ['HOLD', 'DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'])
-    .lte('pickup_date', returnDate)
-    .gte('return_date', pickupDate);
+  const { data, error } = await supabase.rpc('bubatrent_check_availability', {
+    p_car_id: carId,
+    p_pickup: pickupDate,
+    p_return: returnDate,
+  });
 
   if (error) throw error;
-  return (data || []).length === 0;
+  return data === true;
 }

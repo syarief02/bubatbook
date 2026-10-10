@@ -1,11 +1,14 @@
-/* eslint-disable */
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useCar } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
-import { createHoldBooking, updateBookingCustomerInfo, cancelBooking } from '../hooks/useBookings';
-import { supabase } from '../lib/supabase';
-import { uploadFileRobust, getSessionWithTimeout } from '../lib/uploadHelper';
+import {
+  createHoldBooking,
+  updateBookingCustomerInfo,
+  cancelBooking,
+  submitBookingDeposit,
+} from '../hooks/useBookings';
+import { uploadFileRobust } from '../lib/uploadHelper';
 import BookingForm from '../components/BookingForm';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
@@ -66,16 +69,7 @@ export default function Checkout() {
     async function createHold() {
       try {
         setLoading(true);
-        const { days, total, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
-        const hold = await createHoldBooking(
-          car.id,
-          user.id,
-          pickupDate,
-          returnDate,
-          total,
-          deposit,
-          car.fleet_group_id
-        );
+        const hold = await createHoldBooking(car.id, pickupDate, returnDate);
         setBooking(hold);
       } catch (err) {
         holdCreatedRef.current = false;
@@ -87,6 +81,8 @@ export default function Checkout() {
       }
     }
     createHold();
+    // booking and holdCreatedRef guard against duplicate holds; isTooFarAdvance derives from returnDate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [car, user, pickupDate, returnDate]);
 
   // Timer for hold expiry
@@ -175,7 +171,10 @@ export default function Checkout() {
     );
   }
 
-  const { days, total, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
+  const estimate = calculatePrice(car.price_per_day, pickupDate, returnDate);
+  const days = estimate.days;
+  const total = booking ? Number(booking.total_price) : estimate.total;
+  const deposit = booking ? Number(booking.deposit_amount) : estimate.deposit;
   const creditApplied = Math.min(credit, deposit);
   const amountDue = deposit - creditApplied;
   const isExpired = timeRemaining === 'Expired';
@@ -198,19 +197,11 @@ export default function Checkout() {
       toast.error('Please upload your payment receipt.');
       return;
     }
-    // Get session once with timeout — avoids Android getSession() hang
-    const { session, error: sessionErr } = await getSessionWithTimeout(8000);
-    if (sessionErr || !session) {
-      toast.error('Session expired. Please refresh the page and log in again.');
-      return;
-    }
-    const token = session.access_token;
 
     setUploading(true);
     try {
       let receiptPath = null;
 
-      // Upload receipt if payment is required
       if (receiptFile) {
         const ext =
           receiptFile.name
@@ -222,63 +213,15 @@ export default function Checkout() {
           'customer-documents',
           path,
           receiptFile,
-          toast,
-          token
+          toast
         );
         if (upErr) throw upErr;
         receiptPath = path;
       }
 
-      // Update booking with deposit info
-      const updateData = {
-        status: 'DEPOSIT_PAID',
-        deposit_status: amountDue > 0 ? 'uploaded' : 'verified', // Auto-verify if fully covered by credit
-        deposit_receipt_path: receiptPath,
-        credit_applied: creditApplied,
-        hold_expires_at: null,
-        full_payment_amount: total,
-      };
-      const { error: bookErr } = await supabase
-        .from('bubatrent_booking_bookings')
-        .update(updateData)
-        .eq('id', booking.id);
-      if (bookErr) throw bookErr;
-
-      // Create payment record
-      const { error: payErr } = await supabase.from('bubatrent_booking_payments').insert({
-        booking_id: booking.id,
-        amount: deposit,
-        payment_method: 'bank_transfer',
-        status: amountDue > 0 ? 'pending' : 'completed',
-        simulated: false,
-        payment_type: 'deposit',
-        receipt_path: receiptPath,
-        reference_number: `DEP-${Date.now().toString(36).toUpperCase()}`,
-        fleet_group_id: booking.fleet_group_id || car?.fleet_group_id || null,
-      });
-      if (payErr) throw payErr;
-
-      // Deduct credit if applied
-      if (creditApplied > 0) {
-        // Update profile credit
-        const { error: creditErr } = await supabase
-          .from('bubatrent_booking_profiles')
-          .update({ deposit_credit: credit - creditApplied })
-          .eq('id', user.id);
-        if (creditErr) throw creditErr;
-
-        // Create credit transaction record
-        await supabase.from('bubatrent_booking_credit_transactions').insert({
-          user_id: user.id,
-          booking_id: booking.id,
-          amount: -creditApplied,
-          type: 'applied',
-          description: `Credit applied to booking deposit`,
-          fleet_group_id: booking.fleet_group_id || car?.fleet_group_id || null,
-        });
-
-        await refreshProfile();
-      }
+      // Marks the deposit paid, records the payment and applies credit in one step
+      const updated = await submitBookingDeposit(booking.id, receiptPath);
+      if (Number(updated?.credit_applied) > 0) await refreshProfile();
 
       navigate(`/booking/${booking.id}/confirmation`);
     } catch (err) {
@@ -502,9 +445,13 @@ export default function Checkout() {
                         <FileImage className="w-6 h-6 text-slate-500" />
                         <div>
                           <p className="text-sm text-slate-300">
-                            {receiptFile ? receiptFile.name : 'Click or tap to upload payment receipt'}
+                            {receiptFile
+                              ? receiptFile.name
+                              : 'Click or tap to upload payment receipt'}
                           </p>
-                          <p className="text-xs text-slate-500">JPG, PNG, WebP or PDF · Up to 12MB</p>
+                          <p className="text-xs text-slate-500">
+                            JPG, PNG, WebP or PDF · Up to 12MB
+                          </p>
                         </div>
                       </label>
                     </>

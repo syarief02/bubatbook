@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,7 +6,6 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
-import { formatDateTime } from '../../utils/dates';
 import {
   FileCheck,
   CheckCircle,
@@ -16,12 +14,6 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  ArrowLeft,
-  Search,
-  AlertTriangle,
-  History,
-  FileText,
-  User,
 } from 'lucide-react';
 
 const STATUS_STYLE = {

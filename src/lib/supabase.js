@@ -17,8 +17,6 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       storageKey: 'rent2go-auth',
-      // No-op lock: bypass Navigator LockManager to prevent timeout errors
-      lock: async (_name, _acquireTimeout, fn) => await fn(),
     },
   }
 );
