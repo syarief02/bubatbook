@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check:security": "node scripts/check_security.cjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",

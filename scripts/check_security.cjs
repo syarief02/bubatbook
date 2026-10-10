@@ -1,0 +1,73 @@
+// Checks what an anonymous visitor can reach with the public anon key.
+// Run after any database or storage change:  npm run check:security
+// Prints counts only, never row contents. Exits 1 if anything is exposed.
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config({ path: '.env.local', quiet: true });
+
+const url = process.env.VITE_SUPABASE_URL;
+const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+if (!url || !anonKey) {
+  console.error('Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
+  process.exit(1);
+}
+
+const anon = createClient(url, anonKey, { auth: { persistSession: false } });
+let failed = 0;
+
+function report(ok, name, detail) {
+  if (!ok) failed++;
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name} — ${detail}`);
+}
+
+(async () => {
+  const privateTables = [
+    'bubatrent_booking_profiles',
+    'bubatrent_booking_bookings',
+    'bubatrent_booking_payments',
+    'bubatrent_booking_credit_transactions',
+    'bubatrent_booking_customer_documents',
+    'bubatrent_booking_verification_updates',
+    'bubatrent_booking_audit_logs',
+    'bubatrent_booking_upload_logs',
+  ];
+  for (const table of privateTables) {
+    const { count, error } = await anon.from(table).select('*', { count: 'exact', head: true });
+    const visible = error ? 0 : count || 0;
+    report(
+      visible === 0,
+      `anon cannot read ${table}`,
+      error ? 'denied' : `visible rows: ${visible}`
+    );
+  }
+
+  const { data: files, error: listErr } = await anon.storage
+    .from('customer-documents')
+    .list('', { limit: 100 });
+  const listed = listErr ? 0 : (files || []).length;
+  report(
+    listed === 0,
+    'anon cannot list customer documents',
+    listErr ? 'denied' : `listed: ${listed}`
+  );
+
+  const { error: holdErr } = await anon.rpc('bubatrent_create_hold_booking', {
+    p_car_id: '00000000-0000-0000-0000-000000000000',
+    p_pickup: '2099-01-01',
+    p_return: '2099-01-02',
+  });
+  report(!!holdErr, 'anon cannot create bookings', holdErr ? 'denied' : 'allowed');
+
+  const { data: available, error: availErr } = await anon.rpc('bubatrent_check_availability', {
+    p_car_id: '00000000-0000-0000-0000-000000000000',
+    p_pickup: '2099-01-01',
+    p_return: '2099-01-02',
+  });
+  report(
+    !availErr && typeof available === 'boolean',
+    'availability check works for visitors',
+    availErr ? `error: ${availErr.message}` : `returned ${available}`
+  );
+
+  console.log(failed ? `\n${failed} check(s) failed` : '\nAll checks passed');
+  process.exit(failed ? 1 : 0);
+})();
