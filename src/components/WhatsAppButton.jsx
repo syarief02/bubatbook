@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-const DEFAULT_PHONE = '60162569733'; // Default fallback
+const DEFAULT_PHONE = '60194961568'; // Default fallback
 const DEFAULT_MSG = 'Hi, I want to inquire about car rental at Rent2Go!';
 
 export default function WhatsAppButton() {

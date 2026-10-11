@@ -391,7 +391,7 @@ export default function Checkout() {
                 (() => {
                   const contactPhone =
                     car?.bubatrent_booking_fleet_groups?.support_whatsapp?.replace(/\D/g, '') ||
-                    '60162569733';
+                    '60194961568';
                   const contactName =
                     car?.bubatrent_booking_fleet_groups?.name || 'Rent2Go Support';
                   const whatsappUrl = `https://wa.me/${contactPhone}?text=${encodeURIComponent(`Hi ${contactName}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car?.brand} ${car?.model}. Please provide the bank account details.`)}`;
