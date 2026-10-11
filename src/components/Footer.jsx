@@ -74,7 +74,10 @@ export default function Footer() {
 
         <div className="border-t border-white/5 mt-8 pt-8 text-center">
           <p className="text-xs text-slate-600">
-            © {new Date().getFullYear()} Rent2Go. All rights reserved.
+            © {new Date().getFullYear()} Rent2Go. All rights reserved. ·{' '}
+            <Link to="/privacy" className="hover:text-slate-400 transition-colors">
+              Privacy Policy
+            </Link>
           </p>
         </div>
       </div>

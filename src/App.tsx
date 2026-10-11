@@ -41,6 +41,7 @@ const UserManual = lazy(() => import('./pages/admin/UserManual'));
 const UploadLogs = lazy(() => import('./pages/admin/UploadLogs'));
 const RentalAgreement = lazy(() => import('./pages/RentalAgreement'));
 const Invoice = lazy(() => import('./pages/Invoice'));
+const Privacy = lazy(() => import('./pages/Privacy'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ProtectedRoute({ children }) {
@@ -79,6 +80,7 @@ function AppRoutes() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/cars/:id" element={<CarDetail />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/reset-password" element={<ResetPassword />} />

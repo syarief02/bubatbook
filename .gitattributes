@@ -1,0 +1,2 @@
+# Always LF in the working tree (Prettier requires it), whatever core.autocrlf says
+* text=auto eol=lf
