@@ -322,8 +322,7 @@ If you are a **Super Admin** or belong to multiple groups, you can switch your a
 
 - **Company:** Bubat Resources
 - **Email:** bubatresources@gmail.com
-- **Phone:** +60 16-256 9733 (Amira)
-- **WhatsApp:** +60 19-496 1568
+- **Phone / WhatsApp:** +60 19-496 1568
 - **Website:** [rent2go.my](https://rent2go.my)
 
 ---

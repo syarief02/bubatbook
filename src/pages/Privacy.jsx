@@ -3,8 +3,7 @@ import { ShieldCheck } from 'lucide-react';
 
 const LAST_UPDATED = '11 October 2026';
 const CONTACT_EMAIL = 'bubatresources@gmail.com';
-const CONTACT_PHONE = '+60 16-256 9733';
-const CONTACT_WHATSAPP = '+60 19-496 1568';
+const CONTACT_PHONE = '+60 19-496 1568';
 
 const SECTIONS = [
   {
@@ -113,9 +112,7 @@ export default function Privacy() {
               {CONTACT_EMAIL}
             </a>
             <br />
-            Phone: {CONTACT_PHONE}
-            <br />
-            WhatsApp: {CONTACT_WHATSAPP}
+            Phone / WhatsApp: {CONTACT_PHONE}
           </p>
         </section>
       </div>
