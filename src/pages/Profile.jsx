@@ -8,7 +8,6 @@ import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
-import { normalizePhone } from '../utils/phoneUtils';
 import {
   User,
   Mail,
@@ -36,7 +35,6 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
   const [addressLine1, setAddressLine1] = useState(profile?.address_line1 || '');
   const [addressLine2, setAddressLine2] = useState(profile?.address_line2 || '');
   const [city, setCity] = useState(profile?.city || '');
@@ -46,7 +44,6 @@ export default function Profile() {
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '');
-      setPhone(profile.phone || '');
       setAddressLine1(profile.address_line1 || '');
       setAddressLine2(profile.address_line2 || '');
       setCity(profile.city || '');
@@ -62,7 +59,6 @@ export default function Profile() {
         .from('bubatrent_booking_profiles')
         .update({
           display_name: displayName.trim(),
-          phone: normalizePhone(phone),
           address_line1: addressLine1.trim(),
           address_line2: addressLine2.trim(),
           city: city.trim(),
@@ -151,16 +147,16 @@ export default function Profile() {
                   <label className="text-xs text-slate-500 flex items-center gap-1 mb-1">
                     <Phone className="w-3 h-3" /> Phone
                   </label>
-                  {editing ? (
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="input-field !py-1.5 text-sm"
-                    />
-                  ) : (
-                    <p className="text-sm text-white">{profile?.phone || '—'}</p>
-                  )}
+                  {/* Changing the number re-checks for a counter record to link */}
+                  <p className="text-sm text-white">
+                    {profile?.phone || '—'}{' '}
+                    <Link
+                      to={`/complete-profile?change=1&returnTo=${encodeURIComponent('/profile')}`}
+                      className="text-xs text-violet-400 hover:text-violet-300"
+                    >
+                      Change
+                    </Link>
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs text-slate-500 flex items-center gap-1 mb-1">

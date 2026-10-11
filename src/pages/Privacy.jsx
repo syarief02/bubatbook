@@ -32,10 +32,10 @@ const SECTIONS = [
   {
     title: 'How we use your data',
     list: [
-      'To create and secure your account, and verify your mobile number with a one-time SMS code.',
+      'To create and secure your account.',
       'To verify your identity and eligibility to drive before you rent a car.',
       'To process bookings, deposits and payments, and manage your credit balance.',
-      'To link your online account with a customer record our staff created at the counter, when the email address or SMS-verified mobile number matches.',
+      'To link your online account with a customer record our staff created at the counter, when the email address matches, or when both the mobile number and the IC number you confirm match.',
       'To contact you about your bookings, for example by WhatsApp, phone or email.',
       'To meet legal obligations, such as accounting records or requests from authorities about traffic offences involving our vehicles, and to prevent fraud.',
     ],
@@ -43,7 +43,7 @@ const SECTIONS = [
   {
     title: 'Who we share it with',
     body: [
-      'We do not sell your personal data. We share it only with service providers that run this website, under their own security and privacy terms: Supabase (database, login and file storage), Vercel (website hosting), Google (sign-in and website fonts) and our SMS provider (verification codes). If you message us on WhatsApp, WhatsApp’s terms apply to that conversation. We disclose data to authorities when Malaysian law requires it.',
+      'We do not sell your personal data. We share it only with service providers that run this website, under their own security and privacy terms: Supabase (database, login and file storage), Vercel (website hosting), and Google (sign-in and website fonts). If you message us on WhatsApp, WhatsApp’s terms apply to that conversation. We disclose data to authorities when Malaysian law requires it.',
     ],
   },
   {

@@ -87,6 +87,19 @@ export function AuthProvider({ children }) {
     return data;
   }
 
+  // Google returns to the login page (which shows any OAuth error), and from
+  // there to the mobile-number step before the page the user was heading to.
+  async function signInWithGoogle(returnTo = '/') {
+    const next = `/complete-profile?returnTo=${encodeURIComponent(returnTo)}`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/login?returnTo=${encodeURIComponent(next)}`,
+      },
+    });
+    if (error) throw error;
+  }
+
   async function resetPassword(email) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -142,12 +155,16 @@ export function AuthProvider({ children }) {
         loading,
         isAdmin,
         isSuperAdmin,
+        realIsAdmin,
         realIsSuperAdmin,
         isVerified:
           profile?.is_verified === true &&
           (!profile?.licence_expiry || new Date(profile.licence_expiry) >= new Date()),
+        // Customers need a mobile number (Google sign-ups don't provide one).
+        needsMobile: !!user && !!profile && !realIsAdmin && !profile.phone,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
         resetPassword,
         updatePassword,

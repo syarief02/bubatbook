@@ -10,6 +10,8 @@
 
 ### Customer Features
 
+- **Sign in with Google** — or email and password; accounts created by staff at the counter are linked by email, or by mobile number plus IC number
+- **Mobile Number** — required for every customer; Google sign-ups add it before using account pages
 - **Browse & Book** — Date picker, real-time availability check, per-car pricing
 - **Smart Checkout** — Receipt upload for deposits, auto-applied credit, 6-month advance limit
 - **Profile** — Edit details, view verification status, credit balance, booking history
@@ -170,6 +172,32 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 Only `VITE_`-prefixed variables reach the browser. Never commit `.env.local`, and never put
 the service-role key, database password or any admin login in a script or file in this repo.
+
+### Google Sign-in
+
+Configured in the Supabase dashboard, not in code. Until it is set up, the Google button shows an
+error.
+
+1. **Google Cloud Console** → APIs & Services → Credentials → Create OAuth client ID (Web
+   application). Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`.
+   Fill in the OAuth consent screen (app name, support email, `rent2go.my`, privacy policy
+   `https://www.rent2go.my/privacy`) and publish it.
+2. **Supabase → Authentication → Sign In / Providers → Google**: enable, paste the client ID and secret.
+3. **Supabase → Authentication → URL Configuration**: Site URL `https://www.rent2go.my`; add
+   redirect URLs `https://www.rent2go.my/**`, `https://rent2go.my/**`, `http://localhost:5173/**`.
+
+Google does not provide a phone number, so customers without one are sent to `/complete-profile`
+before account pages. Mobile numbers are not SMS-verified (too costly per message in Malaysia).
+
+How accounts link to customers registered at the counter:
+
+- **Same email** — Supabase links the Google login to the existing account automatically
+  (admin-created accounts have a confirmed email).
+- **Same mobile + IC** — `bubatrent_save_mobile()` tells the page whether a never-used walk-in record
+  has that number (without revealing anything about it); the customer then confirms their IC number
+  and `bubatrent_link_walk_in_by_ic()` moves that record's bookings, credit and verified ID details
+  into their account. Wrong IC guesses are limited to 5 per account and 10 per phone number per day;
+  conflicts are left for an admin.
 
 ### Database Migrations
 

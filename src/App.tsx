@@ -18,6 +18,7 @@ const CarDetail = lazy(() => import('./pages/CarDetail'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const CompleteProfile = lazy(() => import('./pages/CompleteProfile'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const BookingConfirmation = lazy(() => import('./pages/BookingConfirmation'));
 const DocumentUploadPage = lazy(() => import('./pages/DocumentUploadPage'));
@@ -44,13 +45,17 @@ const Invoice = lazy(() => import('./pages/Invoice'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+function ProtectedRoute({ children, requireMobile = true }) {
+  const { user, loading, needsMobile } = useAuth();
   const location = useLocation();
   if (loading) return <LoadingSpinner fullScreen />;
+  const returnTo = encodeURIComponent(location.pathname + location.search);
   if (!user) {
-    const returnTo = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?returnTo=${returnTo}`} replace />;
+  }
+  // Customers add a mobile number (e.g. after Google sign-up) before using account pages
+  if (requireMobile && needsMobile) {
+    return <Navigate to={`/complete-profile?returnTo=${returnTo}`} replace />;
   }
   return children;
 }
@@ -84,6 +89,14 @@ function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/complete-profile"
+              element={
+                <ProtectedRoute requireMobile={false}>
+                  <CompleteProfile />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/checkout/:carId"
               element={

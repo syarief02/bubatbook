@@ -31,7 +31,8 @@ export default function VerifyAccount() {
 
   const [icNumber, setIcNumber] = useState(profile?.ic_number || '');
   const [licenceExpiry, setLicenceExpiry] = useState(profile?.licence_expiry || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
+  // The number set on /complete-profile; changed from the Profile page
+  const phone = profile?.phone || '';
   const [addressLine1, setAddressLine1] = useState(profile?.address_line1 || '');
   const [addressLine2, setAddressLine2] = useState(profile?.address_line2 || '');
   const [city, setCity] = useState(profile?.city || '');
@@ -311,15 +312,8 @@ export default function VerifyAccount() {
                 <Phone className="w-4 h-4 text-violet-400" />
                 Phone Number *
               </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="input-field"
-                placeholder="+60 12-345 6789"
-                maxLength={20}
-                disabled={uploading}
-              />
+              <input type="tel" value={phone} className="input-field opacity-70" readOnly />
+              <p className="text-xs text-slate-500 mt-1">You can change it from your profile.</p>
             </div>
 
             {/* IC Section */}

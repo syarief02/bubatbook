@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import GoogleButton, { OrDivider } from '../components/GoogleButton';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { Mail, Lock, AlertCircle, Car, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 
+// Google sends errors (e.g. the user cancelled) back in the URL
+function readOAuthError() {
+  const fromHash = new URLSearchParams(window.location.hash.slice(1)).get('error_description');
+  const fromQuery = new URLSearchParams(window.location.search).get('error_description');
+  return fromHash || fromQuery || '';
+}
+
 export default function Login() {
-  const { signIn, resetPassword, user } = useAuth();
+  const { signIn, resetPassword, user, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(readOAuthError);
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(null);
@@ -44,6 +53,11 @@ export default function Login() {
   }
 
   if (user) return <Navigate to={returnTo} replace />;
+
+  // Back from Google: supabase-js is still reading the session from the URL
+  if (authLoading && window.location.hash.includes('access_token')) {
+    return <LoadingSpinner fullScreen />;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -170,6 +184,8 @@ export default function Login() {
             )
           ) : (
             <>
+              <GoogleButton returnTo={returnTo} />
+              <OrDivider />
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="input-label flex items-center gap-1.5">

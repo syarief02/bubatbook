@@ -14,6 +14,10 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
+import GoogleButton, { OrDivider } from '../components/GoogleButton';
+
+// New accounts confirm their mobile number, which also links any counter record
+const AFTER_SIGNUP = `/complete-profile?returnTo=${encodeURIComponent('/')}`;
 
 function PasswordStrength({ password }) {
   const checks = [
@@ -90,7 +94,7 @@ export default function Signup() {
     return () => clearInterval(interval);
   }, [lockedUntil]);
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={AFTER_SIGNUP} replace />;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -115,8 +119,8 @@ export default function Signup() {
     try {
       const data = await signUp(email, password, displayName, phone.trim());
       if (data?.session) {
-        toast.success('Account created successfully! Welcome to Rent2Go.');
-        navigate('/');
+        toast.success('Account created! Now confirm your mobile number.');
+        navigate(AFTER_SIGNUP);
       } else {
         // Email confirmation is on: there is no session until the link is clicked
         toast.success('Account created! Check your email to confirm your address, then log in.');
@@ -128,7 +132,12 @@ export default function Signup() {
       if (newAttempts >= 5) {
         setLockedUntil(Date.now() + 60000);
       }
-      setError(err.message || 'Failed to create account');
+      // The email may belong to an account our staff created at the counter
+      setError(
+        /already registered/i.test(err.message || '')
+          ? 'This email already has an account. Sign in, use "Forgot password", or continue with Google.'
+          : err.message || 'Failed to create account'
+      );
     } finally {
       setLoading(false);
     }
@@ -153,6 +162,8 @@ export default function Signup() {
             </div>
           )}
 
+          <GoogleButton label="Sign up with Google" />
+          <OrDivider />
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="input-label flex items-center gap-1.5">
