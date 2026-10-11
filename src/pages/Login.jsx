@@ -59,6 +59,13 @@ export default function Login() {
     return <LoadingSpinner fullScreen />;
   }
 
+  // Google returned a login but it could not be read (e.g. another tab held the auth lock)
+  const shownError =
+    error ||
+    (window.location.hash.includes('access_token')
+      ? "We couldn't finish signing you in. Please close other Rent2Go tabs and try again."
+      : '');
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (lockedUntil && Date.now() < lockedUntil) {
@@ -118,10 +125,10 @@ export default function Login() {
         </div>
 
         <div className="glass-card">
-          {error && (
+          {shownError && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 mb-6">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
+              {shownError}
             </div>
           )}
 

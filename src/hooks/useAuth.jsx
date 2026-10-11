@@ -12,6 +12,16 @@ export function AuthProvider({ children }) {
   const currentUserId = useRef(null);
 
   useEffect(() => {
+    // Safety net: if supabase-js never reports the initial session (it swallows
+    // a failed initialisation), stop waiting rather than spin forever.
+    let initialEventSeen = false;
+    const initTimeout = setTimeout(() => {
+      if (!initialEventSeen) {
+        console.warn('[auth] No initial session event after 15s; continuing signed out');
+        setLoading(false);
+      }
+    }, 15000);
+
     // This callback must stay synchronous and must not call Supabase directly.
     // supabase-js runs it while holding its auth lock (e.g. on every return to
     // the tab, or from the camera/file picker on mobile). Awaiting a query here
@@ -20,6 +30,7 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      initialEventSeen = true;
       const nextUser = session?.user ?? null;
       const userChanged = nextUser?.id !== currentUserId.current;
       currentUserId.current = nextUser?.id ?? null;
@@ -36,7 +47,10 @@ export function AuthProvider({ children }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(initTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function fetchProfile(userId) {

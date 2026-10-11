@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, processLock } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -17,6 +17,11 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       storageKey: 'rent2go-auth',
+      // The default lock (navigator.locks) is shared by every rent2go.my tab. On
+      // mobile, a backgrounded tab can be frozen while holding it; a new tab then
+      // can't start auth (e.g. after the Google redirect) and the app never learns
+      // who is signed in. processLock serialises auth work within this tab only.
+      lock: processLock,
     },
   }
 );
