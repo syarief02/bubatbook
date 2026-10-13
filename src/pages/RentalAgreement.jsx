@@ -94,37 +94,17 @@ export default function RentalAgreement() {
 
     setSubmitting(true);
     try {
-      const car = booking.bubatrent_booking_cars;
-      const { error } = await supabase.from('bubatrent_booking_rental_agreements').insert({
-        booking_id: booking.id,
-        customer_id: user.id,
-        customer_name: profile?.display_name || user.email,
-        customer_ic: profile?.ic_number || '',
-        customer_phone: profile?.phone || '',
-        car_model: `${car?.brand || ''} ${car?.model || ''}`.trim(),
-        car_plate: car?.plate_number || '',
-        pickup_date: booking.pickup_date,
-        return_date: booking.return_date,
-        rental_rate: car?.price_per_day || 0,
-        total_price: booking.total_price,
-        deposit_amount: booking.deposit_amount,
-        signature_data: signatureData,
+      // The agreement's names, dates and prices are copied from the booking
+      // by the database, not taken from the browser.
+      const { data: agreement, error } = await supabase.rpc('bubatrent_sign_rental_agreement', {
+        p_booking_id: booking.id,
+        p_signature_data: signatureData,
       });
 
       if (error) throw error;
 
       toast.success('Agreement signed successfully!');
-      setExistingAgreement({
-        agreed_at: new Date().toISOString(),
-        signature_data: signatureData,
-        customer_name: profile?.display_name || user.email,
-        customer_ic: profile?.ic_number || '',
-        car_model: `${car?.brand || ''} ${car?.model || ''}`.trim(),
-        pickup_date: booking.pickup_date,
-        return_date: booking.return_date,
-        total_price: booking.total_price,
-        deposit_amount: booking.deposit_amount,
-      });
+      setExistingAgreement(agreement);
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Failed to submit agreement.');

@@ -4,6 +4,8 @@ import { Home, AlertTriangle } from 'lucide-react';
 export default function NotFound() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
+      {/* Every URL is served with status 200 (SPA), so tell search engines not to index this one */}
+      <meta name="robots" content="noindex" />
       <div className="text-center max-w-md">
         <div className="w-20 h-20 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-6">
           <AlertTriangle className="w-10 h-10 text-violet-400" />

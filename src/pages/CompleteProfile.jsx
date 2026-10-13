@@ -6,11 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useToast } from '../components/Toast';
 import { normalizePhone } from '../utils/phoneUtils';
 import { formatMYR } from '../utils/pricing';
-
-// Only same-site paths, so returnTo can't send people to another site.
-function safeReturnTo(value) {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/';
-}
+import { safeReturnTo } from '../utils/returnTo';
 
 export default function CompleteProfile() {
   const { profile, user, refreshProfile, signOut } = useAuth();

@@ -203,7 +203,7 @@ How accounts link to customers registered at the counter:
 
 Schema changes live in `supabase/migrations/` (timestamped SQL files) and are applied in order,
 either with `supabase db push` or by pasting the file into the Supabase SQL editor. The older SQL
-files in the repo root and `migrations/` are historical and do not match the live database.
+files in `supabase/legacy/` are historical, do not match the live database, and must not be run.
 
 After any database or storage change, verify what an anonymous visitor can reach:
 
@@ -265,7 +265,13 @@ When testing on Android/iOS, verify:
 - **Bookings and deposits** go through server functions (`bubatrent_create_hold_booking`,
   `bubatrent_submit_booking_deposit`); a database constraint prevents overlapping bookings
 - **Verification documents** stored in a private bucket, viewed through short-lived signed URLs
-- **Walk-in customers** get a random password and sign in with "Forgot password"
+- **Fleet isolation** — admins only reach the cars, bookings, payments, credit and expenses of
+  fleets they belong to (super admins see all); customer profiles are a shared pool
+- **Rental agreements** are signed through `bubatrent_sign_rental_agreement`, which copies the
+  terms from the booking instead of trusting the browser
+- **Walk-in customers** get a random password and sign in with "Forgot password"; the function
+  only creates new accounts and never overwrites existing ones
+- **Security headers** (`vercel.json`) — no framing, `nosniff`, strict referrer and permissions policies
 - **Protected Routes** — auth-gated pages redirect to login with returnTo
 - **Admin Routes** — role-checked before rendering
 - **Sensitive data** — IC numbers masked in admin views

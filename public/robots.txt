@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /booking/
+Disallow: /my-bookings
+Disallow: /profile
+Disallow: /checkout
+Disallow: /verify
+Disallow: /complete-profile
+Disallow: /reset-password
+
+Sitemap: https://www.rent2go.my/sitemap.xml
