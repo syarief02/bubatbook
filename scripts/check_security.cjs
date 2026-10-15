@@ -29,6 +29,12 @@ function report(ok, name, detail) {
     'bubatrent_booking_verification_updates',
     'bubatrent_booking_audit_logs',
     'bubatrent_booking_upload_logs',
+    'bubatrent_booking_rental_agreements',
+    'bubatrent_booking_change_requests',
+    'bubatrent_booking_expense_claims',
+    'bubatrent_booking_expense_images',
+    'bubatrent_booking_fleet_memberships',
+    'bubatrent_booking_link_attempts',
   ];
   for (const table of privateTables) {
     const { count, error } = await anon.from(table).select('*', { count: 'exact', head: true });
@@ -56,6 +62,17 @@ function report(ok, name, detail) {
     p_return: '2099-01-02',
   });
   report(!!holdErr, 'anon cannot create bookings', holdErr ? 'denied' : 'allowed');
+
+  const { error: verifyErr } = await anon.rpc('bubatrent_admin_verify_deposit', {
+    p_booking_id: '00000000-0000-0000-0000-000000000000',
+  });
+  report(!!verifyErr, 'anon cannot verify deposits', verifyErr ? 'denied' : 'allowed');
+
+  const { error: creditErr } = await anon.rpc('bubatrent_admin_adjust_credit', {
+    p_user_id: '00000000-0000-0000-0000-000000000000',
+    p_amount: 1,
+  });
+  report(!!creditErr, 'anon cannot change credit', creditErr ? 'denied' : 'allowed');
 
   const { data: available, error: availErr } = await anon.rpc('bubatrent_check_availability', {
     p_car_id: '00000000-0000-0000-0000-000000000000',

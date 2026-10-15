@@ -1173,27 +1173,17 @@ export default function Customers() {
                                 );
                                 if (upErr) throw upErr;
 
-                                // Update credit balance
-                                const currentCredit = Number(customer.deposit_credit || 0);
-                                const newCredit = currentCredit + amt;
-                                const { error: dbErr } = await supabase
-                                  .from('bubatrent_booking_profiles')
-                                  .update({ deposit_credit: newCredit })
-                                  .eq('id', customer.id);
-                                if (dbErr) throw dbErr;
-
-                                // Log transaction
-                                const { error: ledgerErr } = await supabase
-                                  .from('bubatrent_booking_credit_transactions')
-                                  .insert({
-                                    user_id: customer.id,
-                                    amount: amt,
-                                    type: 'added',
-                                    description: addCreditForm.reason || 'Manual credit (admin)',
-                                    admin_id: user.id,
-                                    fleet_group_id: activeFleetId,
-                                  });
-                                if (ledgerErr) throw ledgerErr;
+                                // Balance and ledger change together on the server
+                                const { error: creditErr } = await supabase.rpc(
+                                  'bubatrent_admin_adjust_credit',
+                                  {
+                                    p_user_id: customer.id,
+                                    p_amount: amt,
+                                    p_description: addCreditForm.reason || 'Manual credit (admin)',
+                                    p_fleet_group_id: activeFleetId,
+                                  }
+                                );
+                                if (creditErr) throw creditErr;
 
                                 // Audit log
                                 await supabase.from('bubatrent_booking_audit_logs').insert({
@@ -1250,30 +1240,19 @@ export default function Customers() {
                                 toast.error('Enter a valid amount');
                                 return;
                               }
-                              const currentCredit = Number(customer.deposit_credit || 0);
-                              if (Number(deductAmount) > currentCredit) {
-                                toast.error('Cannot deduct more than balance');
-                                return;
-                              }
                               setDeductingId(customer.id);
                               try {
-                                const newCredit = currentCredit - Number(deductAmount);
-                                const { error: upErr } = await supabase
-                                  .from('bubatrent_booking_profiles')
-                                  .update({ deposit_credit: newCredit })
-                                  .eq('id', customer.id);
-                                if (upErr) throw upErr;
-                                const { error: ledgerErr } = await supabase
-                                  .from('bubatrent_booking_credit_transactions')
-                                  .insert({
-                                    user_id: customer.id,
-                                    amount: -Number(deductAmount),
-                                    type: 'deducted',
-                                    description: deductReason || 'Admin deduction',
-                                    admin_id: user.id,
-                                    fleet_group_id: activeFleetId,
-                                  });
-                                if (ledgerErr) throw ledgerErr;
+                                // The server rejects the deduction if the live balance is too low
+                                const { error: creditErr } = await supabase.rpc(
+                                  'bubatrent_admin_adjust_credit',
+                                  {
+                                    p_user_id: customer.id,
+                                    p_amount: -Number(deductAmount),
+                                    p_description: deductReason || 'Admin deduction',
+                                    p_fleet_group_id: activeFleetId,
+                                  }
+                                );
+                                if (creditErr) throw creditErr;
                                 toast.success(`Deducted ${formatMYR(deductAmount)}`);
                                 setDeductAmount('');
                                 setDeductReason('');

@@ -236,53 +236,15 @@ export default function AdminBookingDetail() {
 
   async function handleVerifyDeposit() {
     try {
-      // Only the first verification counts, so a double-click cannot credit twice
-      const { data: verified, error } = await supabase
-        .from('bubatrent_booking_bookings')
-        .update({ deposit_status: 'verified' })
-        .eq('id', id)
-        .neq('deposit_status', 'verified')
-        .select('id');
+      // One server step: marks the deposit and payment verified and credits the
+      // customer, only the first time (a double click cannot credit twice).
+      const { data: result, error } = await supabase.rpc('bubatrent_admin_verify_deposit', {
+        p_booking_id: id,
+      });
       if (error) throw error;
-      if (!verified?.length) {
+      if (result?.status === 'already_verified') {
         toast.info('This deposit was already verified.');
         return;
-      }
-
-      // Also mark the deposit payment record as completed
-      const { error: payErr } = await supabase
-        .from('bubatrent_booking_payments')
-        .update({ status: 'completed' })
-        .eq('booking_id', id)
-        .eq('payment_type', 'deposit');
-      if (payErr) throw payErr;
-
-      // Increase customer deposit credit by the deposit amount
-      if (booking.deposit_amount > 0) {
-        const { data: profileData, error: profileErr } = await supabase
-          .from('bubatrent_booking_profiles')
-          .select('deposit_credit')
-          .eq('id', booking.user_id)
-          .single();
-        if (profileErr) throw profileErr;
-        const currentCredit = Number(profileData?.deposit_credit || 0);
-        const { error: creditErr } = await supabase
-          .from('bubatrent_booking_profiles')
-          .update({ deposit_credit: currentCredit + Number(booking.deposit_amount) })
-          .eq('id', booking.user_id);
-        if (creditErr) throw creditErr;
-        const { error: ledgerErr } = await supabase
-          .from('bubatrent_booking_credit_transactions')
-          .insert({
-            user_id: booking.user_id,
-            booking_id: id,
-            amount: Number(booking.deposit_amount),
-            type: 'deposit_return',
-            description: `Deposit verified — credit added`,
-            admin_id: user.id,
-            fleet_group_id: booking.fleet_group_id || null,
-          });
-        if (ledgerErr) throw ledgerErr;
       }
 
       // Refresh booking with updated payment data
