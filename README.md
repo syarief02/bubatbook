@@ -174,13 +174,12 @@ Anything involving money or status goes through the database, not the browser:
 ### Booking status flow
 
 ```
-HOLD ──► DEPOSIT_PAID ──► CONFIRMED ──► PICKUP ──► RETURNED
- │  ╲         │   ╲            │
- │   ╲        │    ╲           └──► CANCELLED
- │    ╲       │     └──► EXPIRED (deposit not verified in 48 h) ──► reactivate ──► DEPOSIT_PAID
- │     ╲      └──► CANCELLED
- │      └──► EXPIRED (10-minute hold ran out)
- └──► CANCELLED
+HOLD ──────► DEPOSIT_PAID ──────► CONFIRMED ──────► PICKUP ──────► RETURNED
+  │               │                    │
+  ├─► CANCELLED   ├─► CANCELLED        └─► CANCELLED
+  └─► EXPIRED     └─► EXPIRED (deposit not verified within 48 h)
+     (hold ran         │
+      out, 10 min)     └─► reactivated by an admin ─► DEPOSIT_PAID
 ```
 
 Enforced by the database for every website request:
