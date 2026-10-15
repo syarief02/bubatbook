@@ -43,9 +43,17 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-function Summary({ deposit, total }) {
+function Summary({ deposit, total, owedOnly = false }) {
   const fromDeposit = Math.min(total, deposit);
   const owed = Math.max(total - deposit, 0);
+  if (owedOnly) {
+    return (
+      <div className="bg-white/[0.03] rounded-xl p-3 text-sm flex justify-between">
+        <span className="text-slate-400">The customer will owe</span>
+        <span className="text-red-400 font-semibold">{formatMYR(total)}</span>
+      </div>
+    );
+  }
   return (
     <div className="bg-white/[0.03] rounded-xl p-3 text-sm space-y-1">
       <div className="flex justify-between">
@@ -226,7 +234,11 @@ function ChargesDialog({ title, intro, booking, rpc, deposit, confirmLabel, onCl
       <div className="space-y-4 text-sm">
         <p className="text-slate-400">{intro}</p>
         <ChargesEditor rows={rows} onChange={setRows} />
-        <Summary deposit={deposit} total={chargesTotal(rows)} />
+        <Summary
+          deposit={deposit}
+          total={chargesTotal(rows)}
+          owedOnly={rpc === 'bubatrent_admin_add_booking_charges'}
+        />
         <div className="flex flex-col sm:flex-row gap-2">
           <button onClick={onClose} className="btn-secondary flex-1">
             Cancel
@@ -350,11 +362,15 @@ export function ChargesCard({ booking, charges, payments, onChanged }) {
                   </p>
                   <p className="text-xs text-slate-500">
                     {formatDateTime(c.created_at)} ·{' '}
+                    {/* What's owed is tracked per booking, so a charge counts as
+                        paid once nothing is owed on the booking */}
                     {Number(c.from_deposit) >= Number(c.amount)
                       ? 'from the deposit'
                       : Number(c.from_deposit) > 0
-                        ? `${formatMYR(c.from_deposit)} from the deposit, rest owed`
-                        : 'owed by the customer'}
+                        ? `${formatMYR(c.from_deposit)} from the deposit, rest ${owed > 0 ? 'owed' : 'paid separately'}`
+                        : owed > 0
+                          ? 'owed by the customer'
+                          : 'paid separately'}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
