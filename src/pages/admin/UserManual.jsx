@@ -131,8 +131,9 @@ const STATUSES = [
   {
     name: 'RETURNED',
     color: 'text-slate-300',
-    meaning: "Rental finished. The deposit has gone to the customer's credit.",
-    next: 'Deduct any charges or record the refund (section 9).',
+    meaning:
+      "Rental finished. The deposit has gone to the customer's credit less any charges, or is on hold.",
+    next: 'Settle a held deposit; collect anything the customer owes (section 7.6).',
   },
   {
     name: 'CANCELLED',
@@ -263,8 +264,9 @@ export default function UserManual() {
               the full payment is verified before handing over the keys (sections 7.3–7.5).
             </li>
             <li>
-              For cars coming back, inspect them, press <B>Mark Returned</B>, then deduct any
-              charges or record the deposit refund (sections 7.6 and 9).
+              For cars coming back, inspect them and press <B>Mark Returned</B>, entering any
+              charges for late return, cleaning, fuel or damage. Settle deposits you put on hold
+              once you have the repair quote, and record payments for anything owed (section 7.6).
             </li>
             <li>
               Submit expense claims for money you spent on the cars, and complete claims you have
@@ -308,7 +310,8 @@ export default function UserManual() {
             <B>Rental Revenue</B> is the total of verified rental payments. Deposits are{' '}
             <em>not</em> revenue: they belong to the customer and go back to their credit after the
             rental. <B>Deposits held now</B> shows how much deposit money you are holding for
-            bookings that are still running.
+            bookings that are still running or on hold. Below it: charges after rentals collected so
+            far, and what customers still owe.
           </p>
         </Section>
 
@@ -599,25 +602,63 @@ export default function UserManual() {
             verified, you get a message saying what is missing.
           </p>
 
-          <Sub>7.6 Return</Sub>
+          <Sub>7.6 Return, late return and damage</Sub>
           <Steps>
-            <li>Inspect the car: fuel, cleanliness, damage, return time.</li>
             <li>
-              Press <B>Mark Returned</B>. Today is recorded as the actual return date, and the
-              deposit is added to the customer&apos;s credit automatically. The message shows the
-              amount.
+              Inspect the car: return time, fuel, cleanliness and damage. Take photos of any damage.
             </li>
             <li>
-              Charges for late return (RM10/RM15/RM20 per hour), cleaning (RM20) or damage (the
-              table in the agreement) are taken with <B>Deduct Credit</B> on the customer (section
-              9).
+              Press <B>Mark Returned</B>. In <B>Return car</B>, check the <B>Returned on</B> date.
             </li>
             <li>
-              Refund the rest as the customer prefers: transfer it and record that with{' '}
-              <B>Deduct Credit</B>, or leave it as credit for their next booking. The agreement
-              promises the refund within 7 working days.
+              For each charge press <B>Add charge</B>, choose <B>Late return</B>, <B>Cleaning</B>,{' '}
+              <B>Fuel</B>, <B>Damage</B> or <B>Other</B>, and type the amount. A note is optional
+              (e.g. &quot;6 hours late&quot;) but required for Damage and Other. The
+              agreement&apos;s rates are RM10/RM15/RM20 per hour late, RM20 for cleaning, and the
+              damage table for damage. Leave the list empty if the car came back on time and in good
+              condition.
+            </li>
+            <li>
+              The summary shows the deposit held, the charges, what comes off the deposit, what goes
+              back to the customer&apos;s credit, and anything they still owe. Press{' '}
+              <B>Mark Returned</B>.
             </li>
           </Steps>
+          <Bullets>
+            <li>
+              Charges come off this booking&apos;s deposit; the rest of the deposit goes to the
+              customer&apos;s credit. The customer sees each charge and its note in My Bookings and
+              on the invoice.
+            </li>
+            <li>
+              <strong>More than the deposit?</strong> The rest is shown as owed, on the booking
+              under <B>Return &amp; Charges</B> and in the customer&apos;s My Bookings. When you
+              collect it, enter the amount, choose <B>Cash</B> or <B>Bank transfer</B>, optionally
+              attach the receipt, and press <B>Record Payment</B>.
+            </li>
+            <li>
+              <strong>Damage needs a quote?</strong> Tick{' '}
+              <B>Hold the deposit until the damage cost is known</B>. Nothing goes to the
+              customer&apos;s credit. When you know the cost, press <B>Settle Deposit</B> under{' '}
+              <B>Return &amp; Charges</B> and enter the charges there.
+            </li>
+            <li>
+              <strong>Found something later?</strong> <B>+ Add a charge found later</B>. The deposit
+              was already settled, so the charge is owed by the customer.
+            </li>
+            <li>
+              <strong>Wrong charge?</strong> Press <B>Remove</B> next to it and give a reason; any
+              part taken from the deposit goes back to the customer&apos;s credit. Once a payment
+              for charges has been recorded, charges can&apos;t be removed; use <B>Add Credit</B> to
+              give money back instead.
+            </li>
+            <li>
+              Refund the rest of the deposit as the customer prefers: transfer it and record that
+              with <B>Deduct Credit</B> (&quot;Deposit refunded by transfer&quot;), or leave it as
+              credit for their next booking. The agreement promises the refund within 7 working
+              days.
+            </li>
+          </Bullets>
 
           <Sub>7.7 Cancelling</Sub>
           <Bullets>
@@ -686,7 +727,13 @@ export default function UserManual() {
               <B>Identity Documents</B>: the customer&apos;s IC and licence.
             </li>
             <li>
-              <B>Payment Records</B>: every payment with amount, method, status, reference and date.
+              <B>Return &amp; Charges</B> (after the return): a held deposit with{' '}
+              <B>Settle Deposit</B>, each charge, what the customer owes with <B>Record Payment</B>,
+              and <B>+ Add a charge found later</B>.
+            </li>
+            <li>
+              <B>Payment Records</B>: every payment (deposit, full payment, charge payment) with
+              amount, method, status, reference and date.
             </li>
             <li>
               <B>Audit Log</B>: every step, who did it and when (section 15).
@@ -771,7 +818,8 @@ export default function UserManual() {
           <Sub>When credit is added automatically</Sub>
           <Bullets>
             <li>
-              <B>Mark Returned</B>: the booking&apos;s deposit.
+              <B>Mark Returned</B> (or <B>Settle Deposit</B> for a held one): the booking&apos;s
+              deposit, less the charges you entered.
             </li>
             <li>A booking cancelled after its deposit was verified: the deposit.</li>
             <li>
@@ -792,10 +840,10 @@ export default function UserManual() {
               (required), plus a reason. For example, a customer paying in advance.
             </li>
             <li>
-              <B>Deduct Credit</B>: amount and a reason. Use it for charges (late return, cleaning,
-              damage, cancellation penalty) and to record a deposit you refunded by transfer
-              (&quot;Deposit refunded by transfer&quot;). A deduction larger than the balance is
-              refused.
+              <B>Deduct Credit</B>: amount and a reason. Use it to record a deposit you refunded by
+              transfer (&quot;Deposit refunded by transfer&quot;) or a cancellation penalty. Charges
+              for a returned car belong on the booking instead (section 7.6), so the customer sees
+              them. A deduction larger than the balance is refused.
             </li>
           </Bullets>
           <Note title="Credit history can't be edited">
@@ -829,8 +877,9 @@ export default function UserManual() {
             <li>
               <B>Invoice</B>: available once the deposit or full payment is verified, from{' '}
               <B>View Invoice</B> on the booking page or <B>Invoice</B> in My Bookings. It lists the
-              rental and the refundable deposit, and the amount paid. The fleet name and phone come
-              from Fleet Settings. <B>Print / Save PDF</B> makes a PDF.
+              rental and the refundable deposit, the amount paid, and any charges after the rental
+              (what came off the deposit and what is still owed). The fleet name and phone come from
+              Fleet Settings. <B>Print / Save PDF</B> makes a PDF.
             </li>
             <li>
               Customers can also print a simple booking receipt from <B>View Details</B> →{' '}
@@ -857,10 +906,16 @@ export default function UserManual() {
               <B>Deposits Received</B>: verified deposits. Refundable, so not income.
             </li>
             <li>
-              <B>Deposits Held Now</B>: deposits for bookings still running, whatever the period.
+              <B>Charges Collected</B>: charges after rentals (late return, cleaning, fuel, damage)
+              received so far, from deposits or paid separately. Also income. Anything still owed is
+              shown under it.
             </li>
             <li>
-              <B>Revenue Per Car</B>: bookings, rental revenue and deposits for each car.
+              <B>Deposits Held Now</B>: deposits for bookings still running or on hold, whatever the
+              period.
+            </li>
+            <li>
+              <B>Revenue Per Car</B>: bookings, rental revenue, charges and deposits for each car.
             </li>
           </Bullets>
           <p>Cancelled and expired bookings are not counted.</p>
@@ -959,7 +1014,8 @@ export default function UserManual() {
             Each booking&apos;s <B>Audit Log</B> is written by the system and can&apos;t be edited.
             It records who did each step and when: deposit submitted, verified or rejected;
             confirmed; full payment uploaded or verified; picked up; returned; cancelled;
-            reactivated (with the reason); dates or price changed; deposit added to credit; deleted;
+            reactivated (with the reason); dates or price changed; deposit added to credit, put on
+            hold or settled; charges added or removed; payments received for charges; deleted;
             released after 48 hours; and opening the customer&apos;s documents. Steps by the system
             itself show as <B>System</B>.
           </p>
@@ -1015,6 +1071,14 @@ export default function UserManual() {
               [
                 '"Deduct Credit" is refused',
                 'The deduction is larger than the customer’s balance.',
+              ],
+              [
+                'The charges are more than the deposit',
+                'The rest is recorded as owed. Collect it and press Record Payment under Return & Charges (7.6).',
+              ],
+              [
+                'A charge can’t be removed',
+                'A payment for charges was already recorded on the booking. Give money back with Add Credit on the customer instead.',
               ],
             ].map(([q, a]) => (
               <div key={q} className="bg-white/5 p-3 rounded-xl border border-white/10">

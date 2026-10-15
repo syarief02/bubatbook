@@ -116,7 +116,17 @@ export default function AdminDashboard() {
         </div>
         <p className="text-xs text-slate-500">
           Deposits held now: {formatMYR(stats?.depositsHeld || 0)} — not revenue; each goes back to
-          the customer&apos;s credit when the car is returned.
+          the customer&apos;s credit when the car is returned, less any charges.
+        </p>
+        <p className="text-xs text-slate-500 mt-1">
+          Charges after rentals (late return, damage…) collected:{' '}
+          {formatMYR(stats?.chargesCollected || 0)}
+          {stats?.chargesOwed > 0 && (
+            <span className="text-red-400">
+              {' '}
+              · still owed by customers: {formatMYR(stats.chargesOwed)}
+            </span>
+          )}
         </p>
       </div>
 

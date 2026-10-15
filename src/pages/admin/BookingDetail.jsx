@@ -11,7 +11,7 @@ import { uploadFileRobust } from '../../lib/uploadHelper';
 import { expireStaleHolds } from '../../hooks/useBookings';
 import { friendlyDbError } from '../../utils/dbErrors';
 import { useToast } from '../../components/Toast';
-import { formatDate, formatDateTime, getTodayString } from '../../utils/dates';
+import { formatDate, formatDateTime } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import { maskSensitive } from '../../utils/format';
 import {
@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 
 import { SignedLink, SignedImage } from '../../components/SignedFile';
+import { ChargesCard, ReturnCarDialog } from '../../components/ReturnCharges';
 // Status flow definition
 const STATUS_FLOW = {
   HOLD: ['DEPOSIT_PAID', 'CANCELLED'],
@@ -47,8 +48,17 @@ const STATUS_FLOW = {
   EXPIRED: ['DEPOSIT_PAID'],
 };
 
+const BOOKING_SELECT =
+  '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*)';
+
 // Audit log entries. Booking changes are logged by the database.
 const AUDIT_LABELS = {
+  CHARGE_ADDED: 'Charge added',
+  CHARGE_REMOVED: 'Charge removed',
+  CHARGE_PAYMENT: 'Payment received for charges',
+  HOLD_DEPOSIT: 'Deposit put on hold',
+  RELEASE_DEPOSIT: 'Held deposit settled',
+  DELETE_BOOKING: 'Booking deleted',
   SUBMIT_DEPOSIT: 'Deposit submitted',
   UPLOAD_DEPOSIT_RECEIPT: 'Deposit receipt uploaded',
   VERIFY_DEPOSIT: 'Deposit verified',
@@ -80,6 +90,9 @@ function auditDetail({ action, details = {} }) {
   if (action === 'CHANGE_DATES') return `${d.from} → ${d.to}`;
   if (action === 'CHANGE_PRICE') return `${formatMYR(d.total_from)} → ${formatMYR(d.total_to)}`;
   if (action === 'REACTIVATE_EXPIRED') return d.reason || null;
+  if (action === 'CHARGE_ADDED')
+    return `${d.label}${d.description ? ` (${d.description})` : ''} ${formatMYR(d.amount)}`;
+  if (action === 'CHARGE_REMOVED') return `${formatMYR(d.amount)} — ${d.reason}`;
   const amount = d.amount ?? d.credit_returned;
   return Number(amount) > 0 ? formatMYR(amount) : null;
 }
@@ -107,6 +120,7 @@ export default function AdminBookingDetail() {
   const [showReactivate, setShowReactivate] = useState(false);
   const [reactivating, setReactivating] = useState(false);
   const [savingDates, setSavingDates] = useState(false);
+  const [showReturn, setShowReturn] = useState(false);
 
   // Full payment receipt upload
   const [fullPaymentFile, setFullPaymentFile] = useState(null);
@@ -120,7 +134,7 @@ export default function AdminBookingDetail() {
         // Admin-direct query: fetch by ID without user_id filter
         const { data: bookingData, error: bookingErr } = await supabase
           .from('bubatrent_booking_bookings')
-          .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
+          .select(BOOKING_SELECT)
           .eq('id', id)
           .maybeSingle();
 
@@ -198,11 +212,7 @@ export default function AdminBookingDetail() {
   // stamps updated_at, writes the audit entries and may credit the deposit.
   async function reloadBooking() {
     const [{ data: fresh }, logs] = await Promise.all([
-      supabase
-        .from('bubatrent_booking_bookings')
-        .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
-        .eq('id', id)
-        .maybeSingle(),
+      supabase.from('bubatrent_booking_bookings').select(BOOKING_SELECT).eq('id', id).maybeSingle(),
       getAuditLogs(id).catch(() => null),
     ]);
     if (fresh) setBooking(fresh);
@@ -233,20 +243,17 @@ export default function AdminBookingDetail() {
     }
 
     try {
-      const updates = { status: newStatus };
-      if (newStatus === 'RETURNED') {
-        updates.actual_return_date = getTodayString();
-      }
+      // (Returning a car goes through ReturnCarDialog, which handles charges.)
       const { error } = await supabase
         .from('bubatrent_booking_bookings')
-        .update(updates)
+        .update({ status: newStatus })
         .eq('id', id);
       if (error) throw error;
       const logs = await reloadBooking();
       const credited = logs.find((l) => l.action === 'DEPOSIT_TO_CREDIT');
-      if (['RETURNED', 'CANCELLED'].includes(newStatus) && credited) {
+      if (newStatus === 'CANCELLED' && credited) {
         toast.success(
-          `Status updated to ${newStatus}. Deposit ${formatMYR(credited.details?.amount)} added to the customer's credit — deduct any charges under Customers.`
+          `Booking cancelled. Deposit ${formatMYR(credited.details?.amount)} added to the customer's credit.`
         );
       } else {
         toast.success(`Status updated to ${newStatus}`);
@@ -450,6 +457,9 @@ export default function AdminBookingDetail() {
   const payments = [...(booking.bubatrent_booking_payments || [])].sort((a, b) =>
     String(a.created_at).localeCompare(String(b.created_at))
   );
+  const charges = [...(booking.bubatrent_booking_charges || [])].sort((a, b) =>
+    String(a.created_at).localeCompare(String(b.created_at))
+  );
   const nextStatuses = STATUS_FLOW[booking.status] || [];
   // No receipt to check (a counter booking, or a hold an admin marked as
   // deposit paid): the admin records the cash deposit
@@ -481,6 +491,10 @@ export default function AdminBookingDetail() {
               onClick={() => {
                 if (booking.status === 'EXPIRED') {
                   setShowReactivate(true);
+                  return;
+                }
+                if (ns === 'RETURNED') {
+                  setShowReturn(true);
                   return;
                 }
                 handleStatusChange(ns);
@@ -574,6 +588,17 @@ export default function AdminBookingDetail() {
             </div>
           )}
         </div>
+      )}
+
+      {showReturn && (
+        <ReturnCarDialog
+          booking={booking}
+          onClose={() => setShowReturn(false)}
+          onDone={() => {
+            setShowReturn(false);
+            reloadBooking();
+          }}
+        />
       )}
 
       {/* Reactivation Modal */}
@@ -873,8 +898,10 @@ export default function AdminBookingDetail() {
                 {booking.deposit_status === 'verified' && (
                   <p className="text-xs text-slate-400 mt-2">
                     {booking.deposit_credited_at
-                      ? `Added to the customer's credit on ${formatDateTime(booking.deposit_credited_at)}.`
-                      : "Held until the car is returned, then added to the customer's credit."}
+                      ? `Added to the customer's credit on ${formatDateTime(booking.deposit_credited_at)}${Number(booking.charges_total) > 0 ? ', less charges (see Return & Charges)' : ''}.`
+                      : booking.deposit_on_hold
+                        ? 'On hold after the return. Settle it under Return & Charges.'
+                        : "Held until the car is returned, then added to the customer's credit less any charges."}
                   </p>
                 )}
               </div>
@@ -982,6 +1009,15 @@ export default function AdminBookingDetail() {
               </div>
             )}
           </div>
+
+          {(booking.status === 'RETURNED' || charges.length > 0) && (
+            <ChargesCard
+              booking={booking}
+              charges={charges}
+              payments={payments}
+              onChanged={reloadBooking}
+            />
+          )}
 
           {/* Documents */}
           <div className="glass-card">
@@ -1161,7 +1197,11 @@ export default function AdminBookingDetail() {
                     <div className="flex justify-between">
                       <span className="text-slate-500">Type</span>
                       <span className="text-slate-300">
-                        {payment.payment_type === 'full_payment' ? 'Full payment' : 'Deposit'}
+                        {payment.payment_type === 'full_payment'
+                          ? 'Full payment'
+                          : payment.payment_type === 'charge'
+                            ? 'Charge payment'
+                            : 'Deposit'}
                       </span>
                     </div>
                     <div className="flex justify-between">

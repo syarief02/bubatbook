@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { ilikeAny } from '../utils/search';
-import { BOOKED_STATUSES, depositHeld, rentalPaid, sumBy } from '../utils/revenue';
+import {
+  BOOKED_STATUSES,
+  chargesCollected,
+  chargesOwed,
+  depositHeld,
+  rentalPaid,
+  sumBy,
+} from '../utils/revenue';
 
 // ─── Fleet-scoped helper ───
 // Applies fleet_group_id filter unless null (super admin "All Fleets" view)
@@ -61,7 +68,7 @@ export function useAdminStats(fleetId) {
       let moneyQuery = supabase
         .from('bubatrent_booking_bookings')
         .select(
-          'status, total_price, full_payment_amount, full_payment_status, deposit_amount, deposit_status, deposit_credited_at'
+          'status, total_price, full_payment_amount, full_payment_status, deposit_amount, deposit_status, deposit_credited_at, deposit_on_hold, charges_total, amount_owed'
         )
         .in('status', BOOKED_STATUSES);
 
@@ -105,6 +112,8 @@ export function useAdminStats(fleetId) {
         depositsToReview: depositsToReview || 0,
         rentalRevenue: sumBy(moneyRows || [], rentalPaid),
         depositsHeld: sumBy(moneyRows || [], depositHeld),
+        chargesCollected: sumBy(moneyRows || [], chargesCollected),
+        chargesOwed: sumBy(moneyRows || [], chargesOwed),
         totalCustomers: totalCustomers || 0,
       };
     },

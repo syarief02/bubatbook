@@ -12,7 +12,9 @@ export function useBookings(userId) {
     queryFn: async () => {
       const { data, error: fetchError } = await supabase
         .from('bubatrent_booking_bookings')
-        .select('*, bubatrent_booking_cars(name, brand, model, image_url)')
+        .select(
+          '*, bubatrent_booking_cars(name, brand, model, image_url), bubatrent_booking_charges(id, kind, amount, from_deposit, description, created_at)'
+        )
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
@@ -85,7 +87,9 @@ export async function updateBookingCustomerInfo(bookingId, customerInfo) {
 export async function getBooking(bookingId) {
   const { data, error } = await supabase
     .from('bubatrent_booking_bookings')
-    .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
+    .select(
+      '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*)'
+    )
     .eq('id', bookingId)
     .single();
 

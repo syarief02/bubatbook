@@ -19,13 +19,26 @@ export function depositReceived(b) {
   return b.deposit_status === 'verified' ? Number(b.deposit_amount || 0) : 0;
 }
 
-/** Deposit held right now: verified, booking still running, not yet returned. */
+/**
+ * Deposit held right now: verified and not yet returned, while the booking is
+ * running or after the return while it is on hold for damage checks.
+ */
 export function depositHeld(b) {
-  return HOLDING_STATUSES.includes(b.status) &&
+  return (HOLDING_STATUSES.includes(b.status) || b.deposit_on_hold) &&
     b.deposit_status === 'verified' &&
     !b.deposit_credited_at
     ? Number(b.deposit_amount || 0)
     : 0;
+}
+
+/** Charges after the rental (late return, damage…) received so far: income. */
+export function chargesCollected(b) {
+  return Math.max(Number(b.charges_total || 0) - Number(b.amount_owed || 0), 0);
+}
+
+/** Charges the customer still owes. */
+export function chargesOwed(b) {
+  return Number(b.amount_owed || 0);
 }
 
 export function sumBy(rows, fn) {

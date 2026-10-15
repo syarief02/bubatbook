@@ -11,6 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
+import { chargeLabel } from '../utils/charges';
 import {
   CalendarDays,
   ExternalLink,
@@ -183,13 +184,48 @@ export default function MyBookings() {
                           and goes to your credit balance after the car is returned.
                         </p>
                       )}
+                    {booking.deposit_on_hold && (
+                      <p className="text-xs text-yellow-400 mb-3">
+                        Your deposit is on hold while we check the car. We&apos;ll release it to
+                        your credit balance, less any charges, once that&apos;s done.
+                      </p>
+                    )}
                     {booking.deposit_credited_at &&
                       ['RETURNED', 'CANCELLED'].includes(booking.status) && (
                         <p className="text-xs text-green-400 mb-3">
                           ✓ Deposit returned to your credit balance on{' '}
                           {formatDate(booking.deposit_credited_at)}
+                          {Number(booking.charges_total) > 0 && ', less the charges below'}
                         </p>
                       )}
+                    {(booking.bubatrent_booking_charges || []).length > 0 && (
+                      <div className="mb-3 rounded-xl bg-white/[0.03] p-3 text-xs space-y-1">
+                        <p className="text-slate-400 font-medium">Charges after the rental</p>
+                        {booking.bubatrent_booking_charges.map((c) => (
+                          <div key={c.id} className="flex justify-between gap-3">
+                            <span className="text-slate-300">
+                              {chargeLabel(c.kind)}
+                              {c.description && ` — ${c.description}`}
+                            </span>
+                            <span className="text-white shrink-0">{formatMYR(c.amount)}</span>
+                          </div>
+                        ))}
+                        {Number(booking.amount_owed) > 0 ? (
+                          <p className="text-red-400 pt-1">
+                            The charges are more than your deposit. Please pay the remaining{' '}
+                            {formatMYR(booking.amount_owed)} — contact us to arrange it.
+                          </p>
+                        ) : booking.bubatrent_booking_charges.every(
+                            (c) => Number(c.from_deposit) >= Number(c.amount)
+                          ) ? (
+                          <p className="text-slate-500 pt-1">Taken from your deposit.</p>
+                        ) : (
+                          <p className="text-slate-500 pt-1">
+                            Settled from your deposit and your payment. Thank you.
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {/* Full payment upload */}
                     {showFullPaymentUpload && (

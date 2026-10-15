@@ -33,12 +33,16 @@
 - **Dashboard**: customers to verify, deposits to check, rental revenue, deposits currently held.
 - **Bookings**: the full status flow, with rules enforced by the database. Admins verify deposits
   and full payments (receipt or cash), send the agreement link, edit dates, reactivate expired
-  bookings, cancel or delete. Each booking page lists every payment record and a full audit log.
+  bookings, cancel or delete. Returning a car takes charges (late return, cleaning, fuel, damage)
+  off the deposit, or holds the deposit until damage is priced; anything above the deposit is
+  tracked as owed until collected. Each booking page lists every payment record and a full audit
+  log.
 - **Book for Customer** (counter and phone bookings) and **Create Customer** (walk-ins, verified
   when created).
 - **Customers**: check documents, verify, reject or revoke, edit details (sensitive edits go to
   the Super Group as change requests), manage roles, add or deduct credit, see booking history.
-- **Sales**: rental revenue kept separate from refundable deposits, per car, with date filters.
+- **Sales**: rental revenue and charges kept separate from refundable deposits, per car, with
+  date filters.
 - **Expenses & claims**: claims with invoice images, completed with a payment receipt.
 - **Fleets**: fleet settings and members, approval and suspension of fleets, change requests and
   "View As" for the Super Group.
@@ -48,8 +52,12 @@
 
 - **Two-part payment**: deposit, then the full rental before pickup, each with its own receipt.
 - **Deposits as credit**: a verified deposit is held during the rental and goes to the customer's
-  credit when the car is returned (or the booking is cancelled after verification). Credit is
-  applied to the next deposit automatically. The credit ledger is append-only.
+  credit when the car is returned, less any charges (or when the booking is cancelled after
+  verification). Credit is applied to the next deposit automatically. The credit ledger is
+  append-only.
+- **Charges after the rental**: staff enter each charge (amount typed by staff, note shown to the
+  customer). Charges come off that booking's deposit; the rest is owed and recorded when paid.
+  The deposit can be held after the return until a repair quote arrives.
 - **48-hour release**: a deposit not verified within 48 hours releases the booking (EXPIRED), frees
   the car and returns any credit the customer applied.
 - **Audit trail**: every status and payment change is written to the audit log by the database,
@@ -130,24 +138,25 @@ scripts/
 
 ### Tables
 
-| Table                                    | Purpose                                                         |
-| ---------------------------------------- | --------------------------------------------------------------- |
-| `bubatrent_booking_profiles`             | Users: role, verification, IC/licence, address, credit balance  |
-| `bubatrent_booking_cars`                 | Cars per fleet: specs, daily price, availability                |
-| `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state |
-| `bubatrent_booking_payments`             | Payment records (deposit / full payment, method, reference)     |
-| `bubatrent_booking_rental_agreements`    | Signed agreements, terms copied from the booking                |
-| `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only       |
-| `bubatrent_booking_audit_logs`           | Who did what; written by triggers and functions; undeletable    |
-| `bubatrent_booking_fleet_groups`         | Fleets (rental companies), status, support contacts             |
-| `bubatrent_booking_fleet_memberships`    | Admin membership and fleet role (Fleet Admin / Staff)           |
-| `bubatrent_booking_change_requests`      | Sensitive customer edits awaiting Super Group approval          |
-| `bubatrent_booking_link_attempts`        | Walk-in account linking attempts (rate limit)                   |
-| `bubatrent_booking_upload_logs`          | Upload diagnostics from customer and admin devices              |
-| `bubatrent_booking_expense_claims`       | Expense claims (per car or general)                             |
-| `bubatrent_booking_expense_images`       | Invoice images per claim                                        |
-| `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                     |
-| `bubatrent_booking_verification_updates` | Pending document re-submissions                                 |
+| Table                                    | Purpose                                                              |
+| ---------------------------------------- | -------------------------------------------------------------------- |
+| `bubatrent_booking_profiles`             | Users: role, verification, IC/licence, address, credit balance       |
+| `bubatrent_booking_cars`                 | Cars per fleet: specs, daily price, availability                     |
+| `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state      |
+| `bubatrent_booking_payments`             | Payment records (deposit / full payment / charge, method, reference) |
+| `bubatrent_booking_charges`              | Charges after a rental (late return, cleaning, fuel, damage, other)  |
+| `bubatrent_booking_rental_agreements`    | Signed agreements, terms copied from the booking                     |
+| `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only            |
+| `bubatrent_booking_audit_logs`           | Who did what; written by triggers and functions; undeletable         |
+| `bubatrent_booking_fleet_groups`         | Fleets (rental companies), status, support contacts                  |
+| `bubatrent_booking_fleet_memberships`    | Admin membership and fleet role (Fleet Admin / Staff)                |
+| `bubatrent_booking_change_requests`      | Sensitive customer edits awaiting Super Group approval               |
+| `bubatrent_booking_link_attempts`        | Walk-in account linking attempts (rate limit)                        |
+| `bubatrent_booking_upload_logs`          | Upload diagnostics from customer and admin devices                   |
+| `bubatrent_booking_expense_claims`       | Expense claims (per car or general)                                  |
+| `bubatrent_booking_expense_images`       | Invoice images per claim                                             |
+| `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                          |
+| `bubatrent_booking_verification_updates` | Pending document re-submissions                                      |
 
 Files (IC, licence, receipts) live in the private `customer-documents` storage bucket.
 
@@ -162,6 +171,11 @@ Anything involving money or status goes through the database, not the browser:
 | `bubatrent_admin_verify_deposit`                        | Marks the deposit verified (records a cash payment if none)            |
 | `bubatrent_sign_rental_agreement`                       | Signs once, copying terms from the booking                             |
 | `bubatrent_admin_adjust_credit`                         | Add / deduct credit with a ledger entry, never below zero              |
+| `bubatrent_admin_return_booking`                        | Mark returned with charges off the deposit, or hold the deposit        |
+| `bubatrent_admin_settle_deposit`                        | Release a held deposit, less charges                                   |
+| `bubatrent_admin_add_booking_charges`                   | Charges found after settling (owed)                                    |
+| `bubatrent_admin_remove_booking_charge`                 | Undo a mistaken charge before any charge payment                       |
+| `bubatrent_admin_record_charge_payment`                 | Record money collected for what the customer owes                      |
 | `bubatrent_release_unverified_deposits`                 | The 48-hour release (pg_cron every 10 min, and on site activity)       |
 | `bubatrent_check_availability`                          | Public availability check                                              |
 | `bubatrent_save_mobile`, `bubatrent_link_walk_in_by_ic` | Mobile number and walk-in account linking                              |
@@ -202,12 +216,15 @@ Enforced by the database for every website request:
 4. Admin verifies the deposit, then confirms the booking.
 5. Customer signs the rental agreement and uploads the full rental payment receipt.
 6. Admin verifies the full payment (or records cash), then marks the car picked up.
-7. Admin marks the car returned: the deposit goes to the customer's credit automatically.
-8. Charges (late return, cleaning, damage) and transfer refunds are recorded with Deduct Credit.
+7. Admin marks the car returned and enters any charges (late return, cleaning, fuel, damage).
+   Charges come off the deposit; the rest of the deposit goes to the customer's credit, and
+   anything above the deposit is owed until the admin records the payment. For damage that needs
+   a quote, the deposit can be held and settled later.
+8. Transfer refunds of the remaining credit are recorded with Deduct Credit.
 ```
 
-Rental revenue on the Dashboard and Sales pages counts verified rental payments only; deposits
-are shown separately because they are returned.
+Rental revenue on the Dashboard and Sales pages counts verified rental payments; charges
+collected are shown next to it. Deposits are shown separately because they are returned.
 
 ---
 

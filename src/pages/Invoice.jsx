@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
+import { chargeLabel } from '../utils/charges';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
 import { Printer, ArrowLeft } from 'lucide-react';
@@ -30,7 +31,9 @@ export default function Invoice() {
         // Fetch booking with car info
         let query = supabase
           .from('bubatrent_booking_bookings')
-          .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
+          .select(
+            '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*)'
+          )
           .eq('id', id);
         if (!isAdmin && user?.id) query = query.eq('user_id', user.id);
         const { data: bookingData, error: bErr } = await query.maybeSingle();
@@ -72,7 +75,17 @@ export default function Invoice() {
 
   const car = booking.bubatrent_booking_cars;
   const completedPayments = payments.filter((p) => p.status === 'completed');
-  const totalPaid = completedPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  // Rental and deposit payments; payments for charges are listed with the charges
+  const totalPaid = completedPayments
+    .filter((p) => p.payment_type !== 'charge')
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const charges = [...(booking.bubatrent_booking_charges || [])].sort((a, b) =>
+    String(a.created_at).localeCompare(String(b.created_at))
+  );
+  const chargesFromDeposit = charges.reduce((s, c) => s + Number(c.from_deposit || 0), 0);
+  const chargesPaid = completedPayments
+    .filter((p) => p.payment_type === 'charge')
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const invoiceNumber = `INV-${booking.id.slice(0, 8).toUpperCase()}`;
   const companyName = fleet?.name || 'Bubat Resources';
   const hasVerifiedPayment =
@@ -241,6 +254,60 @@ export default function Invoice() {
               )}
             </div>
           </div>
+
+          {/* Charges after the rental (late return, cleaning, fuel, damage) */}
+          {charges.length > 0 && (
+            <div className="mb-8">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Caj Selepas Sewaan / Charges After the Rental
+              </p>
+              <table className="w-full text-sm mb-3">
+                <tbody>
+                  {charges.map((c) => (
+                    <tr key={c.id} className="border-b border-gray-100">
+                      <td className="py-2">
+                        <p className="font-medium text-gray-900">{chargeLabel(c.kind)}</p>
+                        {c.description && <p className="text-xs text-gray-400">{c.description}</p>}
+                      </td>
+                      <td className="py-2 text-right font-medium text-gray-900">
+                        {formatMYR(c.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-end">
+                <div className="w-full sm:w-72 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Ditolak daripada deposit / From deposit</span>
+                    <span className="text-gray-900">{formatMYR(chargesFromDeposit)}</span>
+                  </div>
+                  {booking.deposit_credited_at && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Deposit dikembalikan / Deposit returned</span>
+                      <span className="text-gray-900">
+                        {formatMYR(
+                          Math.max(Number(booking.deposit_amount || 0) - chargesFromDeposit, 0)
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  {chargesPaid > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-green-600">Dibayar / Paid for charges</span>
+                      <span className="text-green-600">{formatMYR(chargesPaid)}</span>
+                    </div>
+                  )}
+                  {Number(booking.amount_owed) > 0 && (
+                    <div className="flex justify-between font-semibold">
+                      <span className="text-red-600">Baki perlu dibayar / Balance due</span>
+                      <span className="text-red-600">{formatMYR(booking.amount_owed)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Payment Status Badge */}
           {hasVerifiedPayment && (

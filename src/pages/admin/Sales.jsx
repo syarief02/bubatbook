@@ -10,8 +10,10 @@ import {
   depositReceived,
   rentalPaid,
   sumBy,
+  chargesCollected,
+  chargesOwed,
 } from '../../utils/revenue';
-import { DollarSign, TrendingUp, Car, Filter, Wallet } from 'lucide-react';
+import { DollarSign, TrendingUp, Car, Filter, Wallet, Wrench } from 'lucide-react';
 
 // Static class names: Tailwind drops classes built at runtime like `bg-${color}-500/10`
 const CARD_BG = {
@@ -19,7 +21,12 @@ const CARD_BG = {
   yellow: 'bg-yellow-500/10',
   violet: 'bg-violet-500/10',
 };
-const CARD_TEXT = { green: 'text-green-400', yellow: 'text-yellow-400', violet: 'text-violet-400' };
+const CARD_TEXT = {
+  green: 'text-green-400',
+  yellow: 'text-yellow-400',
+  violet: 'text-violet-400',
+  rose: 'text-rose-400',
+};
 
 export default function AdminSales() {
   const { activeFleetId } = useFleet();
@@ -77,6 +84,8 @@ export default function AdminSales() {
   const depositsReceived = sumBy(filtered, depositReceived);
   // Not limited to the period: what is held for running bookings today
   const depositsHeldNow = sumBy(bookings, depositHeld);
+  const charges = sumBy(filtered, chargesCollected);
+  const owed = sumBy(filtered, chargesOwed);
 
   // Per-car breakdown
   const carStats = cars
@@ -87,6 +96,7 @@ export default function AdminSales() {
         bookingCount: carBookings.length,
         rent: sumBy(carBookings, rentalPaid),
         deposits: sumBy(carBookings, depositReceived),
+        charges: sumBy(carBookings, chargesCollected),
       };
     })
     .filter((c) => c.bookingCount > 0)
@@ -137,7 +147,7 @@ export default function AdminSales() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
         {[
           {
             label: 'Rental Revenue',
@@ -145,6 +155,16 @@ export default function AdminSales() {
             value: rentalRevenue,
             icon: TrendingUp,
             color: 'green',
+          },
+          {
+            label: 'Charges Collected',
+            hint:
+              owed > 0
+                ? `Late return, damage… · ${formatMYR(owed)} still owed`
+                : 'Late return, damage…',
+            value: charges,
+            icon: Wrench,
+            color: 'rose',
           },
           {
             label: 'Deposits Received',
@@ -178,8 +198,8 @@ export default function AdminSales() {
         ))}
       </div>
       <p className="text-xs text-slate-500 mb-8">
-        Periods count bookings by the date they were made. Deposits go back to customers as credit
-        after the rental, so only rental payments are revenue.
+        Periods count bookings by the date they were made. Rental payments and charges are income;
+        deposits go back to customers as credit after the rental, less any charges.
       </p>
 
       {/* Per-Car Breakdown */}
@@ -197,6 +217,7 @@ export default function AdminSales() {
                   <th className="pb-3 pr-4">Car</th>
                   <th className="pb-3 pr-4">Bookings</th>
                   <th className="pb-3 pr-4">Rental Revenue</th>
+                  <th className="pb-3 pr-4">Charges</th>
                   <th className="pb-3">Deposits (refundable)</th>
                 </tr>
               </thead>
@@ -208,6 +229,7 @@ export default function AdminSales() {
                     <td className="py-3 pr-4 text-green-400 font-semibold">
                       {formatMYR(car.rent)}
                     </td>
+                    <td className="py-3 pr-4 text-rose-400">{formatMYR(car.charges)}</td>
                     <td className="py-3 text-yellow-400">{formatMYR(car.deposits)}</td>
                   </tr>
                 ))}
