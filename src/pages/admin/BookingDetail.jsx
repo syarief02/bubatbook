@@ -796,6 +796,14 @@ export default function AdminBookingDetail() {
                     <Eye className="w-3 h-3" /> View Receipt
                   </SignedLink>
                 )}
+                {booking.status === 'DEPOSIT_PAID' &&
+                  booking.deposit_status !== 'verified' &&
+                  booking.deposit_review_due_at && (
+                    <p className="text-xs text-amber-400 mb-2">
+                      Released automatically on {formatDateTime(booking.deposit_review_due_at)}{' '}
+                      unless verified.
+                    </p>
+                  )}
                 {booking.deposit_status === 'uploaded' && (
                   <div className="flex gap-2 mt-2">
                     <button

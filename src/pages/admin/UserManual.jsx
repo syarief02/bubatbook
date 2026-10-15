@@ -127,7 +127,10 @@ export default function UserManual() {
                 <h5 className="text-orange-400 font-bold mb-1">2. DEPOSIT_PAID</h5>
                 <p className="text-xs">
                   Customer uploaded a receipt. You must review the receipt in the Booking Details.
-                  If valid, click <span className="text-white font-medium">Confirm Deposit</span>.
+                  If valid, click <span className="text-white font-medium">Verify</span>. Do this
+                  within <strong>48 hours</strong>: a deposit that isn&apos;t verified by then
+                  (including a rejected one) is released automatically, the car becomes free and any
+                  credit the customer used is returned to them.
                 </p>
               </div>
               <div className="bg-white/5 p-3 rounded-xl border border-white/10">
@@ -153,8 +156,10 @@ export default function UserManual() {
               <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
               <p className="text-xs text-red-200">
                 <strong className="block text-red-300 mb-1">Expired Bookings:</strong>
-                If a HOLD expires, you can manually &quot;Reactivate&quot; it in the Booking Details
-                page—but only if those dates haven&apos;t been taken by someone else!
+                If a HOLD expires, or a booking is released because its deposit wasn&apos;t verified
+                within 48 hours, you can manually &quot;Reactivate&quot; it in the Booking Details
+                page—but only if those dates haven&apos;t been taken by someone else! A reactivated
+                booking is not released again.
               </p>
             </div>
           </div>

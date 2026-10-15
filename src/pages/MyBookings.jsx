@@ -9,7 +9,7 @@ import { SignedLink } from '../components/SignedFile';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
-import { formatDate } from '../utils/dates';
+import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
 import {
   CalendarDays,
@@ -159,6 +159,22 @@ export default function MyBookings() {
                         <p className="text-green-400">{formatMYR(booking.deposit_amount)}</p>
                       </div>
                     </div>
+
+                    {booking.status === 'DEPOSIT_PAID' &&
+                      booking.deposit_status !== 'verified' &&
+                      booking.deposit_review_due_at && (
+                        <p className="text-xs text-yellow-400 mb-3">
+                          We&apos;re checking your deposit receipt. If it isn&apos;t verified by{' '}
+                          {formatDateTime(booking.deposit_review_due_at)}, this booking is released
+                          and the car becomes available to others.
+                        </p>
+                      )}
+                    {booking.status === 'EXPIRED' && booking.deposit_receipt_path && (
+                      <p className="text-xs text-slate-400 mb-3">
+                        This booking was released because the deposit wasn&apos;t verified within 48
+                        hours. Contact us if you&apos;ve already paid.
+                      </p>
+                    )}
 
                     {/* Full payment upload */}
                     {showFullPaymentUpload && (

@@ -227,7 +227,9 @@ export default function BookingConfirmation() {
             </h1>
             <p className="text-slate-400">
               {booking.status === 'DEPOSIT_PAID'
-                ? 'Your deposit has been uploaded. Awaiting admin verification.'
+                ? booking.deposit_status === 'verified'
+                  ? 'Your deposit was covered by your credit. Awaiting admin confirmation.'
+                  : "Your deposit has been uploaded. Awaiting admin verification. If it isn't verified within 48 hours, the booking is released."
                 : 'Your booking is secured and confirmed.'}
             </p>
           </>
