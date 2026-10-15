@@ -4,10 +4,12 @@ import { CHARGE_KINDS } from '../utils/charges';
 /**
  * List of charges (type, amount, note) for returning a car or settling a
  * held deposit. Staff type every amount themselves.
+ * onChange is a state setter: it gets updater functions, so quick
+ * successive clicks each build on the latest list.
  */
 export default function ChargesEditor({ rows, onChange, disabled = false }) {
   function update(i, field, value) {
-    onChange(rows.map((row, j) => (j === i ? { ...row, [field]: value } : row)));
+    onChange((prev) => prev.map((row, j) => (j === i ? { ...row, [field]: value } : row)));
   }
 
   return (
@@ -52,7 +54,7 @@ export default function ChargesEditor({ rows, onChange, disabled = false }) {
             />
             <button
               type="button"
-              onClick={() => onChange(rows.filter((_, j) => j !== i))}
+              onClick={() => onChange((prev) => prev.filter((_, j) => j !== i))}
               disabled={disabled}
               className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 self-start"
               aria-label="Remove charge"
@@ -64,7 +66,9 @@ export default function ChargesEditor({ rows, onChange, disabled = false }) {
       })}
       <button
         type="button"
-        onClick={() => onChange([...rows, { kind: 'late_return', amount: '', description: '' }])}
+        onClick={() =>
+          onChange((prev) => [...prev, { kind: 'late_return', amount: '', description: '' }])
+        }
         disabled={disabled}
         className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 disabled:opacity-40"
       >
