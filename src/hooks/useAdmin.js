@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { ilikeAny } from '../utils/search';
+import { BOOKED_STATUSES, depositHeld, rentalPaid, sumBy } from '../utils/revenue';
 
 // ─── Fleet-scoped helper ───
 // Applies fleet_group_id filter unless null (super admin "All Fleets" view)
@@ -56,17 +57,20 @@ export function useAdminStats(fleetId) {
         .eq('role', 'customer')
         .eq('is_verified', false)
         .or('ic_number.not.is.null,ic_file_path.not.is.null');
-      let pQuery = supabase
-        .from('bubatrent_booking_payments')
-        .select('amount')
-        .eq('status', 'completed');
+      // Rent received and deposits held (see utils/revenue.js)
+      let moneyQuery = supabase
+        .from('bubatrent_booking_bookings')
+        .select(
+          'status, total_price, full_payment_amount, full_payment_status, deposit_amount, deposit_status, deposit_credited_at'
+        )
+        .in('status', BOOKED_STATUSES);
 
       bQuery = scopeToFleet(bQuery, fleetId);
       bActiveQuery = scopeToFleet(bActiveQuery, fleetId);
       bExpiredQuery = scopeToFleet(bExpiredQuery, fleetId);
       cQuery = scopeToFleet(cQuery, fleetId);
       depReviewQuery = scopeToFleet(depReviewQuery, fleetId);
-      pQuery = scopeToFleet(pQuery, fleetId);
+      moneyQuery = scopeToFleet(moneyQuery, fleetId);
 
       const [
         { count: totalBookings },
@@ -89,8 +93,8 @@ export function useAdminStats(fleetId) {
           .eq('role', 'customer'),
       ]);
 
-      const { data: payments } = await pQuery;
-      const totalRevenue = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+      const { data: moneyRows, error: moneyErr } = await moneyQuery;
+      if (moneyErr) throw moneyErr;
 
       return {
         totalBookings: totalBookings || 0,
@@ -99,7 +103,8 @@ export function useAdminStats(fleetId) {
         totalCars: totalCars || 0,
         pendingVerifications: pendingVerifications || 0,
         depositsToReview: depositsToReview || 0,
-        totalRevenue,
+        rentalRevenue: sumBy(moneyRows || [], rentalPaid),
+        depositsHeld: sumBy(moneyRows || [], depositHeld),
         totalCustomers: totalCustomers || 0,
       };
     },

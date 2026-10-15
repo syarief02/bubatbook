@@ -4,7 +4,22 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
 import { useFleet } from '../../hooks/useFleet';
 import { formatMYR } from '../../utils/pricing';
-import { DollarSign, TrendingUp, Car, Filter } from 'lucide-react';
+import {
+  BOOKED_STATUSES,
+  depositHeld,
+  depositReceived,
+  rentalPaid,
+  sumBy,
+} from '../../utils/revenue';
+import { DollarSign, TrendingUp, Car, Filter, Wallet } from 'lucide-react';
+
+// Static class names: Tailwind drops classes built at runtime like `bg-${color}-500/10`
+const CARD_BG = {
+  green: 'bg-green-500/10',
+  yellow: 'bg-yellow-500/10',
+  violet: 'bg-violet-500/10',
+};
+const CARD_TEXT = { green: 'text-green-400', yellow: 'text-yellow-400', violet: 'text-violet-400' };
 
 export default function AdminSales() {
   const { activeFleetId } = useFleet();
@@ -20,7 +35,7 @@ export default function AdminSales() {
     let bQuery = supabase
       .from('bubatrent_booking_bookings')
       .select('*, bubatrent_booking_cars(id, name, brand, model)')
-      .in('status', ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'])
+      .in('status', BOOKED_STATUSES)
       .order('created_at', { ascending: false });
     let cQuery = supabase.from('bubatrent_booking_cars').select('*');
     if (activeFleetId) {
@@ -38,48 +53,44 @@ export default function AdminSales() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFleetId]);
 
+  // Periods are in the browser's local time (Malaysia), by booking date
   function getFilteredBookings() {
-    let filtered = bookings;
     const now = new Date();
+    let from = null;
+    let to = null;
     if (dateRange === 'today') {
-      const today = now.toISOString().split('T')[0];
-      filtered = filtered.filter((b) => b.created_at?.startsWith(today));
+      from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     } else if (dateRange === 'month') {
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      filtered = filtered.filter((b) => b.created_at >= monthStart);
+      from = new Date(now.getFullYear(), now.getMonth(), 1);
     } else if (dateRange === 'custom' && startDate && endDate) {
-      filtered = filtered.filter(
-        (b) => b.created_at >= startDate && b.created_at <= endDate + 'T23:59:59'
-      );
+      from = new Date(`${startDate}T00:00:00`);
+      to = new Date(`${endDate}T23:59:59.999`);
     }
-    return filtered;
+    return bookings.filter((b) => {
+      const created = new Date(b.created_at);
+      return (!from || created >= from) && (!to || created <= to);
+    });
   }
 
   const filtered = getFilteredBookings();
-  const totalDeposits = filtered.reduce((s, b) => s + Number(b.deposit_amount || 0), 0);
-  const totalFullPayments = filtered
-    .filter((b) => b.full_payment_status === 'verified')
-    .reduce((s, b) => s + Number(b.full_payment_amount || b.total_price || 0), 0);
-  const totalCashIn = totalDeposits + totalFullPayments;
+  const rentalRevenue = sumBy(filtered, rentalPaid);
+  const depositsReceived = sumBy(filtered, depositReceived);
+  // Not limited to the period: what is held for running bookings today
+  const depositsHeldNow = sumBy(bookings, depositHeld);
 
   // Per-car breakdown
   const carStats = cars
     .map((car) => {
       const carBookings = filtered.filter((b) => b.car_id === car.id);
-      const deposits = carBookings.reduce((s, b) => s + Number(b.deposit_amount || 0), 0);
-      const payments = carBookings
-        .filter((b) => b.full_payment_status === 'verified')
-        .reduce((s, b) => s + Number(b.full_payment_amount || b.total_price || 0), 0);
       return {
         ...car,
         bookingCount: carBookings.length,
-        deposits,
-        payments,
-        total: deposits + payments,
+        rent: sumBy(carBookings, rentalPaid),
+        deposits: sumBy(carBookings, depositReceived),
       };
     })
     .filter((c) => c.bookingCount > 0)
-    .sort((a, b) => b.total - a.total);
+    .sort((a, b) => b.rent - a.rent);
 
   if (loading)
     return (
@@ -126,32 +137,50 @@ export default function AdminSales() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
         {[
-          { label: 'Total Deposits', value: totalDeposits, icon: DollarSign, color: 'yellow' },
           {
-            label: 'Total Full Payments',
-            value: totalFullPayments,
+            label: 'Rental Revenue',
+            hint: 'Verified rental payments',
+            value: rentalRevenue,
             icon: TrendingUp,
             color: 'green',
           },
-          { label: 'Total Cash-In', value: totalCashIn, icon: DollarSign, color: 'violet' },
-        ].map(({ label, value, icon: Icon, color }) => (
+          {
+            label: 'Deposits Received',
+            hint: 'Refundable — not revenue',
+            value: depositsReceived,
+            icon: DollarSign,
+            color: 'yellow',
+          },
+          {
+            label: 'Deposits Held Now',
+            hint: 'Running bookings, any date',
+            value: depositsHeldNow,
+            icon: Wallet,
+            color: 'violet',
+          },
+        ].map(({ label, hint, value, icon: Icon, color }) => (
           <div key={label} className="glass-card">
             <div className="flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-xl bg-${color}-500/10 flex items-center justify-center`}
+                className={`w-10 h-10 rounded-xl ${CARD_BG[color]} flex items-center justify-center`}
               >
-                <Icon className={`w-5 h-5 text-${color}-400`} />
+                <Icon className={`w-5 h-5 ${CARD_TEXT[color]}`} />
               </div>
               <div>
                 <p className="text-xs text-slate-500">{label}</p>
                 <p className="text-xl font-bold text-white">{formatMYR(value)}</p>
+                <p className="text-[11px] text-slate-600">{hint}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
+      <p className="text-xs text-slate-500 mb-8">
+        Periods count bookings by the date they were made. Deposits go back to customers as credit
+        after the rental, so only rental payments are revenue.
+      </p>
 
       {/* Per-Car Breakdown */}
       <div className="glass-card">
@@ -167,9 +196,8 @@ export default function AdminSales() {
                 <tr className="text-left text-xs text-slate-500 border-b border-white/5">
                   <th className="pb-3 pr-4">Car</th>
                   <th className="pb-3 pr-4">Bookings</th>
-                  <th className="pb-3 pr-4">Deposits</th>
-                  <th className="pb-3 pr-4">Payments</th>
-                  <th className="pb-3">Total</th>
+                  <th className="pb-3 pr-4">Rental Revenue</th>
+                  <th className="pb-3">Deposits (refundable)</th>
                 </tr>
               </thead>
               <tbody>
@@ -177,9 +205,10 @@ export default function AdminSales() {
                   <tr key={car.id} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
                     <td className="py-3 pr-4 text-white font-medium">{car.name}</td>
                     <td className="py-3 pr-4 text-slate-400">{car.bookingCount}</td>
-                    <td className="py-3 pr-4 text-yellow-400">{formatMYR(car.deposits)}</td>
-                    <td className="py-3 pr-4 text-green-400">{formatMYR(car.payments)}</td>
-                    <td className="py-3 text-white font-semibold">{formatMYR(car.total)}</td>
+                    <td className="py-3 pr-4 text-green-400 font-semibold">
+                      {formatMYR(car.rent)}
+                    </td>
+                    <td className="py-3 text-yellow-400">{formatMYR(car.deposits)}</td>
                   </tr>
                 ))}
               </tbody>

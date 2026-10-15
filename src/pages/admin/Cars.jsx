@@ -242,6 +242,9 @@ export default function AdminCars() {
                     min="0"
                     placeholder="0"
                   />
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Not used for bookings: the deposit is always 30% of the rental, at least RM100.
+                  </p>
                 </div>
                 <div>
                   <label className="input-label">Available</label>

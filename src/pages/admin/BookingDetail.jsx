@@ -345,7 +345,9 @@ export default function AdminBookingDetail() {
         : await supabase.from('bubatrent_booking_payments').insert({
             booking_id: id,
             amount: booking.full_payment_amount || booking.total_price,
-            payment_method: 'bank_transfer',
+            // No receipt means the rent was paid in cash at the counter
+            payment_method: booking.full_payment_receipt_path ? 'bank_transfer' : 'cash',
+            receipt_path: booking.full_payment_receipt_path || null,
             status: 'completed',
             payment_type: 'full_payment',
             reference_number: `FP-${Date.now().toString(36).toUpperCase()}`,
@@ -391,19 +393,16 @@ export default function AdminBookingDetail() {
     }
   }
 
-  // Delete booking and all related records
+  // Delete the booking and its payments. The customer's credit history stays;
+  // the database first gives back any credit or verified deposit the booking
+  // still holds, and logs the deletion.
   async function handleDeleteBooking() {
-    const confirmMsg = `Are you sure you want to DELETE this booking?\n\nCar: ${booking.bubatrent_booking_cars?.name || 'Unknown'}\nDates: ${booking.pickup_date} → ${booking.return_date}\nStatus: ${booking.status}\n\nThis will permanently delete:\n• The booking record\n• Associated payments and credit records\n\nAudit logs are kept. This action CANNOT be undone.`;
+    const confirmMsg = `Are you sure you want to DELETE this booking?\n\nCar: ${booking.bubatrent_booking_cars?.name || 'Unknown'}\nDates: ${booking.pickup_date} → ${booking.return_date}\nStatus: ${booking.status}\n\nThis will permanently delete:\n• The booking record, its payments and its signed agreement\n\nKept: the customer's credit history and the audit log. Credit the customer applied, or a verified deposit not yet returned, goes back to their credit balance.\n\nTo stop a real booking, Cancel it instead. This action CANNOT be undone.`;
     if (!window.confirm(confirmMsg)) return;
 
     setDeleting(true);
     try {
-      // Delete related records in dependency order
-      const { error: creditErr } = await supabase
-        .from('bubatrent_booking_credit_transactions')
-        .delete()
-        .eq('booking_id', id);
-      if (creditErr) throw creditErr;
+      // Payments reference the booking, so they go first
       const { error: payErr } = await supabase
         .from('bubatrent_booking_payments')
         .delete()
@@ -452,9 +451,11 @@ export default function AdminBookingDetail() {
     String(a.created_at).localeCompare(String(b.created_at))
   );
   const nextStatuses = STATUS_FLOW[booking.status] || [];
-  // Counter bookings made without a receipt: the admin records the cash deposit
+  // No receipt to check (a counter booking, or a hold an admin marked as
+  // deposit paid): the admin records the cash deposit
   const depositAwaitingCash =
-    booking.deposit_status === 'pending' &&
+    ['pending', 'pending_upload'].includes(booking.deposit_status) &&
+    !booking.deposit_receipt_path &&
     ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'].includes(booking.status);
 
   return (
@@ -856,7 +857,14 @@ export default function AdminBookingDetail() {
                 )}
                 {depositAwaitingCash && (
                   <button
-                    onClick={handleVerifyDeposit}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Record that the customer paid the ${formatMYR(booking.deposit_amount)} deposit in cash?`
+                        )
+                      )
+                        handleVerifyDeposit();
+                    }}
                     className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2"
                   >
                     ✓ Mark Deposit Received
@@ -907,6 +915,24 @@ export default function AdminBookingDetail() {
                     ✓ Verify Full Payment
                   </button>
                 )}
+                {/* Rent paid in cash at the counter: no receipt to check */}
+                {['CONFIRMED', 'PICKUP'].includes(booking.status) &&
+                  !booking.full_payment_receipt_path &&
+                  booking.full_payment_status !== 'verified' && (
+                    <button
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Record that the customer paid the full rental of ${formatMYR(booking.full_payment_amount || booking.total_price)} in cash?`
+                          )
+                        )
+                          handleVerifyFullPayment();
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2"
+                    >
+                      ✓ Mark Full Payment Received (cash)
+                    </button>
+                  )}
                 {/* Allow admin to upload full payment receipt on behalf of customer */}
                 {['CONFIRMED', 'PICKUP'].includes(booking.status) &&
                   !booking.full_payment_receipt_path && (

@@ -196,6 +196,12 @@ export default function AdminBookForCustomer() {
         receiptUrl = rPath;
       }
 
+      // "Confirmed" means the admin has the deposit in hand, so it is verified
+      // now (and goes to the customer's credit when the car is returned).
+      // "Deposit Paid" leaves it to be checked: Verify for a receipt, Mark
+      // Deposit Received for cash.
+      const depositVerified = initialStatus === 'CONFIRMED';
+
       // Create booking
       const { data: booking, error } = await supabase
         .from('bubatrent_booking_bookings')
@@ -212,19 +218,24 @@ export default function AdminBookForCustomer() {
           customer_email: selectedCust.username || '',
           customer_phone: selectedCust.phone || '',
           deposit_receipt_path: receiptUrl,
-          deposit_status: receiptUrl ? 'uploaded' : 'pending',
+          deposit_status: depositVerified ? 'verified' : receiptUrl ? 'uploaded' : 'pending',
+          full_payment_amount: totalPrice,
         })
         .select()
         .single();
       if (error) throw error;
 
-      // If receipt uploaded and status = DEPOSIT_PAID or CONFIRMED, create payment record
-      if (receiptUrl && (initialStatus === 'DEPOSIT_PAID' || initialStatus === 'CONFIRMED')) {
+      // Deposit payment record: completed when confirmed, pending while a
+      // receipt waits to be checked. A cash deposit not yet received gets
+      // its record from Mark Deposit Received.
+      if (depositVerified || receiptUrl) {
         const { error: payErr } = await supabase.from('bubatrent_booking_payments').insert({
           booking_id: booking.id,
           amount: depositAmount,
-          payment_method: 'bank_transfer',
-          status: 'completed',
+          payment_method: receiptUrl ? 'bank_transfer' : 'cash',
+          payment_type: 'deposit',
+          receipt_path: receiptUrl,
+          status: depositVerified ? 'completed' : 'pending',
           reference_number: `ADMIN-${Date.now()}`,
           fleet_group_id: activeFleetId,
         });
@@ -536,6 +547,11 @@ export default function AdminBookForCustomer() {
                 <option value="DEPOSIT_PAID">Deposit Paid</option>
                 <option value="CONFIRMED">Confirmed</option>
               </select>
+              <p className="text-[11px] text-slate-500 mt-1">
+                {initialStatus === 'CONFIRMED'
+                  ? 'You have the deposit: it is recorded as received now.'
+                  : 'Deposit still to check: Verify the receipt, or Mark Deposit Received for cash, on the booking page.'}
+              </p>
             </div>
           </div>
           <div className="mb-3">

@@ -108,12 +108,16 @@ export default function AdminDashboard() {
             <DollarSign className="w-5 h-5 text-green-400" />
           </div>
           <div>
-            <p className="text-xs text-slate-500">Total Revenue (Deposits)</p>
+            <p className="text-xs text-slate-500">Rental Revenue (verified rental payments)</p>
             <p className="text-3xl font-bold gradient-text">
-              {formatMYR(stats?.totalRevenue || 0)}
+              {formatMYR(stats?.rentalRevenue || 0)}
             </p>
           </div>
         </div>
+        <p className="text-xs text-slate-500">
+          Deposits held now: {formatMYR(stats?.depositsHeld || 0)} — not revenue; each goes back to
+          the customer&apos;s credit when the car is returned.
+        </p>
       </div>
 
       {/* Quick actions */}
