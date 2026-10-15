@@ -130,25 +130,33 @@ export default function UserManual() {
                   If valid, click <span className="text-white font-medium">Verify</span>. Do this
                   within <strong>48 hours</strong>: a deposit that isn&apos;t verified by then
                   (including a rejected one) is released automatically, the car becomes free and any
-                  credit the customer used is returned to them.
+                  credit the customer used is returned to them. For a counter booking paid in cash
+                  (no receipt), click{' '}
+                  <span className="text-white font-medium">Mark Deposit Received</span> instead.
                 </p>
               </div>
               <div className="bg-white/5 p-3 rounded-xl border border-white/10">
                 <h5 className="text-green-400 font-bold mb-1">3. CONFIRMED</h5>
                 <p className="text-xs">
-                  The booking is fully secured. The customer will arrive on the pickup date.
+                  The booking is fully secured. The customer will arrive on the pickup date. You can
+                  only confirm after the deposit is verified.
                 </p>
               </div>
               <div className="bg-white/5 p-3 rounded-xl border border-emerald-500/20">
                 <h5 className="text-emerald-400 font-bold mb-1">4. PICKUP</h5>
                 <p className="text-xs">
                   Customer arrived. <strong>Important:</strong> You cannot mark a car as Picked Up
-                  until the <em>Total Rental Payment</em> is fully paid in the system.
+                  until the customer has signed the rental agreement and the <em>Full Payment</em>{' '}
+                  (the whole rental) is verified. The security deposit does not count towards the
+                  rental.
                 </p>
               </div>
               <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-                <h5 className="text-slate-400 font-bold mb-1">5. COMPLETED</h5>
-                <p className="text-xs">Customer returned the car safely. Booking is finalized.</p>
+                <h5 className="text-slate-400 font-bold mb-1">5. RETURNED</h5>
+                <p className="text-xs">
+                  Customer returned the car. Mark Returned adds the deposit to the customer&apos;s
+                  credit balance (see section 4). Booking is finalized.
+                </p>
               </div>
             </div>
 
@@ -174,16 +182,25 @@ export default function UserManual() {
           <div className="space-y-3 text-sm text-slate-300">
             <p>
               Every customer is required to pay a <strong>Security Deposit</strong> when booking.
-              After the rental is completed, you have two choices for this deposit:
+              The system holds it during the rental. When you click{' '}
+              <span className="text-white font-medium">Mark Returned</span>, the deposit is added to
+              the customer&apos;s credit balance automatically (also when a booking is cancelled
+              after its deposit was verified). The credit balance is what you owe the customer.
             </p>
             <ul className="list-disc pl-5 space-y-1">
               <li>
-                <strong>Refund it physically:</strong> Transfer the money back to them. No system
-                action required.
+                <strong>Charges:</strong> For late return, cleaning (RM20) or damage, use{' '}
+                <span className="text-white font-medium">Deduct Credit</span> on the customer in
+                Customers, with the reason.
               </li>
               <li>
-                <strong>Add to Wallet (Credit):</strong> You can retain the deposit by explicitly
-                adding it to the customer&apos;s wallet in the Booking Details page.
+                <strong>Refund it physically:</strong> Transfer the money back to them, then record
+                it with <span className="text-white font-medium">Deduct Credit</span> (e.g.
+                &quot;Deposit refunded by transfer&quot;) so the balance goes to zero.
+              </li>
+              <li>
+                <strong>Keep it as credit:</strong> Do nothing; it is used for their next
+                booking&apos;s deposit.
               </li>
             </ul>
             <p>

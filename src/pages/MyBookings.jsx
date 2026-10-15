@@ -175,6 +175,21 @@ export default function MyBookings() {
                         hours. Contact us if you&apos;ve already paid.
                       </p>
                     )}
+                    {booking.deposit_status === 'verified' &&
+                      ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'].includes(booking.status) &&
+                      !booking.deposit_credited_at && (
+                        <p className="text-xs text-slate-400 mb-3">
+                          Your {formatMYR(booking.deposit_amount)} deposit is held during the rental
+                          and goes to your credit balance after the car is returned.
+                        </p>
+                      )}
+                    {booking.deposit_credited_at &&
+                      ['RETURNED', 'CANCELLED'].includes(booking.status) && (
+                        <p className="text-xs text-green-400 mb-3">
+                          ✓ Deposit returned to your credit balance on{' '}
+                          {formatDate(booking.deposit_credited_at)}
+                        </p>
+                      )}
 
                     {/* Full payment upload */}
                     {showFullPaymentUpload && (
@@ -247,6 +262,15 @@ export default function MyBookings() {
                           className="text-xs text-emerald-500/70 hover:text-emerald-400 flex items-center gap-1"
                         >
                           <Receipt className="w-3 h-3" /> Deposit Receipt
+                        </SignedLink>
+                      )}
+
+                      {booking.full_payment_receipt_path && (
+                        <SignedLink
+                          path={booking.full_payment_receipt_path}
+                          className="text-xs text-emerald-500/70 hover:text-emerald-400 flex items-center gap-1"
+                        >
+                          <Receipt className="w-3 h-3" /> Payment Receipt
                         </SignedLink>
                       )}
 

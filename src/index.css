@@ -276,6 +276,16 @@
     min-height: auto !important;
   }
 
+  /* Signed rental agreement: its dark cards print as black on white */
+  .print-plain,
+  .print-plain * {
+    color: #111 !important;
+    background: transparent !important;
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
   * {
     color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;

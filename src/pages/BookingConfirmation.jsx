@@ -11,6 +11,7 @@ import { formatMYR } from '../utils/pricing';
 import {
   CheckCircle,
   FileUp,
+  FileSignature,
   CalendarDays,
   Copy,
   ExternalLink,
@@ -23,7 +24,7 @@ import {
 
 export default function BookingConfirmation() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const toast = useToast();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -401,23 +402,45 @@ export default function BookingConfirmation() {
         <div className="glass-card animate-slide-up" style={{ animationDelay: '150ms' }}>
           <h3 className="text-sm font-semibold text-white mb-4">Next Steps</h3>
           <div className="space-y-3">
-            <Link
-              to={`/booking/${booking.id}/documents`}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
-                <FileUp className="w-5 h-5 text-violet-400" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-white font-medium group-hover:text-violet-300 transition-colors">
-                  Upload Identity Documents
-                </p>
-                <p className="text-xs text-slate-500">
-                  Submit your driving licence for verification (recommended)
-                </p>
-              </div>
-              <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
-            </Link>
+            {!profile?.is_verified && (
+              <Link
+                to={`/booking/${booking.id}/documents`}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
+                  <FileUp className="w-5 h-5 text-violet-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-white font-medium group-hover:text-violet-300 transition-colors">
+                    Upload Identity Documents
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Submit your driving licence for verification (recommended)
+                  </p>
+                </div>
+                <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
+              </Link>
+            )}
+
+            {['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
+              <Link
+                to={`/booking/${booking.id}/agreement`}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+                  <FileSignature className="w-5 h-5 text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-white font-medium group-hover:text-cyan-300 transition-colors">
+                    Rental Agreement
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Sign it before pickup, or view your signed copy
+                  </p>
+                </div>
+                <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
+              </Link>
+            )}
 
             <Link
               to="/my-bookings"

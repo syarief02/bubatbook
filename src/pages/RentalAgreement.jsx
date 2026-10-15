@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
-import { formatDate } from '../utils/dates';
+import { formatDate, formatDateTime } from '../utils/dates';
 import SignatureCanvas from '../components/SignatureCanvas';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
-import { CheckCircle, FileText, AlertTriangle } from 'lucide-react';
+import { CheckCircle, FileText, AlertTriangle, Printer } from 'lucide-react';
 
 // Damage liability table by engine CC (from Bubat Resources paper form)
 const LIABILITY_TABLE = [
@@ -125,14 +125,30 @@ export default function RentalAgreement() {
 
   if (existingAgreement) {
     return (
-      <div className="min-h-screen py-8 px-4">
+      <div className="min-h-screen py-8 px-4 print-plain">
         <div className="max-w-3xl mx-auto">
+          {/* Action bar (hidden when printing) */}
+          <div className="flex items-center justify-between mb-6 print:hidden">
+            <button
+              onClick={() => navigate(isOwner ? '/my-bookings' : '/admin/bookings')}
+              className="text-sm text-slate-400 hover:text-white transition-colors"
+            >
+              ← {isOwner ? 'My Bookings' : 'Bookings'}
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-colors"
+            >
+              <Printer className="w-4 h-4" /> Print / Save PDF
+            </button>
+          </div>
+
           <div className="glass-card mb-6 text-center bg-green-500/5 border-green-500/20">
             <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-2" />
             <h1 className="text-2xl font-bold text-white mb-1">PERJANJIAN SEWAAN KENDERAAN</h1>
             <p className="text-green-400 text-sm font-medium">✓ Ditandatangani / Signed</p>
             <p className="text-slate-500 text-xs mt-1">
-              Signed on {new Date(existingAgreement.agreed_at).toLocaleString()}
+              Signed on {formatDateTime(existingAgreement.agreed_at)}
             </p>
           </div>
 
@@ -316,14 +332,13 @@ export default function RentalAgreement() {
               />
             </div>
             <p className="text-xs text-slate-500 mt-3">
-              Ditandatangani pada / Signed on:{' '}
-              {new Date(existingAgreement.agreed_at).toLocaleString()}
+              Ditandatangani pada / Signed on: {formatDateTime(existingAgreement.agreed_at)}
             </p>
           </div>
 
           <button
             onClick={() => navigate(isOwner ? '/my-bookings' : '/admin/bookings')}
-            className="btn-primary w-full"
+            className="btn-primary w-full print:hidden"
           >
             {isOwner ? 'Back to My Bookings' : 'Back to Bookings'}
           </button>

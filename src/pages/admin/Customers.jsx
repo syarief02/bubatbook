@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import {
@@ -48,7 +49,13 @@ export default function Customers() {
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
-  const [verificationFilter, setVerificationFilter] = useState('ALL');
+  const [searchParams] = useSearchParams();
+  // The dashboard links here with ?verification=pending
+  const [verificationFilter, setVerificationFilter] = useState(() =>
+    ['verified', 'not_verified', 'pending'].includes(searchParams.get('verification'))
+      ? searchParams.get('verification')
+      : 'ALL'
+  );
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [bookings, setBookings] = useState([]);

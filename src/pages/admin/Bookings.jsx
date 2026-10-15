@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminBookings, updateBookingStatus } from '../../hooks/useAdmin';
 import { useFleet } from '../../hooks/useFleet';
@@ -25,7 +25,10 @@ const STATUSES = [
 export default function AdminBookings() {
   const toast = useToast();
   const { activeFleetId } = useFleet();
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [searchParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState(() =>
+    STATUSES.includes(searchParams.get('status')) ? searchParams.get('status') : 'ALL'
+  );
   const [customerSearch, setCustomerSearch] = useState('');
   const { bookings, loading, error, refetch } = useAdminBookings({
     ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
@@ -164,14 +167,24 @@ export default function AdminBookings() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0">
-                    {booking.status === 'DEPOSIT_PAID' && (
-                      <button
-                        onClick={() => handleStatusChange(booking.id, 'CONFIRMED')}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
-                      >
-                        Confirm
-                      </button>
-                    )}
+                    {/* Confirm only once the deposit is verified; until then
+                        the receipt has to be checked on the booking page */}
+                    {booking.status === 'DEPOSIT_PAID' &&
+                      (booking.deposit_status === 'verified' ? (
+                        <button
+                          onClick={() => handleStatusChange(booking.id, 'CONFIRMED')}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
+                        >
+                          Confirm
+                        </button>
+                      ) : (
+                        <Link
+                          to={`/admin/bookings/${booking.id}`}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-colors"
+                        >
+                          Check deposit
+                        </Link>
+                      ))}
                     {(booking.status === 'HOLD' || booking.status === 'DEPOSIT_PAID') && (
                       <button
                         onClick={() => handleStatusChange(booking.id, 'CANCELLED')}

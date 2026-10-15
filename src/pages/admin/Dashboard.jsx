@@ -4,7 +4,16 @@ import { useAdminStats } from '../../hooks/useAdmin';
 import { useFleet } from '../../hooks/useFleet';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { formatMYR } from '../../utils/pricing';
-import { CalendarDays, Car, DollarSign, FileCheck, TrendingUp, Users, Receipt } from 'lucide-react';
+import {
+  CalendarDays,
+  Car,
+  DollarSign,
+  FileCheck,
+  TrendingUp,
+  UserCheck,
+  Users,
+  Receipt,
+} from 'lucide-react';
 
 // Static color maps — dynamic template literals like `bg-${color}-500/10`
 // get purged by Tailwind in production builds.
@@ -49,10 +58,18 @@ export default function AdminDashboard() {
     },
     { label: 'Fleet Size', value: stats?.totalCars || 0, icon: Car, color: 'indigo' },
     {
-      label: 'Pending Verifications',
+      label: 'Customers to Verify',
       value: stats?.pendingVerifications || 0,
+      icon: UserCheck,
+      color: 'yellow',
+      to: '/admin/customers?verification=pending',
+    },
+    {
+      label: 'Deposits to Check',
+      value: stats?.depositsToReview || 0,
       icon: FileCheck,
       color: 'yellow',
+      to: '/admin/bookings?status=DEPOSIT_PAID',
     },
     { label: 'Registered Users', value: stats?.totalCustomers || 0, icon: Users, color: 'cyan' },
   ];
@@ -60,24 +77,28 @@ export default function AdminDashboard() {
   return (
     <AdminLayout title="Dashboard">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        {cards.map(({ label, value, icon: Icon, color }, i) => (
-          <div
-            key={label}
-            className="glass-card animate-fade-in"
-            style={{ animationDelay: `${i * 80}ms` }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div
-                className={`w-10 h-10 rounded-xl ${bgColorMap[color]} flex items-center justify-center`}
-              >
-                <Icon className={`w-5 h-5 ${textColorMap[color]}`} />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        {cards.map(({ label, value, icon: Icon, color, to }, i) => {
+          const Card = to ? Link : 'div';
+          return (
+            <Card
+              key={label}
+              {...(to ? { to } : {})}
+              className={`glass-card animate-fade-in ${to ? 'glass-card-hover' : ''}`}
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div
+                  className={`w-10 h-10 rounded-xl ${bgColorMap[color]} flex items-center justify-center`}
+                >
+                  <Icon className={`w-5 h-5 ${textColorMap[color]}`} />
+                </div>
               </div>
-            </div>
-            <p className="text-2xl font-bold text-white">{value}</p>
-            <p className="text-xs text-slate-500 mt-1">{label}</p>
-          </div>
-        ))}
+              <p className="text-2xl font-bold text-white">{value}</p>
+              <p className="text-xs text-slate-500 mt-1">{label}</p>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Revenue Card */}

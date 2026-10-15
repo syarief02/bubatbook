@@ -1,7 +1,9 @@
 import { Car, Shield, Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Footer() {
+  const { user } = useAuth();
   return (
     <footer className="border-t border-white/5 bg-dark-950/50 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -40,12 +42,21 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/login"
-                  className="text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                  Sign In
-                </Link>
+                {user ? (
+                  <Link
+                    to="/profile"
+                    className="text-sm text-slate-400 hover:text-white transition-colors"
+                  >
+                    My Profile
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="text-sm text-slate-400 hover:text-white transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                )}
               </li>
             </ul>
           </div>

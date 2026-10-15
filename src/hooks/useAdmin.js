@@ -41,10 +41,21 @@ export function useAdminStats(fleetId) {
       let cQuery = supabase
         .from('bubatrent_booking_cars')
         .select('*', { count: 'exact', head: true });
-      let pendQuery = supabase
+      // Deposit receipts waiting for an admin to check them
+      let depReviewQuery = supabase
         .from('bubatrent_booking_bookings')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'DEPOSIT_PAID');
+        .eq('status', 'DEPOSIT_PAID')
+        .eq('deposit_status', 'uploaded');
+      // Customers who sent their IC/licence and wait for verification (same
+      // rule as the "Pending" filter on the Customers page). Customers are
+      // shared across fleets, so this isn't fleet-scoped.
+      const pendQuery = supabase
+        .from('bubatrent_booking_profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'customer')
+        .eq('is_verified', false)
+        .or('ic_number.not.is.null,ic_file_path.not.is.null');
       let pQuery = supabase
         .from('bubatrent_booking_payments')
         .select('amount')
@@ -54,7 +65,7 @@ export function useAdminStats(fleetId) {
       bActiveQuery = scopeToFleet(bActiveQuery, fleetId);
       bExpiredQuery = scopeToFleet(bExpiredQuery, fleetId);
       cQuery = scopeToFleet(cQuery, fleetId);
-      pendQuery = scopeToFleet(pendQuery, fleetId);
+      depReviewQuery = scopeToFleet(depReviewQuery, fleetId);
       pQuery = scopeToFleet(pQuery, fleetId);
 
       const [
@@ -63,6 +74,7 @@ export function useAdminStats(fleetId) {
         { count: expiredBookings },
         { count: totalCars },
         { count: pendingVerifications },
+        { count: depositsToReview },
         { count: totalCustomers },
       ] = await Promise.all([
         bQuery,
@@ -70,6 +82,7 @@ export function useAdminStats(fleetId) {
         bExpiredQuery,
         cQuery,
         pendQuery,
+        depReviewQuery,
         supabase
           .from('bubatrent_booking_profiles')
           .select('*', { count: 'exact', head: true })
@@ -85,6 +98,7 @@ export function useAdminStats(fleetId) {
         expiredBookings: expiredBookings || 0,
         totalCars: totalCars || 0,
         pendingVerifications: pendingVerifications || 0,
+        depositsToReview: depositsToReview || 0,
         totalRevenue,
         totalCustomers: totalCustomers || 0,
       };
@@ -285,10 +299,12 @@ export async function deleteCar(carId) {
   if (error) throw error;
 }
 
+// The database checks the status rules, stamps updated_at and writes the
+// audit log entry.
 export async function updateBookingStatus(bookingId, status) {
   const { data, error } = await supabase
     .from('bubatrent_booking_bookings')
-    .update({ status, updated_at: new Date().toISOString() })
+    .update({ status })
     .eq('id', bookingId)
     .select()
     .single();

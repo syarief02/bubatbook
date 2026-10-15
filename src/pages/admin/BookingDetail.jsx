@@ -11,7 +11,7 @@ import { uploadFileRobust } from '../../lib/uploadHelper';
 import { expireStaleHolds } from '../../hooks/useBookings';
 import { friendlyDbError } from '../../utils/dbErrors';
 import { useToast } from '../../components/Toast';
-import { formatDate, formatDateTime } from '../../utils/dates';
+import { formatDate, formatDateTime, getTodayString } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import { maskSensitive } from '../../utils/format';
 import {
@@ -46,6 +46,43 @@ const STATUS_FLOW = {
   CANCELLED: [],
   EXPIRED: ['DEPOSIT_PAID'],
 };
+
+// Audit log entries. Booking changes are logged by the database.
+const AUDIT_LABELS = {
+  SUBMIT_DEPOSIT: 'Deposit submitted',
+  UPLOAD_DEPOSIT_RECEIPT: 'Deposit receipt uploaded',
+  VERIFY_DEPOSIT: 'Deposit verified',
+  REJECT_DEPOSIT: 'Deposit rejected',
+  CONFIRM_BOOKING: 'Booking confirmed',
+  UPLOAD_FULL_PAYMENT: 'Full payment receipt uploaded',
+  VERIFY_FULL_PAYMENT: 'Full payment verified',
+  MARK_PICKED_UP: 'Car picked up',
+  MARK_RETURNED: 'Car returned',
+  CANCEL_BOOKING: 'Booking cancelled',
+  REACTIVATE_EXPIRED: 'Expired booking reactivated',
+  DEPOSIT_TO_CREDIT: 'Deposit added to customer credit',
+  RETURN_APPLIED_CREDIT: 'Applied credit given back',
+  CHANGE_DATES: 'Dates changed',
+  CHANGE_PRICE: 'Price changed',
+  AUTO_RELEASE_UNVERIFIED_DEPOSIT: 'Released: deposit not verified in 48 hours',
+  ADMIN_CREATE_BOOKING: 'Booking created by admin',
+  VIEW_DOCUMENTS: 'Documents viewed',
+};
+
+function auditLabel(action) {
+  if (AUDIT_LABELS[action]) return AUDIT_LABELS[action];
+  const words = action.replaceAll('_', ' ').toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+function auditDetail({ action, details = {} }) {
+  const d = details || {};
+  if (action === 'CHANGE_DATES') return `${d.from} → ${d.to}`;
+  if (action === 'CHANGE_PRICE') return `${formatMYR(d.total_from)} → ${formatMYR(d.total_to)}`;
+  if (action === 'REACTIVATE_EXPIRED') return d.reason || null;
+  const amount = d.amount ?? d.credit_returned;
+  return Number(amount) > 0 ? formatMYR(amount) : null;
+}
 
 export default function AdminBookingDetail() {
   const { id } = useParams();
@@ -157,47 +194,63 @@ export default function AdminBookingDetail() {
     toast.success('Agreement link copied! Share with the customer via WhatsApp.');
   }
 
+  // Re-reads the booking and its audit log after a change: the database
+  // stamps updated_at, writes the audit entries and may credit the deposit.
+  async function reloadBooking() {
+    const [{ data: fresh }, logs] = await Promise.all([
+      supabase
+        .from('bubatrent_booking_bookings')
+        .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
+        .eq('id', id)
+        .maybeSingle(),
+      getAuditLogs(id).catch(() => null),
+    ]);
+    if (fresh) setBooking(fresh);
+    if (logs) setAuditLogs(logs);
+    return logs || [];
+  }
+
   async function handleStatusChange(newStatus) {
+    // The database enforces these rules too; checking here gives a clearer message.
+    if (newStatus === 'CONFIRMED' && booking.deposit_status !== 'verified') {
+      toast.error(
+        'Cannot confirm yet — the deposit has not been verified. Check the receipt under Payment Receipts first.'
+      );
+      return;
+    }
+    if (newStatus === 'PICKUP' && !agreement) {
+      toast.error(
+        'Cannot mark as Picked Up — rental agreement has not been signed yet. Send the agreement link to the customer first.'
+      );
+      return;
+    }
+    // Only the rental payment counts; the security deposit is not rent.
+    if (newStatus === 'PICKUP' && booking.full_payment_status !== 'verified') {
+      toast.error(
+        `Cannot mark as Picked Up — the full rental payment (${formatMYR(booking.full_payment_amount || booking.total_price)}) has not been verified yet.`
+      );
+      return;
+    }
+
     try {
-      // Block PICKUP unless agreement is signed
-      if (newStatus === 'PICKUP' && !agreement) {
-        toast.error(
-          'Cannot mark as Picked Up — rental agreement has not been signed yet. Send the agreement link to the customer first.'
-        );
-        return;
-      }
-
-      // Block PICKUP unless full payment is received
-      if (newStatus === 'PICKUP') {
-        const payments = booking.bubatrent_booking_payments || [];
-        const totalPaid = payments
-          .filter((p) => p.status === 'completed')
-          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
-        const totalPrice = Number(booking.total_price || 0);
-        // Also accept if both receipts are verified (handles legacy data before payment record fix)
-        const receiptsVerified =
-          booking.deposit_status === 'verified' && booking.full_payment_status === 'verified';
-        if (totalPaid < totalPrice && !receiptsVerified) {
-          const outstanding = totalPrice - totalPaid;
-          toast.error(
-            `Cannot mark as Picked Up — full payment required. Outstanding: RM ${outstanding.toFixed(2)} (Paid: RM ${totalPaid.toFixed(2)} / Total: RM ${totalPrice.toFixed(2)})`
-          );
-          return;
-        }
-      }
-
       const updates = { status: newStatus };
-      // When marking as RETURNED, set actual_return_date
       if (newStatus === 'RETURNED') {
-        updates.actual_return_date = new Date().toISOString().split('T')[0];
+        updates.actual_return_date = getTodayString();
       }
       const { error } = await supabase
         .from('bubatrent_booking_bookings')
         .update(updates)
         .eq('id', id);
       if (error) throw error;
-      setBooking((prev) => ({ ...prev, ...updates }));
-      toast.success(`Status updated to ${newStatus}`);
+      const logs = await reloadBooking();
+      const credited = logs.find((l) => l.action === 'DEPOSIT_TO_CREDIT');
+      if (['RETURNED', 'CANCELLED'].includes(newStatus) && credited) {
+        toast.success(
+          `Status updated to ${newStatus}. Deposit ${formatMYR(credited.details?.amount)} added to the customer's credit — deduct any charges under Customers.`
+        );
+      } else {
+        toast.success(`Status updated to ${newStatus}`);
+      }
     } catch (err) {
       toast.error(friendlyDbError(err));
     }
@@ -224,7 +277,7 @@ export default function AdminBookingDetail() {
         .update({ pickup_date: editPickup, return_date: editReturn })
         .eq('id', id);
       if (error) throw error;
-      setBooking((prev) => ({ ...prev, pickup_date: editPickup, return_date: editReturn }));
+      await reloadBooking();
       setEditingDates(false);
       toast.success('Dates updated!');
     } catch (err) {
@@ -236,8 +289,8 @@ export default function AdminBookingDetail() {
 
   async function handleVerifyDeposit() {
     try {
-      // One server step: marks the deposit and payment verified and credits the
-      // customer, only the first time (a double click cannot credit twice).
+      // One server step: marks the deposit and its payment verified. The
+      // deposit goes to the customer's credit when the car is returned.
       const { data: result, error } = await supabase.rpc('bubatrent_admin_verify_deposit', {
         p_booking_id: id,
       });
@@ -246,16 +299,8 @@ export default function AdminBookingDetail() {
         toast.info('This deposit was already verified.');
         return;
       }
-
-      // Refresh booking with updated payment data
-      const { data: refreshed } = await supabase
-        .from('bubatrent_booking_bookings')
-        .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
-        .eq('id', id)
-        .maybeSingle();
-      if (refreshed) setBooking(refreshed);
-
-      toast.success('Deposit receipt verified! Customer credit updated.');
+      await reloadBooking();
+      toast.success("Deposit verified. It goes to the customer's credit when the car is returned.");
     } catch (err) {
       toast.error(err.message);
     }
@@ -268,7 +313,7 @@ export default function AdminBookingDetail() {
         .update({ deposit_status: 'rejected' })
         .eq('id', id);
       if (error) throw error;
-      setBooking((prev) => ({ ...prev, deposit_status: 'rejected' }));
+      await reloadBooking();
       toast.success('Deposit receipt rejected.');
     } catch (err) {
       toast.error(err.message);
@@ -308,14 +353,7 @@ export default function AdminBookingDetail() {
           });
       if (payErr) throw payErr;
 
-      // Refresh booking with updated payment data
-      const { data: refreshed } = await supabase
-        .from('bubatrent_booking_bookings')
-        .select('*, bubatrent_booking_cars(*), bubatrent_booking_payments(*)')
-        .eq('id', id)
-        .maybeSingle();
-      if (refreshed) setBooking(refreshed);
-
+      await reloadBooking();
       toast.success('Full payment verified!');
     } catch (err) {
       toast.error(err.message);
@@ -343,11 +381,7 @@ export default function AdminBookingDetail() {
         .update({ full_payment_receipt_path: path, full_payment_status: 'uploaded' })
         .eq('id', id);
       if (error) throw error;
-      setBooking((prev) => ({
-        ...prev,
-        full_payment_receipt_path: path,
-        full_payment_status: 'uploaded',
-      }));
+      await reloadBooking();
       setFullPaymentFile(null);
       toast.success('Full payment receipt uploaded!');
     } catch (err) {
@@ -414,8 +448,14 @@ export default function AdminBookingDetail() {
     );
 
   const car = booking.bubatrent_booking_cars;
-  const payment = booking.bubatrent_booking_payments?.[0];
+  const payments = [...(booking.bubatrent_booking_payments || [])].sort((a, b) =>
+    String(a.created_at).localeCompare(String(b.created_at))
+  );
   const nextStatuses = STATUS_FLOW[booking.status] || [];
+  // Counter bookings made without a receipt: the admin records the cash deposit
+  const depositAwaitingCash =
+    booking.deposit_status === 'pending' &&
+    ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'].includes(booking.status);
 
   return (
     <AdminLayout>
@@ -497,7 +537,7 @@ export default function AdminBookingDetail() {
               </p>
               <p className="text-xs text-slate-500">
                 {agreement
-                  ? `Signed by ${agreement.customer_name} on ${new Date(agreement.agreed_at).toLocaleString()}`
+                  ? `Signed by ${agreement.customer_name} on ${formatDateTime(agreement.agreed_at)}`
                   : 'Customer must sign the agreement before vehicle pickup.'}
               </p>
             </div>
@@ -597,14 +637,8 @@ export default function AdminBookingDetail() {
                           })
                           .eq('id', booking.id);
                         if (reactivateErr) throw reactivateErr;
-                        await supabase.from('bubatrent_booking_audit_logs').insert({
-                          admin_id: user.id,
-                          action: 'REACTIVATE_EXPIRED',
-                          resource_type: 'booking',
-                          resource_id: booking.id,
-                          details: { new_status: ns, reason: reactivateReason },
-                        });
-                        setBooking((prev) => ({ ...prev, status: ns }));
+                        // The database logs the reactivation with its reason
+                        await reloadBooking();
                         toast.success(`Booking reactivated → ${ns}`);
                         setShowReactivate(false);
                         setReactivateReason('');
@@ -819,6 +853,21 @@ export default function AdminBookingDetail() {
                       ✗ Reject
                     </button>
                   </div>
+                )}
+                {depositAwaitingCash && (
+                  <button
+                    onClick={handleVerifyDeposit}
+                    className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2"
+                  >
+                    ✓ Mark Deposit Received
+                  </button>
+                )}
+                {booking.deposit_status === 'verified' && (
+                  <p className="text-xs text-slate-400 mt-2">
+                    {booking.deposit_credited_at
+                      ? `Added to the customer's credit on ${formatDateTime(booking.deposit_credited_at)}.`
+                      : "Held until the car is returned, then added to the customer's credit."}
+                  </p>
                 )}
               </div>
 
@@ -1074,37 +1123,59 @@ export default function AdminBookingDetail() {
 
         {/* Sidebar - Payment & Audit */}
         <div className="space-y-6">
-          {/* Payment */}
-          {payment && (
+          {/* Payments */}
+          {payments.length > 0 && (
             <div className="glass-card">
               <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-                Payment Record
+                {payments.length > 1 ? 'Payment Records' : 'Payment Record'}
               </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Type</span>
-                  <span className="text-slate-300 capitalize">
-                    {payment.payment_type || 'deposit'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Amount</span>
-                  <span className="text-white">{formatMYR(payment.amount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Method</span>
-                  <span className="text-slate-300 capitalize">{payment.payment_method}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Status</span>
-                  <span className="text-green-400 capitalize">{payment.status}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Reference</span>
-                  <span className="text-xs font-mono text-slate-300">
-                    {payment.reference_number}
-                  </span>
-                </div>
+              <div className="divide-y divide-white/5">
+                {payments.map((payment) => (
+                  <div key={payment.id} className="space-y-2 text-sm py-3 first:pt-0 last:pb-0">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Type</span>
+                      <span className="text-slate-300">
+                        {payment.payment_type === 'full_payment' ? 'Full payment' : 'Deposit'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Amount</span>
+                      <span className="text-white">{formatMYR(payment.amount)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Method</span>
+                      <span className="text-slate-300 capitalize">
+                        {(payment.payment_method || '').replaceAll('_', ' ')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Status</span>
+                      <span
+                        className={`capitalize ${
+                          payment.status === 'completed'
+                            ? 'text-green-400'
+                            : payment.status === 'pending'
+                              ? 'text-yellow-400'
+                              : 'text-slate-400'
+                        }`}
+                      >
+                        {payment.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Reference</span>
+                      <span className="text-xs font-mono text-slate-300">
+                        {payment.reference_number}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Date</span>
+                      <span className="text-xs text-slate-300">
+                        {formatDateTime(payment.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -1118,18 +1189,25 @@ export default function AdminBookingDetail() {
               <p className="text-xs text-slate-500">No audit entries.</p>
             ) : (
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {auditLogs.map((log) => (
-                  <div key={log.id} className="flex items-start gap-2 text-xs">
-                    <Clock className="w-3.5 h-3.5 text-slate-600 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-slate-300">{log.action.replace('_', ' ')}</p>
-                      <p className="text-slate-600">
-                        {log.bubatrent_booking_profiles?.display_name || 'Admin'} ·{' '}
-                        {formatDateTime(log.created_at)}
-                      </p>
+                {auditLogs.map((log) => {
+                  const detail = auditDetail(log);
+                  return (
+                    <div key={log.id} className="flex items-start gap-2 text-xs">
+                      <Clock className="w-3.5 h-3.5 text-slate-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-slate-300">
+                          {auditLabel(log.action)}
+                          {detail && <span className="text-slate-500"> · {detail}</span>}
+                        </p>
+                        <p className="text-slate-600">
+                          {log.bubatrent_booking_profiles?.display_name ||
+                            (log.admin_id ? 'Admin' : 'System')}{' '}
+                          · {formatDateTime(log.created_at)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

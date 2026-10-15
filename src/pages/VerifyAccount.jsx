@@ -191,6 +191,8 @@ export default function VerifyAccount() {
 
       await refreshProfile();
       setSubmitted(true);
+      // The form was long; show the "Verification Pending" message from the top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success(
         isUpdate ? 'Verification update submitted!' : 'Documents submitted for verification!'
       );
