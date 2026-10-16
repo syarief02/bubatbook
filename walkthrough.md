@@ -11,10 +11,12 @@ says what to do and what you should see.
 ## Before you start
 
 - **Accounts**: a test customer (a spare Gmail works) and an admin account.
-- **Mark test bookings**: type `E2E TEST - please ignore` in the checkout note. Pick dates a few
-  months ahead so real customers aren't blocked.
-- **Test images**: any picture will do for receipts and documents. Never upload someone else's
-  real IC or licence.
+- **Mark test bookings**: type `E2E TEST - please ignore` in the checkout note, or in **Notes** in
+  Book for Customer. Name test walk-in customers "E2E TEST …". Pick dates a few months ahead so
+  real customers aren't blocked.
+- **Test details**: any picture will do for receipts and documents. Never upload someone else's
+  real IC or licence. For IC numbers use a made-up one with month 13, e.g. `991301-14-0001`, which
+  can't belong to anyone.
 - **Clean up afterwards** (see the last section).
 - **Automated checks**, run before any manual testing:
 
@@ -64,15 +66,18 @@ says what to do and what you should see.
 4. Press **Confirm**.
    ✅ Audit Log shows "Deposit verified" and "Booking confirmed" with your name.
 
-**48-hour release (optional):** leave a test deposit unverified for 48 hours.
+**48-hour release (optional):** leave an online test deposit unverified for 48 hours.
 ✅ The booking becomes **EXPIRED** and the car is free again.
 ✅ **Reactivate → Deposit Paid** (with a reason) brings it back.
+✅ A counter booking (Test 7) left at Deposit Paid is not released.
 
 ## Test 4: Agreement, full payment and pickup
 
 1. **Customer**: My Bookings → **Agreement** → read, sign, tick the box →
    **Tandatangan & Setuju (Sign & Agree)**.
    ✅ The signed view shows dates like "16 Oct 2026, 10:30" and has **Print / Save PDF**.
+   ✅ The admin booking page shows "Signed by … on …" (without "in person"). Signing at the
+   counter is in Test 7.
 2. **Admin**: press **Mark Picked Up**.
    ✅ It is refused: the full rental payment hasn't been verified. The deposit doesn't count as
    rent.
@@ -126,27 +131,38 @@ says what to do and what you should see.
 1. **Customers → Create Customer** with IC, phone, address, licence expiry and both images (name
    it "E2E TEST …").
    ✅ The customer is created already verified.
-2. **Book for Customer**:
+2. **Book for Customer** (Customers → **Book for Customer**):
    - Search an unverified customer.
-     ✅ They show **Not verified** and **Next** stays disabled.
+     ✅ They show **Not verified**, a warning links to Customers, and **Next → Select Car** stays
+     disabled. A customer whose licence has expired shows **Licence expired**.
    - Pick the walk-in, a car and dates.
-     ✅ The deposit starts at 30% of the rental (at least RM100). Put `E2E TEST` in **Notes**.
+     ✅ The total is days × the daily price. The deposit starts at 30% of the rental (at least
+     RM100); after you change it, **Use it** puts the rule back. Put `E2E TEST` in **Notes**.
+   - **Review & Confirm** → **Create Booking**.
+     ✅ You land on the booking page. The audit log starts with "Booking created by admin".
    - **Confirmed**: the deposit is recorded as received.
    - **Deposit Paid** with a receipt: **✓ Verify** is offered.
    - **Deposit Paid** without a receipt: **✓ Mark Deposit Received** is offered.
-   - A customer with credit: **Use the customer's credit** shows what is left to collect.
+   - A customer with credit: **Use the customer's credit** is ticked and shows what is left to
+     collect.
      ✅ Their credit goes down by that amount, and comes back if you cancel before the deposit is
      verified.
-3. On a confirmed counter booking press **Sign at Counter**, sign on your device and tick the box.
-   ✅ The booking page shows "Signed … in person at the counter", and the audit log has
-   "Rental agreement signed".
-   ✅ After the full payment is verified, **Mark Picked Up** works.
+     ✅ If credit covers the whole deposit, it is recorded as received (payment method "credit").
+3. On a confirmed counter booking press **Sign at Counter**.
+   ✅ The page says **Signing in person (staff)** and shows the customer's name, IC and phone, not
+   yours.
+   Sign on your device, tick the box and press **Tandatangan & Setuju (Sign & Agree)**.
+   ✅ The signed view says "Signed in person at the counter". **Back to Booking** returns to the
+   booking page, which shows "Signed … in person at the counter".
+   ✅ The audit log has "Rental agreement signed · in person at the counter".
+   ✅ After the full payment is verified (**✓ Mark Full Payment Received (cash)** is fine), **Mark
+   Picked Up** works.
 4. The customer signs in, enters the same mobile number on Complete Profile, and confirms their
    IC.
    ✅ The counter bookings appear in their My Bookings, with the agreement signed at the counter.
-   ✅ They can open the receipts you uploaded.
-5. A walk-in created **with an email**: on the sign-in page use **Forgot password** with that
-   email.
+   ✅ They can open the receipts you uploaded, and their credit came with the record.
+5. A walk-in created **with an email** (use an inbox you can read): on the sign-in page use
+   **Forgot password** with that email.
    ✅ The reset email arrives and they can sign in to the counter record.
 
 ## Test 8: Credit
@@ -164,6 +180,8 @@ On a RETURNED booking:
 1. ✅ Both the customer and the admin can open the deposit receipt, the payment receipt, the
    signed agreement and the invoice.
 2. ✅ Another customer can't open them.
+3. ✅ For a counter customer without an account, **View Full Agreement** and **View Invoice** on
+   the booking page print both.
 
 ## Test 10: Dashboard, Sales and Expenses
 
@@ -183,7 +201,9 @@ On a RETURNED booking:
 
 ## Test 11: Audit log and deleting
 
-1. ✅ A booking's **Audit Log** shows every step above, with who did it.
+1. ✅ A booking's **Audit Log** shows every step above, with who did it, including "Booking created
+   by admin" for counter bookings and "Rental agreement signed" (with "in person at the counter"
+   when signed on a staff device).
 2. **Delete** a test booking that still holds a verified deposit.
    ✅ The deposit goes back to the customer's credit.
    ✅ Their credit history is kept.
@@ -201,6 +221,9 @@ Follow the **Mobile Upload Smoke Test Checklist** in the README on an Android an
   with it. The credit history and audit log stay.
 - **The test customer's account**: remove it in Supabase (Authentication → Users), together with
   its profile and credit history, or ask the developer. There is no delete-customer button in
-  the admin panel.
+  the admin panel. A test walk-in that never linked to an account has a login ending in
+  `@bubatrent.local`; remove that too.
 - **Files**: uploaded receipts and documents for the test bookings can be removed from the
-  `customer-documents` storage bucket.
+  `customer-documents` storage bucket: `receipts/<booking id>/`, `profiles/<customer id>/`, and
+  for counter bookings also `receipts/admin_…` (deposit receipts from Book for Customer) and
+  `verification/<walk-in id>/` (documents from Create Customer, which stay there after linking).
