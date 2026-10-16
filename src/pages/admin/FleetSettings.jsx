@@ -4,7 +4,17 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/Toast';
-import { Building2, Mail, Phone, MessageCircle, Save, Loader2, Pencil, Plus } from 'lucide-react';
+import {
+  Building2,
+  Mail,
+  Phone,
+  MessageCircle,
+  Save,
+  Loader2,
+  Pencil,
+  Plus,
+  Percent,
+} from 'lucide-react';
 
 export default function FleetSettings() {
   const { user, isSuperAdmin } = useAuth();
@@ -32,6 +42,8 @@ export default function FleetSettings() {
       support_email: activeFleet?.support_email || '',
       support_phone: activeFleet?.support_phone || '',
       support_whatsapp: activeFleet?.support_whatsapp || '',
+      weekly_discount_pct: String(activeFleet?.weekly_discount_pct ?? 0),
+      monthly_discount_pct: String(activeFleet?.monthly_discount_pct ?? 0),
     });
     setEditing(true);
   }
@@ -40,6 +52,12 @@ export default function FleetSettings() {
     e.preventDefault();
     if (!form.name?.trim()) {
       toast.error('Fleet name is required');
+      return;
+    }
+    const weekly = Number(form.weekly_discount_pct || 0);
+    const monthly = Number(form.monthly_discount_pct || 0);
+    if (!(weekly >= 0 && weekly <= 90 && monthly >= 0 && monthly <= 90)) {
+      toast.error('Long-rental discounts must be between 0% and 90%.');
       return;
     }
     setSaving(true);
@@ -51,6 +69,8 @@ export default function FleetSettings() {
           support_email: form.support_email?.trim() || null,
           support_phone: form.support_phone?.trim() || null,
           support_whatsapp: form.support_whatsapp?.trim() || null,
+          weekly_discount_pct: weekly,
+          monthly_discount_pct: monthly,
         })
         .eq('id', activeFleetId);
       if (error) throw error;
@@ -187,6 +207,41 @@ export default function FleetSettings() {
                   />
                 </div>
               </div>
+              <div>
+                <p className="input-label flex items-center gap-1">
+                  <Percent className="w-3 h-3" /> Long-rental discounts
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-400">7 days or more (weekly) %</label>
+                    <input
+                      value={form.weekly_discount_pct}
+                      onChange={(e) => setForm({ ...form, weekly_discount_pct: e.target.value })}
+                      className="input-field"
+                      type="number"
+                      min="0"
+                      max="90"
+                      step="0.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400">30 days or more (monthly) %</label>
+                    <input
+                      value={form.monthly_discount_pct}
+                      onChange={(e) => setForm({ ...form, monthly_discount_pct: e.target.value })}
+                      className="input-field"
+                      type="number"
+                      min="0"
+                      max="90"
+                      step="0.5"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Taken off the rental for online and counter bookings of that length. 0 turns it
+                  off. Bookings already made keep their price.
+                </p>
+              </div>
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -222,6 +277,13 @@ export default function FleetSettings() {
               <div className="flex items-center gap-2 text-sm">
                 <MessageCircle className="w-4 h-4 text-slate-500" />
                 <span className="text-slate-300">{activeFleet.support_whatsapp || 'Not set'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm sm:col-span-3">
+                <Percent className="w-4 h-4 text-slate-500" />
+                <span className="text-slate-300">
+                  Long-rental discounts: {Number(activeFleet.weekly_discount_pct || 0)}% for 7+
+                  days, {Number(activeFleet.monthly_discount_pct || 0)}% for 30+ days
+                </span>
               </div>
             </div>
           )}

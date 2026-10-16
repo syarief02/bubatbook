@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate, formatDateTime } from '../utils/dates';
+import { RENTAL_CHANGES_SELECT, changeText, rentalChanges } from '../utils/rent';
 import SignatureCanvas from '../components/SignatureCanvas';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
@@ -49,7 +50,7 @@ export default function RentalAgreement() {
         // Fetch booking with car info
         let query = supabase
           .from('bubatrent_booking_bookings')
-          .select('*, bubatrent_booking_cars(*)')
+          .select('*, bubatrent_booking_cars(*), ' + RENTAL_CHANGES_SELECT)
           .eq('id', id);
 
         // Non-admins can only view their own bookings
@@ -218,6 +219,33 @@ export default function RentalAgreement() {
               </div>
             </div>
           </div>
+
+          {/* Extensions, early return, replacement car agreed after signing */}
+          {booking &&
+            rentalChanges(booking).filter((c) => c.created_at > existingAgreement.agreed_at)
+              .length > 0 && (
+              <div className="glass-card mb-6">
+                <h2 className="text-lg font-semibold text-white mb-1">
+                  PERUBAHAN SELEPAS DITANDATANGANI
+                </h2>
+                <p className="text-xs text-slate-500 mb-3">Changes after signing</p>
+                <ul className="text-sm text-slate-300 space-y-1 list-disc pl-5">
+                  {rentalChanges(booking)
+                    .filter((c) => c.created_at > existingAgreement.agreed_at)
+                    .map((c) => (
+                      <li key={c.id}>
+                        {formatDate(c.created_at)}: {changeText(c, { you: true })}
+                        {Number(c.amount) !== 0 &&
+                          ` (${Number(c.amount) > 0 ? '+' : '−'}${formatMYR(Math.abs(Number(c.amount)))})`}
+                      </li>
+                    ))}
+                </ul>
+                <p className="text-xs text-slate-500 mt-3">
+                  Return date now {formatDate(booking.return_date)}, rental now{' '}
+                  {formatMYR(booking.total_price)}. The terms above still apply.
+                </p>
+              </div>
+            )}
 
           <div className="glass-card mb-6">
             <h2 className="text-lg font-semibold text-white mb-4">

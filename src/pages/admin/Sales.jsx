@@ -10,6 +10,8 @@ import {
   depositHeld,
   depositReceived,
   rentalPaid,
+  rentalPaidForCar,
+  rentShares,
   sumBy,
   chargesCollected,
   chargesOwed,
@@ -59,7 +61,9 @@ export default function AdminSales() {
     setLoading(true);
     let bQuery = supabase
       .from('bubatrent_booking_bookings')
-      .select('*, bubatrent_booking_cars(id, name, brand, model)')
+      .select(
+        '*, bubatrent_booking_cars(id, name, brand, model), bubatrent_booking_rental_changes(kind, from_car_id, to_car_id, change_date, created_at)'
+      )
       .in('status', BOOKED_STATUSES)
       .order('created_at', { ascending: false });
     let cQuery = supabase.from('bubatrent_booking_cars').select('*');
@@ -106,12 +110,15 @@ export default function AdminSales() {
     expensePaid
   );
 
-  // Per-car breakdown: cars with bookings or paid expenses in the period
+  // Per-car breakdown: cars with bookings or paid expenses in the period. A
+  // rental whose car was replaced is split between the cars by days; its
+  // deposit and charges stay with the car it ended on.
   const carStats = cars
     .map((car) => {
-      const carBookings = filtered.filter((b) => b.car_id === car.id);
-      const rent = sumBy(carBookings, rentalPaid);
-      const carCharges = sumBy(carBookings, chargesCollected);
+      const carBookings = filtered.filter((b) => rentShares(b).some((s) => s.carId === car.id));
+      const endedHere = filtered.filter((b) => b.car_id === car.id);
+      const rent = sumBy(carBookings, (b) => rentalPaidForCar(b, car.id));
+      const carCharges = sumBy(endedHere, chargesCollected);
       const carExpenses = sumBy(
         filteredClaims.filter((c) => c.car_id === car.id),
         expensePaid
@@ -120,7 +127,7 @@ export default function AdminSales() {
         ...car,
         bookingCount: carBookings.length,
         rent,
-        deposits: sumBy(carBookings, depositReceived),
+        deposits: sumBy(endedHere, depositReceived),
         charges: carCharges,
         expenses: carExpenses,
         profit: rent + carCharges - carExpenses,

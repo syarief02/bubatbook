@@ -12,13 +12,8 @@ import EmptyState from '../components/EmptyState';
 import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
 import { chargeLabel } from '../utils/charges';
-import {
-  rentDue,
-  rentalAmount,
-  rentPaidToWorkshop,
-  workshopPayments,
-  workshopSplit,
-} from '../utils/workshop';
+import { workshopPayments, workshopSplit } from '../utils/workshop';
+import { changeText, rentDue, rentalAmount, rentalChanges } from '../utils/rent';
 import {
   CalendarDays,
   ExternalLink,
@@ -112,12 +107,13 @@ export default function MyBookings() {
         <div className="space-y-4">
           {bookings.map((booking, i) => {
             const car = booking.bubatrent_booking_cars;
+            // Rent left to pay (the rental, or what an extension added)
             const showFullPaymentUpload =
               ['CONFIRMED', 'PICKUP'].includes(booking.status) &&
-              !booking.full_payment_receipt_path &&
-              booking.full_payment_status !== 'verified';
+              !['verified', 'uploaded'].includes(booking.full_payment_status);
             const workshop = workshopPayments(booking);
-            const paidToWorkshop = rentPaidToWorkshop(booking);
+            const changes = rentalChanges(booking);
+            const rentPaid = Number(booking.rent_paid || 0);
             const fullPaymentPending = booking.full_payment_status === 'uploaded';
 
             return (
@@ -236,6 +232,22 @@ export default function MyBookings() {
                         )}
                       </div>
                     )}
+                    {changes.length > 0 && (
+                      <div className="mb-3 rounded-xl bg-white/[0.03] p-3 text-xs space-y-1">
+                        <p className="text-slate-400 font-medium">Changes to your rental</p>
+                        {changes.map((c) => (
+                          <div key={c.id} className="flex justify-between gap-3">
+                            <span className="text-slate-300">{changeText(c, { you: true })}</span>
+                            {Number(c.amount) !== 0 && (
+                              <span className="text-white shrink-0">
+                                {Number(c.amount) > 0 ? '+' : '−'}
+                                {formatMYR(Math.abs(Number(c.amount)))}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {workshop.length > 0 && (
                       <div className="mb-3 rounded-xl bg-white/[0.03] p-3 text-xs space-y-1">
                         <p className="text-slate-400 font-medium">Paid to the workshop for us</p>
@@ -259,9 +271,9 @@ export default function MyBookings() {
                     {showFullPaymentUpload && (
                       <div className="bg-violet-500/5 border border-violet-500/10 rounded-xl p-3 mb-3">
                         <p className="text-xs text-violet-300 mb-2">
-                          Upload your full rental payment receipt ({formatMYR(rentDue(booking))})
-                          {paidToWorkshop > 0 &&
-                            ` — the ${formatMYR(rentalAmount(booking))} rental less ${formatMYR(paidToWorkshop)} you paid the workshop for us`}
+                          Upload your rental payment receipt ({formatMYR(rentDue(booking))})
+                          {rentPaid > 0 &&
+                            ` — the ${formatMYR(rentalAmount(booking))} rental less ${formatMYR(rentPaid)} already paid`}
                         </p>
                         <div className="flex items-center gap-2">
                           <label className="relative flex items-center gap-2 text-xs text-slate-400 cursor-pointer bg-white/5 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors overflow-hidden">

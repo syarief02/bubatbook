@@ -8,7 +8,8 @@ import { SignedLink } from './SignedFile';
 import { friendlyDbError } from '../utils/dbErrors';
 import { formatDate, getTodayString } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
-import { WORKSHOP_STATUSES, rentDue, workshopPayments, workshopSplit } from '../utils/workshop';
+import { WORKSHOP_STATUSES, workshopPayments, workshopSplit } from '../utils/workshop';
+import { rentDue } from '../utils/rent';
 
 // Repairs the customer paid the workshop for directly, taken off what they owe
 // us (a contra). The money moves happen in the database functions

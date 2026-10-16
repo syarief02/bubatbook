@@ -74,7 +74,12 @@ export default function CarDetail() {
     );
   }
 
-  const { days, deposit } = calculatePrice(car.price_per_day, pickupDate, returnDate);
+  const { days, deposit } = calculatePrice(
+    car.price_per_day,
+    pickupDate,
+    returnDate,
+    car.long_rental_rates
+  );
 
   function handleBookNow() {
     if (!pickupDate || !returnDate || days <= 0 || !isAvailable) return;
@@ -322,6 +327,7 @@ export default function CarDetail() {
                 pricePerDay={car.price_per_day}
                 pickupDate={pickupDate}
                 returnDate={returnDate}
+                rates={car.long_rental_rates}
               />
             )}
           </div>

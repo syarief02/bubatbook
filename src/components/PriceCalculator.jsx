@@ -1,8 +1,13 @@
-import { calculatePrice, formatMYR } from '../utils/pricing';
-import { Clock, CreditCard, Receipt } from 'lucide-react';
+import { calculatePrice, formatMYR, longRentalLabel } from '../utils/pricing';
+import { Clock, CreditCard, Receipt, Tag } from 'lucide-react';
 
-export default function PriceCalculator({ pricePerDay, pickupDate, returnDate }) {
-  const { days, total, deposit } = calculatePrice(pricePerDay, pickupDate, returnDate);
+export default function PriceCalculator({ pricePerDay, pickupDate, returnDate, rates }) {
+  const { days, base, discountPct, longDiscount, total, deposit } = calculatePrice(
+    pricePerDay,
+    pickupDate,
+    returnDate,
+    rates
+  );
 
   if (!days || days <= 0) {
     return (
@@ -24,8 +29,18 @@ export default function PriceCalculator({ pricePerDay, pickupDate, returnDate })
             <Clock className="w-4 h-4" />
             {formatMYR(pricePerDay)} × {days} day{days > 1 ? 's' : ''}
           </span>
-          <span className="text-white font-medium">{formatMYR(total)}</span>
+          <span className="text-white font-medium">{formatMYR(base)}</span>
         </div>
+
+        {longDiscount > 0 && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-green-400">
+              <Tag className="w-4 h-4" />
+              {longRentalLabel(days, discountPct)}
+            </span>
+            <span className="text-green-400 font-medium">-{formatMYR(longDiscount)}</span>
+          </div>
+        )}
 
         <div className="border-t border-white/5" />
 

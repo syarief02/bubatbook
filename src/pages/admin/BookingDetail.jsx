@@ -38,13 +38,15 @@ import {
 import { SignedLink, SignedImage } from '../../components/SignedFile';
 import { ChargesCard, ReturnCarDialog } from '../../components/ReturnCharges';
 import { WorkshopPaymentsCard } from '../../components/WorkshopPayments';
+import { RentalChangesCard } from '../../components/RentalChanges';
+import { WORKSHOP_STATUSES, rentPaidToWorkshop, workshopPayments } from '../../utils/workshop';
 import {
-  WORKSHOP_STATUSES,
+  RENTAL_CHANGES_SELECT,
+  RENTAL_CHANGE_STATUSES,
   rentDue,
   rentalAmount,
-  rentPaidToWorkshop,
-  workshopPayments,
-} from '../../utils/workshop';
+  rentalChanges,
+} from '../../utils/rent';
 // Status flow definition
 const STATUS_FLOW = {
   HOLD: ['DEPOSIT_PAID', 'CANCELLED'],
@@ -58,7 +60,8 @@ const STATUS_FLOW = {
 
 const BOOKING_SELECT =
   '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*), ' +
-  'bubatrent_booking_workshop_payments(*, bubatrent_booking_expense_claims(bubatrent_booking_expense_images(file_path)))';
+  'bubatrent_booking_workshop_payments(*, bubatrent_booking_expense_claims(bubatrent_booking_expense_images(file_path))), ' +
+  RENTAL_CHANGES_SELECT;
 
 // Audit log entries. Booking changes are logged by the database.
 const AUDIT_LABELS = {
@@ -67,6 +70,7 @@ const AUDIT_LABELS = {
   CHARGE_PAYMENT: 'Payment received for charges',
   WORKSHOP_PAYMENT: 'Customer paid the workshop for us',
   WORKSHOP_PAYMENT_REMOVED: 'Workshop payment removed',
+  REPLACE_CAR: 'Car replaced',
   HOLD_DEPOSIT: 'Deposit put on hold',
   RELEASE_DEPOSIT: 'Held deposit settled',
   DELETE_BOOKING: 'Booking deleted',
@@ -107,6 +111,8 @@ function auditDetail({ action, details = {} }) {
     return `${d.label}${d.description ? ` (${d.description})` : ''} ${formatMYR(d.amount)}`;
   if (action === 'CHARGE_REMOVED') return `${formatMYR(d.amount)} — ${d.reason}`;
   if (action === 'WORKSHOP_PAYMENT') return `${d.workshop} ${formatMYR(d.amount)}`;
+  if (action === 'REPLACE_CAR')
+    return `${d.from_plate || d.from_car} → ${d.to_plate || d.to_car} from ${formatDate(d.from_date)}`;
   if (action === 'WORKSHOP_PAYMENT_REMOVED')
     return `${d.workshop} ${formatMYR(d.amount)} — ${d.reason}`;
   if (action === 'SIGN_AGREEMENT') return d.in_person ? 'in person at the counter' : null;
@@ -456,6 +462,11 @@ export default function AdminBookingDetail() {
   );
   const nextStatuses = STATUS_FLOW[booking.status] || [];
   const paidToWorkshop = rentPaidToWorkshop(booking);
+  const rentPaid = Number(booking.rent_paid || 0);
+  // Rent can be recorded while some is left to pay and no receipt waits
+  const rentOpen =
+    ['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) &&
+    !['verified', 'uploaded'].includes(booking.full_payment_status);
   // No receipt to check (a counter booking, or a hold an admin marked as
   // deposit paid): the admin records the cash deposit
   const depositAwaitingCash =
@@ -916,7 +927,13 @@ export default function AdminBookingDetail() {
               <div className="bg-white/[0.02] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm text-white font-medium">
-                    Full Payment ({formatMYR(rentDue(booking))})
+                    Full Payment (
+                    {formatMYR(
+                      booking.full_payment_status === 'verified'
+                        ? rentalAmount(booking)
+                        : rentDue(booking)
+                    )}
+                    )
                   </p>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${
@@ -930,10 +947,18 @@ export default function AdminBookingDetail() {
                     {booking.full_payment_status || 'pending'}
                   </span>
                 </div>
-                {paidToWorkshop > 0 && (
+                {rentPaid > 0 && booking.full_payment_status !== 'verified' && (
                   <p className="text-xs text-slate-400 mb-2">
-                    Rental {formatMYR(rentalAmount(booking))} less {formatMYR(paidToWorkshop)} the
-                    customer paid the workshop for us (see Paid to Workshop).
+                    Rental {formatMYR(rentalAmount(booking))}: {formatMYR(rentPaid)} already paid
+                    {paidToWorkshop > 0 &&
+                      ` (including ${formatMYR(paidToWorkshop)} paid to the workshop for us)`}
+                    , {formatMYR(rentDue(booking))} left to pay.
+                  </p>
+                )}
+                {booking.full_payment_status === 'verified' && paidToWorkshop > 0 && (
+                  <p className="text-xs text-slate-400 mb-2">
+                    Includes {formatMYR(paidToWorkshop)} the customer paid the workshop for us (see
+                    Paid to Workshop).
                   </p>
                 )}
                 {booking.full_payment_receipt_path && (
@@ -955,48 +980,45 @@ export default function AdminBookingDetail() {
                   </button>
                 )}
                 {/* Rent paid in cash at the counter: no receipt to check */}
-                {['CONFIRMED', 'PICKUP'].includes(booking.status) &&
-                  !booking.full_payment_receipt_path &&
-                  booking.full_payment_status !== 'verified' && (
-                    <button
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `Record that the customer paid the full rental of ${formatMYR(rentDue(booking))} in cash?`
-                          )
+                {rentOpen && (
+                  <button
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Record that the customer paid the ${formatMYR(rentDue(booking))} rent left to pay, in cash?`
                         )
-                          handleVerifyFullPayment();
-                      }}
-                      className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2"
-                    >
-                      ✓ Mark Full Payment Received (cash)
-                    </button>
-                  )}
+                      )
+                        handleVerifyFullPayment();
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2"
+                  >
+                    ✓ Mark Full Payment Received (cash)
+                  </button>
+                )}
                 {/* Allow admin to upload full payment receipt on behalf of customer */}
-                {['CONFIRMED', 'PICKUP'].includes(booking.status) &&
-                  !booking.full_payment_receipt_path && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
-                        <FileImage className="w-3.5 h-3.5" />
-                        {fullPaymentFile ? fullPaymentFile.name : 'Upload receipt'}
-                        <input
-                          type="file"
-                          accept="image/*,.pdf"
-                          className="hidden"
-                          onChange={(e) => setFullPaymentFile(e.target.files[0])}
-                        />
-                      </label>
-                      {fullPaymentFile && (
-                        <button
-                          onClick={handleUploadFullPayment}
-                          disabled={uploadingReceipt}
-                          className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20"
-                        >
-                          {uploadingReceipt ? 'Uploading...' : 'Upload'}
-                        </button>
-                      )}
-                    </div>
-                  )}
+                {rentOpen && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                      <FileImage className="w-3.5 h-3.5" />
+                      {fullPaymentFile ? fullPaymentFile.name : 'Upload receipt'}
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => setFullPaymentFile(e.target.files[0])}
+                      />
+                    </label>
+                    {fullPaymentFile && (
+                      <button
+                        onClick={handleUploadFullPayment}
+                        disabled={uploadingReceipt}
+                        className="px-3 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20"
+                      >
+                        {uploadingReceipt ? 'Uploading...' : 'Upload'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1021,6 +1043,11 @@ export default function AdminBookingDetail() {
               </div>
             )}
           </div>
+
+          {(RENTAL_CHANGE_STATUSES.includes(booking.status) ||
+            rentalChanges(booking).length > 0) && (
+            <RentalChangesCard booking={booking} onChanged={reloadBooking} />
+          )}
 
           {(WORKSHOP_STATUSES.includes(booking.status) || workshopPayments(booking).length > 0) && (
             <WorkshopPaymentsCard booking={booking} onChanged={reloadBooking} />

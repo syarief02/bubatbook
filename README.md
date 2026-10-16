@@ -40,7 +40,9 @@
   Returning a car takes charges (late return, cleaning, fuel, damage) off the deposit, or holds the
   deposit until damage is priced; anything above the deposit is tracked as owed until collected.
   When a customer pays a workshop for a repair that is ours to pay, staff record it on the
-  booking (**Paid to Workshop**) and it comes off what the customer owes. Each booking page lists
+  booking (**Paid to Workshop**) and it comes off what the customer owes. **Change Rental**:
+  an agreed price, extend, end early (25% penalty if it's the customer's choice, none for a
+  breakdown) or replace the car, each priced and settled by the database. Each booking page lists
   every payment record and a full audit log.
 - **Book for Customer** for counter and phone bookings: verified customers with a valid licence
   only, deposit pre-filled from the online rule, optional use of the customer's credit, notes.
@@ -69,6 +71,11 @@
 - **Charges after the rental**: staff enter each charge (amount typed by staff, note shown to the
   customer). Charges come off that booking's deposit; the rest is owed and recorded when paid.
   The deposit can be held after the return until a repair quote arrives.
+- **Long-rental rates**: each fleet sets a discount for 7+ and 30+ days (Fleet Settings), used
+  by online and counter bookings and shown on the car page.
+- **Rent paid**: each booking tracks the rent received (payments and workshop payments). An
+  extension reopens the full payment for the extra rent; a lower price or an early return gives
+  the excess back as credit. Sales counts rent received and kept.
 - **Paid to the workshop (contra)**: when the customer pays the workshop for a repair that is
   ours to pay, it counts as their payment to us: first off the rental still to pay, then charges
   owed, then the rest to their credit. The rental stays income in full, and the repair becomes a
@@ -110,6 +117,7 @@ src/
 │   ├── SignedFile.jsx         # Links/images for private files (signed URLs)
 │   ├── ReturnCharges.jsx      # Return car dialog and the Return & Charges card
 │   ├── WorkshopPayments.jsx   # Paid to Workshop card: repairs the customer paid for us
+│   ├── RentalChanges.jsx      # Change Rental card: price, extend, end early, replace car
 │   ├── ChargesEditor.jsx      # Rows of charges (type, amount, note)
 │   ├── GoogleButton.jsx, Navbar.jsx, Footer.jsx, WhatsAppButton.jsx
 │   ├── BookingForm.jsx, DateRangePicker.jsx, PriceCalculator.jsx, CarCard.jsx
@@ -145,7 +153,8 @@ src/
     ├── pricing.js             # Rental total and deposit (30%, min RM100)
     ├── revenue.js             # Rental revenue vs deposits for Dashboard and Sales
     ├── charges.js             # Charge types, labels and totals
-    ├── workshop.js            # Workshop payments: rental still to pay, where each one went
+    ├── workshop.js            # Workshop payments: where each one went
+    ├── rent.js                # Rent left to pay, rental changes in words
     ├── dates.js, format.js, phoneUtils.js, search.js, returnTo.js
     └── dbErrors.js            # Friendly messages for database errors
 
@@ -170,6 +179,7 @@ scripts/
 | `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state       |
 | `bubatrent_booking_payments`             | Payment records (deposit / full payment / charge, method, reference)  |
 | `bubatrent_booking_charges`              | Charges after a rental (late return, cleaning, fuel, damage, other)   |
+| `bubatrent_booking_rental_changes`       | Price, extension, early return and car changes to a rental            |
 | `bubatrent_booking_workshop_payments`    | Repairs the customer paid the workshop for us, and where it went      |
 | `bubatrent_booking_rental_agreements`    | Signed agreements (terms from the booking; staff if signed in person) |
 | `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only             |
@@ -203,6 +213,10 @@ Anything involving money or status goes through the database, not the browser:
 | `bubatrent_admin_add_booking_charges`                   | Charges found after settling (owed)                                    |
 | `bubatrent_admin_remove_booking_charge`                 | Undo a mistaken charge before any charge payment                       |
 | `bubatrent_admin_record_charge_payment`                 | Record money collected for what the customer owes                      |
+| `bubatrent_admin_change_rental_price`                   | An agreed price, with a reason; any excess paid goes to credit         |
+| `bubatrent_admin_extend_rental`                         | Later return if the car is free; extra rent at the new length rate     |
+| `bubatrent_admin_end_rental_early`                      | Earlier return; unused days back, less 25% if the customer chose it    |
+| `bubatrent_admin_replace_car`                           | Another car of the fleet from a given day, same price                  |
 | `bubatrent_admin_verify_full_payment`                   | Verify the rental payment; records what's left after workshop payments |
 | `bubatrent_admin_record_workshop_payment`               | Customer paid a workshop for us: off what they owe; repair as expense  |
 | `bubatrent_admin_remove_workshop_payment`               | Undo a mistaken workshop payment and its expense                       |

@@ -7,11 +7,47 @@ export const BOOKED_STATUSES = ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED
 
 const HOLDING_STATUSES = ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'];
 
-/** Rent received: the verified full payment. */
+/**
+ * Rent received and kept: payments and workshop payments towards the rental,
+ * less anything given back when the rental was shortened or made cheaper.
+ */
 export function rentalPaid(b) {
-  return b.full_payment_status === 'verified'
-    ? Number(b.full_payment_amount || b.total_price || 0)
-    : 0;
+  return Number(b.rent_paid || 0);
+}
+
+function dayNumber(date) {
+  return Math.round(Date.parse(date) / 86400000);
+}
+
+/**
+ * Which cars a booking used and for what share of its days, when its car was
+ * replaced (rental changes of kind car_change); otherwise its one car.
+ */
+export function rentShares(b) {
+  const swaps = (b.bubatrent_booking_rental_changes || [])
+    .filter((c) => c.kind === 'car_change')
+    .sort((x, y) => String(x.created_at).localeCompare(String(y.created_at)));
+  const start = dayNumber(b.pickup_date);
+  const end = dayNumber(b.return_date);
+  if (!swaps.length || end <= start) return [{ carId: b.car_id, share: 1 }];
+  const shares = [];
+  let car = swaps[0].from_car_id;
+  let from = start;
+  for (const swap of swaps) {
+    const to = Math.min(Math.max(dayNumber(swap.change_date), from), end);
+    shares.push({ carId: car, share: (to - from) / (end - start) });
+    car = swap.to_car_id;
+    from = to;
+  }
+  shares.push({ carId: car, share: (end - from) / (end - start) });
+  return shares.filter((s) => s.share > 0);
+}
+
+/** The part of a booking's rent earned by one car. */
+export function rentalPaidForCar(b, carId) {
+  return rentShares(b)
+    .filter((s) => s.carId === carId)
+    .reduce((sum, s) => sum + rentalPaid(b) * s.share, 0);
 }
 
 /**

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { RENTAL_CHANGES_SELECT } from '../utils/rent';
 
 export function useBookings(userId) {
   const {
@@ -14,7 +15,8 @@ export function useBookings(userId) {
         .from('bubatrent_booking_bookings')
         .select(
           '*, bubatrent_booking_cars(name, brand, model, image_url), bubatrent_booking_charges(id, kind, amount, from_deposit, description, created_at), ' +
-            'bubatrent_booking_workshop_payments(id, workshop, description, paid_on, amount, to_rent, to_charges, to_credit, created_at)'
+            'bubatrent_booking_workshop_payments(id, workshop, description, paid_on, amount, to_rent, to_charges, to_credit, created_at), ' +
+            RENTAL_CHANGES_SELECT
         )
         .eq('user_id', userId)
         .order('created_at', { ascending: false });

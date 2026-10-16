@@ -11,7 +11,7 @@ import {
 import { uploadFileRobust } from '../lib/uploadHelper';
 import BookingForm from '../components/BookingForm';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { calculatePrice, formatMYR } from '../utils/pricing';
+import { calculatePrice, formatMYR, longRentalLabel } from '../utils/pricing';
 import { formatDate, formatTimeRemaining } from '../utils/dates';
 import {
   ArrowLeft,
@@ -171,7 +171,7 @@ export default function Checkout() {
     );
   }
 
-  const estimate = calculatePrice(car.price_per_day, pickupDate, returnDate);
+  const estimate = calculatePrice(car.price_per_day, pickupDate, returnDate, car.long_rental_rates);
   const days = estimate.days;
   const total = booking ? Number(booking.total_price) : estimate.total;
   const deposit = booking ? Number(booking.deposit_amount) : estimate.deposit;
@@ -521,6 +521,17 @@ export default function Checkout() {
                   {days} day{days > 1 ? 's' : ''}
                 </span>
               </div>
+              {(booking ? Number(booking.long_rental_discount) : estimate.longDiscount) > 0 && (
+                <div className="flex justify-between text-green-400">
+                  <span>{longRentalLabel(days, estimate.discountPct)}</span>
+                  <span>
+                    -
+                    {formatMYR(
+                      booking ? Number(booking.long_rental_discount) : estimate.longDiscount
+                    )}
+                  </span>
+                </div>
+              )}
               <div className="border-t border-white/5 pt-3 flex justify-between">
                 <span className="text-slate-400">Rental Total</span>
                 <span className="text-white font-semibold">{formatMYR(total)}</span>

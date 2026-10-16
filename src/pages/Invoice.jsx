@@ -6,6 +6,7 @@ import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
 import { chargeLabel } from '../utils/charges';
 import { workshopPayments } from '../utils/workshop';
+import { RENTAL_CHANGES_SELECT, changeText, rentalChanges } from '../utils/rent';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
 import { Printer, ArrowLeft } from 'lucide-react';
@@ -33,7 +34,8 @@ export default function Invoice() {
         let query = supabase
           .from('bubatrent_booking_bookings')
           .select(
-            '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*), bubatrent_booking_workshop_payments(*)'
+            '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*), bubatrent_booking_workshop_payments(*), ' +
+              RENTAL_CHANGES_SELECT
           )
           .eq('id', id);
         if (!isAdmin && user?.id) query = query.eq('user_id', user.id);
@@ -90,15 +92,30 @@ export default function Invoice() {
   // Repairs the customer paid the workshop for us, taken off what they owe
   const workshop = workshopPayments(booking);
   const workshopTotal = (key) => workshop.reduce((sum, w) => sum + Number(w[key] || 0), 0);
+  // The rental as first booked, then each change (agreed price, extension,
+  // early return, replacement car)
+  const changes = rentalChanges(booking);
+  const firstDateChange = changes.find((c) => ['extension', 'early_return'].includes(c.kind));
+  const bookedReturn = firstDateChange?.old_return || booking.return_date;
+  const bookedDays = Math.max(
+    1,
+    Math.round((Date.parse(bookedReturn) - Date.parse(booking.pickup_date)) / 86400000)
+  );
+  const bookedPrice =
+    Number(booking.total_price) - changes.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const bookedBase = bookedPrice + Number(booking.long_rental_discount || 0);
+  // Rent given back to the customer's credit when the price went down
+  const rentPayments = completedPayments
+    .filter((p) => p.payment_type === 'full_payment')
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const rentRefunded = Math.max(
+    rentPayments + workshopTotal('to_rent') - Number(booking.rent_paid || 0),
+    0
+  );
   const invoiceNumber = `INV-${booking.id.slice(0, 8).toUpperCase()}`;
   const companyName = fleet?.name || 'Bubat Resources';
   const hasVerifiedPayment =
     booking.deposit_status === 'verified' || booking.full_payment_status === 'verified';
-
-  // Calculate days
-  const pickupDate = new Date(booking.pickup_date);
-  const returnDate = new Date(booking.return_date);
-  const days = Math.max(1, Math.ceil((returnDate - pickupDate) / (1000 * 60 * 60 * 24)));
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -202,14 +219,43 @@ export default function Invoice() {
                       {car?.brand} {car?.model} ({car?.plate_number})
                     </p>
                   </td>
-                  <td className="py-3 text-center text-gray-600">{days} hari</td>
+                  <td className="py-3 text-center text-gray-600">{bookedDays} hari</td>
                   <td className="py-3 text-right text-gray-600">
-                    {formatMYR(car?.price_per_day || 0)}
+                    {formatMYR(Math.round((bookedBase / bookedDays) * 100) / 100)}
                   </td>
                   <td className="py-3 text-right font-medium text-gray-900">
-                    {formatMYR(booking.total_price)}
+                    {formatMYR(bookedBase)}
                   </td>
                 </tr>
+                {Number(booking.long_rental_discount) > 0 && (
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3" colSpan={3}>
+                      <p className="font-medium text-gray-900">
+                        Diskaun sewa panjang / Long-rental discount
+                      </p>
+                    </td>
+                    <td className="py-3 text-right font-medium text-gray-900">
+                      -{formatMYR(booking.long_rental_discount)}
+                    </td>
+                  </tr>
+                )}
+                {changes.map((c) => (
+                  <tr key={c.id} className="border-b border-gray-100">
+                    <td className="py-3" colSpan={3}>
+                      <p className="font-medium text-gray-900">
+                        {c.kind === 'car_change'
+                          ? 'Kenderaan ganti / Replacement vehicle'
+                          : 'Perubahan sewa / Rental change'}
+                      </p>
+                      <p className="text-xs text-gray-400">{changeText(c, { you: true })}</p>
+                    </td>
+                    <td className="py-3 text-right font-medium text-gray-900">
+                      {Number(c.amount) === 0
+                        ? '—'
+                        : `${Number(c.amount) < 0 ? '-' : '+'}${formatMYR(Math.abs(Number(c.amount)))}`}
+                    </td>
+                  </tr>
+                ))}
                 <tr className="border-b border-gray-100">
                   <td className="py-3">
                     <p className="font-medium text-gray-900">
@@ -254,6 +300,14 @@ export default function Invoice() {
                 <div className="flex justify-between text-sm pt-1">
                   <span className="text-green-600">Telah Dibayar / Paid</span>
                   <span className="text-green-600 font-medium">{formatMYR(totalPaid)}</span>
+                </div>
+              )}
+              {rentRefunded > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">
+                    Dikembalikan ke kredit / Back to your credit
+                  </span>
+                  <span className="text-gray-900 font-medium">-{formatMYR(rentRefunded)}</span>
                 </div>
               )}
               {workshopTotal('to_rent') > 0 && (

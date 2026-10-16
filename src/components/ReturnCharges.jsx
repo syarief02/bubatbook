@@ -153,6 +153,12 @@ export function ReturnCarDialog({ booking, onClose, onDone }) {
           <p className="text-xs text-slate-500 mt-1">
             Booked return: {formatDate(booking.return_date)}
           </p>
+          {returnDate < booking.return_date && (
+            <p className="text-xs text-amber-300 mt-1">
+              Earlier than booked. To give back unused days (less the penalty if it was the
+              customer&apos;s choice), use End early under Change Rental, before or after this.
+            </p>
+          )}
         </div>
 
         <label className="flex items-start gap-2 text-slate-300 cursor-pointer">

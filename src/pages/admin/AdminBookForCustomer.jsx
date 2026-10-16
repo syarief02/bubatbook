@@ -6,7 +6,8 @@ import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
 import { friendlyDbError } from '../../utils/dbErrors';
 import { ilikeAny } from '../../utils/search';
-import { calculatePrice, formatMYR } from '../../utils/pricing';
+import { calculatePrice, formatMYR, longRentalLabel } from '../../utils/pricing';
+import { useLongRentalRates } from '../../hooks/useCars';
 import { getTodayString } from '../../utils/dates';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -60,6 +61,8 @@ export default function AdminBookForCustomer() {
   const [depositReceipt, setDepositReceipt] = useState(null);
   const [useCredit, setUseCredit] = useState(true);
   const [notes, setNotes] = useState('');
+  const [agreedPrice, setAgreedPrice] = useState(''); // '' = the normal price
+  const [priceNote, setPriceNote] = useState('');
   const [creating, setCreating] = useState(false);
 
   // Search customers
@@ -157,16 +160,20 @@ export default function AdminBookForCustomer() {
     return true;
   }
 
-  // Same price and deposit rule as an online booking (the server computes the price)
+  // Same price and deposit rule as an online booking (the server computes the
+  // price), unless staff enter a price agreed with the customer
+  const rates = useLongRentalRates(selectedCar?.fleet_group_id);
   const estimate = selectedCar
-    ? calculatePrice(selectedCar.price_per_day || 0, pickupDate, returnDate)
-    : { days: 0, total: 0, deposit: 0 };
+    ? calculatePrice(selectedCar.price_per_day || 0, pickupDate, returnDate, rates)
+    : calculatePrice(0, null, null);
+  const agreed = agreedPrice !== '' && Number(agreedPrice) !== estimate.total;
   function calcTotal() {
-    return estimate.total;
+    return agreed ? Math.round(Number(agreedPrice) * 100) / 100 : estimate.total;
   }
+  const depositRule = estimate.days > 0 ? Math.max(100, Math.ceil(calcTotal() * 0.3)) : 100;
 
   // The deposit follows the online rule for the chosen dates until staff change it
-  const depositAmount = depositTouched ? depositInput : Math.max(100, estimate.deposit);
+  const depositAmount = depositTouched ? depositInput : depositRule;
 
   const credit = Math.max(0, Number(selectedCust?.deposit_credit || 0));
   const creditApplied = useCredit ? Math.min(credit, Number(depositAmount) || 0) : 0;
@@ -176,6 +183,10 @@ export default function AdminBookForCustomer() {
     if (!validateDates()) return;
     if (depositAmount < 100) {
       toast.error('Minimum deposit is RM100');
+      return;
+    }
+    if (agreed && (!(Number(agreedPrice) >= 0) || !priceNote.trim())) {
+      toast.error('Enter the agreed price and the reason for it.');
       return;
     }
     setCreating(true);
@@ -210,6 +221,8 @@ export default function AdminBookForCustomer() {
         p_receipt_path: receiptUrl,
         p_use_credit: creditApplied > 0,
         p_notes: notes.trim() || null,
+        p_agreed_total: agreed ? calcTotal() : null,
+        p_price_note: agreed ? priceNote.trim() : null,
       });
       if (error) throw error;
 
@@ -504,11 +517,46 @@ export default function AdminBookForCustomer() {
             </div>
           )}
           {pickupDate && returnDate && selectedCar && !getOverlap() && (
-            <div className="bg-white/5 rounded-xl p-3 mb-3">
+            <div className="bg-white/5 rounded-xl p-3 mb-3 space-y-2">
               <p className="text-sm text-white">
-                Total: <strong>{formatMYR(calcTotal())}</strong> ({estimate.days} days × RM
-                {selectedCar.price_per_day})
+                Price: <strong>{formatMYR(estimate.total)}</strong> ({estimate.days} days × RM
+                {selectedCar.price_per_day}
+                {estimate.longDiscount > 0 &&
+                  `, ${longRentalLabel(estimate.days, estimate.discountPct).toLowerCase()} −${formatMYR(estimate.longDiscount)}`}
+                )
               </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="input-label">Agreed price (optional)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={agreedPrice}
+                    onChange={(e) => setAgreedPrice(e.target.value)}
+                    placeholder={String(estimate.total)}
+                    className="input-field"
+                  />
+                </div>
+                {agreed && (
+                  <div>
+                    <label className="input-label">Reason *</label>
+                    <input
+                      value={priceNote}
+                      onChange={(e) => setPriceNote(e.target.value)}
+                      placeholder="e.g. regular customer, agreed on WhatsApp"
+                      className="input-field"
+                      maxLength={300}
+                    />
+                  </div>
+                )}
+              </div>
+              {agreed && (
+                <p className="text-xs text-amber-300">
+                  Total {formatMYR(calcTotal())} ({formatMYR(calcTotal() - estimate.total)} on the
+                  normal price). The invoice shows the agreed price and the reason.
+                </p>
+              )}
             </div>
           )}
           <div className="grid grid-cols-2 gap-3 mb-3">
@@ -524,11 +572,11 @@ export default function AdminBookForCustomer() {
                 min={100}
                 className="input-field"
               />
-              {estimate.deposit > 0 && (
+              {estimate.days > 0 && (
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Online rule for these dates: {formatMYR(Math.max(100, estimate.deposit))} (30% of
-                  the rental, at least RM100).
-                  {depositTouched && Number(depositAmount) !== Math.max(100, estimate.deposit) && (
+                  Online rule for this price: {formatMYR(depositRule)} (30% of the rental, at least
+                  RM100).
+                  {depositTouched && Number(depositAmount) !== depositRule && (
                     <button
                       type="button"
                       onClick={() => setDepositTouched(false)}
@@ -650,6 +698,14 @@ export default function AdminBookForCustomer() {
               <span className="text-slate-400">Total:</span>
               <span className="text-white font-semibold">{formatMYR(calcTotal())}</span>
             </div>
+            {agreed && (
+              <div className="flex justify-between gap-4 text-sm">
+                <span className="text-slate-400">Agreed price:</span>
+                <span className="text-amber-300 text-right">
+                  normal {formatMYR(estimate.total)} · {priceNote.trim() || 'reason needed'}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Deposit:</span>
               <span className="text-white">{formatMYR(depositAmount)}</span>

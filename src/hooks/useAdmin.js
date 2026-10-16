@@ -68,7 +68,7 @@ export function useAdminStats(fleetId) {
       let moneyQuery = supabase
         .from('bubatrent_booking_bookings')
         .select(
-          'status, total_price, full_payment_amount, full_payment_status, deposit_amount, deposit_status, deposit_credited_at, deposit_on_hold, charges_total, amount_owed'
+          'status, total_price, rent_paid, full_payment_status, deposit_amount, deposit_status, deposit_credited_at, deposit_on_hold, charges_total, amount_owed'
         )
         .in('status', BOOKED_STATUSES);
 

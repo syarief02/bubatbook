@@ -12,19 +12,9 @@ export function workshopPayments(booking) {
   );
 }
 
-/** The full rental, before any workshop payments. */
-export function rentalAmount(booking) {
-  return Number(booking.full_payment_amount || booking.total_price || 0);
-}
-
 /** The part of the rental the customer paid by paying the workshop. */
 export function rentPaidToWorkshop(booking) {
   return workshopPayments(booking).reduce((sum, w) => sum + Number(w.to_rent || 0), 0);
-}
-
-/** What the customer pays us for the rental, after workshop payments. */
-export function rentDue(booking) {
-  return Math.max(rentalAmount(booking) - rentPaidToWorkshop(booking), 0);
 }
 
 /** Where a workshop payment went, e.g. "RM 300 off the rental, RM 50 to the customer's credit". */
