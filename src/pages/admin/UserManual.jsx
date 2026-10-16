@@ -113,14 +113,14 @@ const STATUSES = [
     name: 'DEPOSIT_PAID',
     color: 'text-orange-400',
     meaning:
-      'The customer uploaded a deposit receipt (or their credit covered the deposit). The car is reserved.',
-    next: 'You check the receipt and press ✓ Verify within 48 hours, then Confirm.',
+      'The customer uploaded a deposit receipt (or their credit covered the deposit), or you made a counter booking that still needs its deposit checked. The car is reserved.',
+    next: 'You check the receipt and press ✓ Verify (online bookings: within 48 hours), or ✓ Mark Deposit Received for cash, then Confirm.',
   },
   {
     name: 'CONFIRMED',
     color: 'text-green-400',
     meaning: 'Deposit verified. The booking is secured.',
-    next: 'Customer signs the agreement and pays the full rental; you verify it.',
+    next: 'Customer signs the agreement (in My Bookings, or with Sign at Counter) and pays the full rental; you verify it.',
   },
   {
     name: 'PICKUP',
@@ -144,7 +144,7 @@ const STATUSES = [
   {
     name: 'EXPIRED',
     color: 'text-slate-400',
-    meaning: 'The hold timed out, or the deposit was not verified within 48 hours.',
+    meaning: 'The hold timed out, or an online deposit was not verified within 48 hours.',
     next: 'Can be reactivated if the dates are still free (section 7.8).',
   },
 ];
@@ -261,7 +261,8 @@ export default function UserManual() {
             </li>
             <li>
               For today&apos;s pickups, open each booking and make sure the agreement is signed and
-              the full payment is verified before handing over the keys (sections 7.3–7.5).
+              the full payment is verified before handing over the keys (sections 7.3–7.5). If the
+              customer is with you and hasn&apos;t signed, use <B>Sign at Counter</B>.
             </li>
             <li>
               For cars coming back, inspect them and press <B>Mark Returned</B>, entering any
@@ -456,8 +457,9 @@ export default function UserManual() {
             For a customer at the counter who has no account, go to <B>Customers</B> →{' '}
             <B>Create Customer</B>. You need their IC number, a Malaysian phone number, address,
             licence expiry, and photos of the IC and licence. Name, email and licence type are
-            optional. The customer is created already verified, without a login. Then book a car for
-            them with <B>Book for Customer</B> (section 8).
+            optional, but enter the name: it is printed on the agreement and invoice. The customer
+            is created already verified, without a login they can use yet. Then book a car for them
+            with <B>Book for Customer</B> (section 8).
           </p>
           <Sub>When the customer later signs in</Sub>
           <p>
@@ -541,7 +543,8 @@ export default function UserManual() {
             A deposit not verified within 48 hours of being submitted (including a rejected one) is
             released automatically: the booking becomes EXPIRED, the car is freed, and any credit
             the customer used is returned to them. The booking page shows the deadline
-            (&quot;Released automatically on …&quot;).
+            (&quot;Released automatically on …&quot;). Counter bookings made with{' '}
+            <B>Book for Customer</B> are never released this way.
           </Note>
           <Bullets>
             <li>
@@ -577,7 +580,8 @@ export default function UserManual() {
               and a note that you are signing in person. Check their IC, then hand over your device:
               they read, sign and tick the box. It is saved as the customer&apos;s own agreement,
               marked &quot;signed in person at the counter&quot;, and the audit log records your
-              name. Use it only with the customer present.
+              name. Use it only with the customer present. When you are done, <B>Back to Booking</B>{' '}
+              returns to the booking page.
             </li>
             <li>
               Once signed you see the signature and <B>View Full Agreement</B>, which has a{' '}
@@ -716,13 +720,16 @@ export default function UserManual() {
           <Sub>7.11 What the booking page shows</Sub>
           <Bullets>
             <li>
-              <B>Rental Agreement</B> card: signed or not, with the link or the signature.
+              <B>Rental Agreement</B> card (from CONFIRMED): if not signed,{' '}
+              <B>Copy Agreement Link</B> and <B>Sign at Counter</B>; once signed, the signature, who
+              signed and when (with &quot;in person at the counter&quot; if it was signed on your
+              device) and <B>View Full Agreement</B>.
             </li>
             <li>
               <B>Rental Details</B>: car, dates, total, deposit, credit applied, actual return date.
             </li>
             <li>
-              <B>Customer</B>: name, email, phone and the note from checkout.
+              <B>Customer</B>: name, email, phone and the note from checkout or Book for Customer.
             </li>
             <li>
               <B>Payment Receipts</B>: deposit and full payment with their status and buttons. A
@@ -816,8 +823,22 @@ export default function UserManual() {
               Optionally upload the <B>Deposit Receipt</B>. The customer can open it from their My
               Bookings once they have an account.
             </li>
-            <li>Review and create. You land on the booking page.</li>
+            <li>
+              Review and press <B>Create Booking</B>. The system checks everything again (customer,
+              dates, deposit) and saves the booking, its deposit payment and the audit entry in one
+              step; if something is wrong you get a message and the booking is not created. You land
+              on the booking page.
+            </li>
           </Steps>
+          <Bullets>
+            <li>
+              Counter bookings are not released after 48 hours: a Deposit Paid counter booking waits
+              until you verify or cancel it.
+            </li>
+            <li>
+              The audit log starts with <B>Booking created by admin</B> and your name.
+            </li>
+          </Bullets>
           <p>
             Continue as for any booking: agreement (<B>Sign at Counter</B> if the customer is with
             you, 7.3), full payment, pickup and return.
@@ -835,7 +856,8 @@ export default function UserManual() {
           <p>
             A customer&apos;s <B>credit balance</B> is money you owe them, mostly deposits from
             finished rentals. Customers see it next to their name. At checkout it is applied to the
-            next deposit automatically; if it covers the whole deposit, no receipt is needed.
+            next deposit automatically; if it covers the whole deposit, no receipt is needed. In{' '}
+            <B>Book for Customer</B> you choose whether to use it (section 8).
           </p>
           <Sub>When credit is added automatically</Sub>
           <Bullets>
@@ -894,7 +916,10 @@ export default function UserManual() {
             <li>
               <B>Rental agreement</B>: <B>View Full Agreement</B> on the booking page, or{' '}
               <B>Agreement</B> in the customer&apos;s My Bookings. Both have <B>Print / Save PDF</B>
-              . Still available after the car is returned.
+              . Still available after the car is returned. One signed on your device says
+              &quot;Signed in person at the counter&quot;. A counter customer without an account
+              can&apos;t open My Bookings, so print the agreement and invoice for them from the
+              booking page.
             </li>
             <li>
               <B>Invoice</B>: available once the deposit or full payment is verified, from{' '}
@@ -1034,12 +1059,13 @@ export default function UserManual() {
         >
           <p>
             Each booking&apos;s <B>Audit Log</B> is written by the system and can&apos;t be edited.
-            It records who did each step and when: deposit submitted, verified or rejected;
-            confirmed; full payment uploaded or verified; picked up; returned; cancelled;
-            reactivated (with the reason); dates or price changed; deposit added to credit, put on
-            hold or settled; charges added or removed; payments received for charges; deleted;
-            released after 48 hours; and opening the customer&apos;s documents. Steps by the system
-            itself show as <B>System</B>.
+            It records who did each step and when: booking created by admin; deposit submitted,
+            verified or rejected; confirmed; rental agreement signed (and whether in person at the
+            counter); full payment uploaded or verified; picked up; returned; cancelled; reactivated
+            (with the reason); dates or price changed; deposit added to credit, put on hold or
+            settled; charges added or removed; payments received for charges; deleted; released
+            after 48 hours; and opening the customer&apos;s documents. Steps by the system itself
+            show as <B>System</B>.
           </p>
           <p>
             <B>Upload Logs</B> lists file uploads from customers&apos; and admins&apos; devices (IC,
@@ -1069,6 +1095,14 @@ export default function UserManual() {
               [
                 '"Cannot mark as Picked Up — the full rental payment (RM …) has not been verified yet"',
                 'Verify the full payment receipt, upload it for the customer, or mark cash received (7.4). The deposit does not count.',
+              ],
+              [
+                'Book for Customer: Next → Select Car stays grey',
+                'The customer is not verified or their licence has expired. Verify them or update the licence expiry on Customers first (section 5).',
+              ],
+              [
+                'A walk-in customer can’t sign in',
+                'If you entered their email, they use Forgot password on the sign-in page. Otherwise they sign up, enter the same mobile number and confirm their IC to link the counter record (section 6).',
               ],
               [
                 'A counter booking shows no Verify button for the deposit',
