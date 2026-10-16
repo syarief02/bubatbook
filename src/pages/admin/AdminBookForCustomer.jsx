@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
-import { expireStaleHolds } from '../../hooks/useBookings';
 import { friendlyDbError } from '../../utils/dbErrors';
 import { ilikeAny } from '../../utils/search';
+import { calculatePrice, formatMYR } from '../../utils/pricing';
+import { getTodayString } from '../../utils/dates';
 import { useToast } from '../../components/Toast';
-// Removed unused import normalizePhone
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
   ArrowLeft,
@@ -22,8 +21,15 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
+// Why a customer can't be booked yet (the database checks the same), or null
+function bookingBlock(c) {
+  if (!c) return null;
+  if (!c.is_verified) return 'Not verified';
+  if (c.licence_expiry && c.licence_expiry < getTodayString()) return 'Licence expired';
+  return null;
+}
+
 export default function AdminBookForCustomer() {
-  const { user } = useAuth();
   const { activeFleetId, activeFleet } = useFleet();
   const navigate = useNavigate();
   const toast = useToast();
@@ -48,9 +54,12 @@ export default function AdminBookForCustomer() {
   const [existingBookings, setExistingBookings] = useState([]);
 
   // Step 4: Config
-  const [depositAmount, setDepositAmount] = useState(100);
+  const [depositInput, setDepositInput] = useState(100);
+  const [depositTouched, setDepositTouched] = useState(false);
   const [initialStatus, setInitialStatus] = useState('CONFIRMED');
   const [depositReceipt, setDepositReceipt] = useState(null);
+  const [useCredit, setUseCredit] = useState(true);
+  const [notes, setNotes] = useState('');
   const [creating, setCreating] = useState(false);
 
   // Search customers
@@ -63,7 +72,9 @@ export default function AdminBookForCustomer() {
     setSearching(true);
     const { data, error } = await supabase
       .from('bubatrent_booking_profiles')
-      .select('id, display_name, username, phone, ic_number, is_verified')
+      .select(
+        'id, display_name, username, email, phone, ic_number, is_verified, licence_expiry, deposit_credit'
+      )
       .or(ilikeAny(['display_name', 'phone', 'ic_number', 'username'], q))
       .limit(10);
     if (error) console.error('[BookForCustomer] Search error:', error);
@@ -146,12 +157,20 @@ export default function AdminBookForCustomer() {
     return true;
   }
 
-  // Calculate price
+  // Same price and deposit rule as an online booking (the server computes the price)
+  const estimate = selectedCar
+    ? calculatePrice(selectedCar.price_per_day || 0, pickupDate, returnDate)
+    : { days: 0, total: 0, deposit: 0 };
   function calcTotal() {
-    if (!pickupDate || !returnDate || !selectedCar) return 0;
-    const days = Math.ceil((new Date(returnDate) - new Date(pickupDate)) / (1000 * 60 * 60 * 24));
-    return days * (selectedCar.price_per_day || 0);
+    return estimate.total;
   }
+
+  // The deposit follows the online rule for the chosen dates until staff change it
+  const depositAmount = depositTouched ? depositInput : Math.max(100, estimate.deposit);
+
+  const credit = Math.max(0, Number(selectedCust?.deposit_credit || 0));
+  const creditApplied = useCredit ? Math.min(credit, Number(depositAmount) || 0) : 0;
+  const toCollect = Math.max(0, (Number(depositAmount) || 0) - creditApplied);
 
   async function handleCreate() {
     if (!validateDates()) return;
@@ -162,26 +181,6 @@ export default function AdminBookForCustomer() {
     setCreating(true);
 
     try {
-      // Abandoned customer checkouts must not block this booking
-      await expireStaleHolds();
-
-      // Overlap check — only block for confirmed statuses, not HOLD
-      const { data: overlapping } = await supabase
-        .from('bubatrent_booking_bookings')
-        .select('id')
-        .eq('car_id', selectedCar.id)
-        .in('status', BLOCKING_STATUSES)
-        .lte('pickup_date', returnDate)
-        .gte('return_date', pickupDate)
-        .limit(1);
-      if (overlapping?.length > 0) {
-        toast.error('Date overlap with a confirmed booking');
-        setCreating(false);
-        return;
-      }
-
-      const totalPrice = calcTotal();
-
       // Upload deposit receipt if provided
       let receiptUrl = null;
       if (depositReceipt) {
@@ -196,67 +195,23 @@ export default function AdminBookForCustomer() {
         receiptUrl = rPath;
       }
 
-      // "Confirmed" means the admin has the deposit in hand, so it is verified
-      // now (and goes to the customer's credit when the car is returned).
-      // "Deposit Paid" leaves it to be checked: Verify for a receipt, Mark
-      // Deposit Received for cash.
-      const depositVerified = initialStatus === 'CONFIRMED';
-
-      // Create booking
-      const { data: booking, error } = await supabase
-        .from('bubatrent_booking_bookings')
-        .insert({
-          car_id: selectedCar.id,
-          user_id: selectedCust.id,
-          pickup_date: pickupDate,
-          return_date: returnDate,
-          total_price: totalPrice,
-          deposit_amount: depositAmount,
-          status: initialStatus,
-          fleet_group_id: activeFleetId,
-          customer_name: selectedCust.display_name || '',
-          customer_email: selectedCust.username || '',
-          customer_phone: selectedCust.phone || '',
-          deposit_receipt_path: receiptUrl,
-          deposit_status: depositVerified ? 'verified' : receiptUrl ? 'uploaded' : 'pending',
-          full_payment_amount: totalPrice,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-
-      // Deposit payment record: completed when confirmed, pending while a
-      // receipt waits to be checked. A cash deposit not yet received gets
-      // its record from Mark Deposit Received.
-      if (depositVerified || receiptUrl) {
-        const { error: payErr } = await supabase.from('bubatrent_booking_payments').insert({
-          booking_id: booking.id,
-          amount: depositAmount,
-          payment_method: receiptUrl ? 'bank_transfer' : 'cash',
-          payment_type: 'deposit',
-          receipt_path: receiptUrl,
-          status: depositVerified ? 'completed' : 'pending',
-          reference_number: `ADMIN-${Date.now()}`,
-          fleet_group_id: activeFleetId,
-        });
-        if (payErr) throw payErr;
-      }
-
-      // Audit log
-      await supabase.from('bubatrent_booking_audit_logs').insert({
-        admin_id: user.id,
-        action: 'ADMIN_CREATE_BOOKING',
-        resource_type: 'booking',
-        resource_id: booking.id,
-        details: {
-          customer_id: selectedCust.id,
-          car_id: selectedCar.id,
-          dates: `${pickupDate} → ${returnDate}`,
-          status: initialStatus,
-          total: totalPrice,
-          deposit: depositAmount,
-        },
+      // One server step: checks the customer is verified and the dates are
+      // free, prices it from the car's daily rate, applies credit, records
+      // the deposit payment and logs it. "Confirmed" means you have the
+      // deposit; "Deposit Paid" leaves it to Verify (receipt) or Mark
+      // Deposit Received (cash) on the booking page.
+      const { data: booking, error } = await supabase.rpc('bubatrent_admin_create_booking', {
+        p_customer_id: selectedCust.id,
+        p_car_id: selectedCar.id,
+        p_pickup: pickupDate,
+        p_return: returnDate,
+        p_deposit: depositAmount,
+        p_status: initialStatus,
+        p_receipt_path: receiptUrl,
+        p_use_credit: creditApplied > 0,
+        p_notes: notes.trim() || null,
       });
+      if (error) throw error;
 
       toast.success('Booking created successfully');
       navigate(`/admin/bookings/${booking.id}`);
@@ -355,7 +310,17 @@ export default function AdminBookForCustomer() {
                       </p>
                       <p className="text-[10px] text-slate-500">
                         {c.phone} {c.username ? `• ${c.username}` : ''}{' '}
-                        {c.is_verified ? '✓ Verified' : ''}
+                        {bookingBlock(c) ? (
+                          <span className="text-amber-400">• {bookingBlock(c)}</span>
+                        ) : (
+                          <span className="text-green-400">✓ Verified</span>
+                        )}
+                        {Number(c.deposit_credit) > 0 && (
+                          <span className="text-emerald-400">
+                            {' '}
+                            • {formatMYR(c.deposit_credit)} credit
+                          </span>
+                        )}
                       </p>
                     </div>
                   </button>
@@ -363,9 +328,30 @@ export default function AdminBookForCustomer() {
               </div>
             )
           )}
+          {bookingBlock(selectedCust) && (
+            <div className="flex items-start gap-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 mb-1">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <span>
+                {bookingBlock(selectedCust) === 'Not verified'
+                  ? 'This customer is not verified yet. Check their IC and licence and press Verify Customer on '
+                  : 'This customer’s driving licence has expired. Update the expiry date on '}
+                <Link
+                  to={
+                    bookingBlock(selectedCust) === 'Not verified'
+                      ? '/admin/customers?verification=not_verified'
+                      : '/admin/customers'
+                  }
+                  className="underline hover:text-amber-200"
+                >
+                  Customers
+                </Link>{' '}
+                first.
+              </span>
+            </div>
+          )}
           <button
-            onClick={() => step === 1 && selectedCust && setStep(2)}
-            disabled={!selectedCust}
+            onClick={() => step === 1 && selectedCust && !bookingBlock(selectedCust) && setStep(2)}
+            disabled={!selectedCust || !!bookingBlock(selectedCust)}
             className="btn-primary w-full mt-4 disabled:opacity-30"
           >
             Next → Select Car
@@ -462,8 +448,7 @@ export default function AdminBookForCustomer() {
                           : 'bg-yellow-500/20 text-yellow-300'
                       }`}
                     >
-                      {b.status}
-                      {b.status === 'HOLD' ? ' (available)' : ''}
+                      {b.status === 'HOLD' ? 'Checkout hold' : b.status}
                     </span>
                   </div>
                 ))}
@@ -473,7 +458,8 @@ export default function AdminBookForCustomer() {
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400" /> Blocks dates
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" /> HOLD (still available)
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" /> Online checkout in
+                  progress (frees up within 10 minutes if not paid)
                 </span>
               </div>
             </div>
@@ -486,7 +472,7 @@ export default function AdminBookForCustomer() {
                 type="date"
                 value={pickupDate}
                 onChange={(e) => setPickupDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
+                min={getTodayString()}
                 className="input-field"
               />
             </div>
@@ -496,7 +482,7 @@ export default function AdminBookForCustomer() {
                 type="date"
                 value={returnDate}
                 onChange={(e) => setReturnDate(e.target.value)}
-                min={pickupDate || new Date().toISOString().split('T')[0]}
+                min={pickupDate || getTodayString()}
                 className="input-field"
               />
             </div>
@@ -520,8 +506,7 @@ export default function AdminBookForCustomer() {
           {pickupDate && returnDate && selectedCar && !getOverlap() && (
             <div className="bg-white/5 rounded-xl p-3 mb-3">
               <p className="text-sm text-white">
-                Total: <strong>RM {calcTotal().toFixed(2)}</strong> (
-                {Math.ceil((new Date(returnDate) - new Date(pickupDate)) / 86400000)} days × RM
+                Total: <strong>{formatMYR(calcTotal())}</strong> ({estimate.days} days × RM
                 {selectedCar.price_per_day})
               </p>
             </div>
@@ -532,10 +517,28 @@ export default function AdminBookForCustomer() {
               <input
                 type="number"
                 value={depositAmount}
-                onChange={(e) => setDepositAmount(Number(e.target.value))}
+                onChange={(e) => {
+                  setDepositTouched(true);
+                  setDepositInput(Number(e.target.value));
+                }}
                 min={100}
                 className="input-field"
               />
+              {estimate.deposit > 0 && (
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Online rule for these dates: {formatMYR(Math.max(100, estimate.deposit))} (30% of
+                  the rental, at least RM100).
+                  {depositTouched && Number(depositAmount) !== Math.max(100, estimate.deposit) && (
+                    <button
+                      type="button"
+                      onClick={() => setDepositTouched(false)}
+                      className="ml-1 text-violet-400 hover:text-violet-300"
+                    >
+                      Use it
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
             <div>
               <label className="input-label">Initial Status</label>
@@ -548,11 +551,43 @@ export default function AdminBookForCustomer() {
                 <option value="CONFIRMED">Confirmed</option>
               </select>
               <p className="text-[11px] text-slate-500 mt-1">
-                {initialStatus === 'CONFIRMED'
-                  ? 'You have the deposit: it is recorded as received now.'
-                  : 'Deposit still to check: Verify the receipt, or Mark Deposit Received for cash, on the booking page.'}
+                {toCollect === 0
+                  ? 'Credit pays the whole deposit: it is recorded as received now.'
+                  : initialStatus === 'CONFIRMED'
+                    ? 'You have the deposit: it is recorded as received now.'
+                    : 'Deposit still to check: Verify the receipt, or Mark Deposit Received for cash, on the booking page.'}
               </p>
             </div>
+          </div>
+          {credit > 0 && (
+            <label className="flex items-start gap-2 bg-emerald-500/5 border border-emerald-500/20 rounded-xl px-3 py-2.5 mb-3 text-xs text-emerald-200 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useCredit}
+                onChange={(e) => setUseCredit(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                Use the customer&apos;s credit ({formatMYR(credit)} available) towards the deposit.
+                {useCredit && (
+                  <>
+                    {' '}
+                    {formatMYR(creditApplied)} from credit,{' '}
+                    <strong>{formatMYR(toCollect)} to collect</strong>.
+                  </>
+                )}
+              </span>
+            </label>
+          )}
+          <div className="mb-3">
+            <label className="input-label">Notes (optional)</label>
+            <input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="input-field"
+              placeholder="e.g. phone booking, pickup at the office"
+              maxLength={500}
+            />
           </div>
           <div className="mb-3">
             <label className="input-label">Deposit Receipt (optional)</label>
@@ -613,12 +648,26 @@ export default function AdminBookForCustomer() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Total:</span>
-              <span className="text-white font-semibold">RM {calcTotal().toFixed(2)}</span>
+              <span className="text-white font-semibold">{formatMYR(calcTotal())}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Deposit:</span>
-              <span className="text-white">RM {depositAmount}</span>
+              <span className="text-white">{formatMYR(depositAmount)}</span>
             </div>
+            {creditApplied > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">From credit:</span>
+                <span className="text-emerald-400">
+                  {formatMYR(creditApplied)} ({formatMYR(toCollect)} to collect)
+                </span>
+              </div>
+            )}
+            {notes.trim() && (
+              <div className="flex justify-between gap-4 text-sm">
+                <span className="text-slate-400">Notes:</span>
+                <span className="text-white text-right">{notes.trim()}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Status:</span>
               <span className="text-green-400">{initialStatus}</span>

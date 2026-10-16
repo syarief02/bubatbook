@@ -464,13 +464,14 @@ export default function UserManual() {
             If they sign in on rent2go.my (Google or email) and enter the same mobile number on
             Complete Profile, the site asks for their IC number. When it matches, the counter record
             (bookings, credit and verified status) moves into their own account. Only a few wrong IC
-            attempts are allowed per day.
+            attempts are allowed per day. If you entered their email when creating them, they can
+            also set a password with <B>Forgot password</B> on the sign-in page and use the counter
+            record directly.
           </p>
-          <Note tone="warn" title="Counter customers must sign in to sign the agreement">
-            Only the customer, signed in to their own account, can sign the rental agreement, and
-            pickup needs a signed agreement. Before pickup, send them the agreement link (section
-            7.3). They sign in, enter their mobile number and IC to link the counter record, and
-            then sign on their phone.
+          <Note title="Counter customers sign the agreement on your device">
+            Pickup needs a signed rental agreement. A counter customer doesn&apos;t need an account
+            for it: on the booking page press <B>Sign at Counter</B>, check their IC, and hand them
+            your phone or tablet to read and sign (section 7.3).
           </Note>
         </Section>
 
@@ -568,7 +569,15 @@ export default function UserManual() {
             </li>
             <li>
               If they haven&apos;t signed, the booking page shows <B>Rental Agreement Not Signed</B>
-              . Press <B>Copy Agreement Link</B> and send it by WhatsApp.
+              . Press <B>Copy Agreement Link</B> and send it by WhatsApp, or, with the customer in
+              front of you, press <B>Sign at Counter</B>.
+            </li>
+            <li>
+              <B>Sign at Counter</B> opens the agreement with the customer&apos;s name, IC and phone
+              and a note that you are signing in person. Check their IC, then hand over your device:
+              they read, sign and tick the box. It is saved as the customer&apos;s own agreement,
+              marked &quot;signed in person at the counter&quot;, and the audit log records your
+              name. Use it only with the customer present.
             </li>
             <li>
               Once signed you see the signature and <B>View Full Agreement</B>, which has a{' '}
@@ -765,17 +774,30 @@ export default function UserManual() {
           </p>
           <Steps>
             <li>
-              <B>Select Customer</B>: search by name, phone, IC or email. Verified customers are
-              marked ✓. Press <B>Next → Select Car</B>.
+              <B>Select Customer</B>: search by name, phone, IC or email. Only verified customers
+              with a licence that hasn&apos;t expired can be booked, the same rule as online. Others
+              are marked <B>Not verified</B> or <B>Licence expired</B>; verify them or update their
+              licence on <B>Customers</B> first. Press <B>Next → Select Car</B>.
             </li>
             <li>Choose the car.</li>
             <li>
               Pick the dates. If they overlap another booking, the page shows which one and
-              won&apos;t continue.
+              won&apos;t continue. An online checkout in progress holds the car for up to 10
+              minutes.
             </li>
             <li>
-              Set the <B>Deposit</B> (at least RM100). The rental total is days × the car&apos;s
-              daily price.
+              Check the <B>Deposit</B>. It starts at the online rule (30% of the rental, at least
+              RM100); you can change it, but not below RM100. The rental total is days × the
+              car&apos;s daily price, worked out by the system.
+            </li>
+            <li>
+              If the customer has credit, <B>Use the customer&apos;s credit</B> is ticked: it pays
+              the deposit first and the page shows what is left <B>to collect</B>. Untick it to keep
+              their credit. If credit covers the whole deposit, it is recorded as received.
+            </li>
+            <li>
+              Optionally add <B>Notes</B> (for example, a phone booking). They show on the booking
+              page.
             </li>
             <li>
               <B>Initial Status</B>:
@@ -797,8 +819,8 @@ export default function UserManual() {
             <li>Review and create. You land on the booking page.</li>
           </Steps>
           <p>
-            Continue as for any booking: agreement (section 6 explains signing for counter
-            customers), full payment, pickup and return.
+            Continue as for any booking: agreement (<B>Sign at Counter</B> if the customer is with
+            you, 7.3), full payment, pickup and return.
           </p>
         </Section>
 
@@ -1042,7 +1064,7 @@ export default function UserManual() {
               ],
               [
                 '"Cannot mark as Picked Up — rental agreement has not been signed yet"',
-                'Send the agreement link (7.3). Counter customers must sign in and link their record first (section 6).',
+                'Send the agreement link, or use Sign at Counter with the customer present (7.3).',
               ],
               [
                 '"Cannot mark as Picked Up — the full rental payment (RM …) has not been verified yet"',

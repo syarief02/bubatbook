@@ -75,6 +75,22 @@ function report(ok, name, detail) {
   });
   report(!!creditErr, 'anon cannot change credit', creditErr ? 'denied' : 'allowed');
 
+  const { error: counterErr } = await anon.rpc('bubatrent_admin_create_booking', {
+    p_customer_id: '00000000-0000-0000-0000-000000000000',
+    p_car_id: '00000000-0000-0000-0000-000000000000',
+    p_pickup: '2099-01-01',
+    p_return: '2099-01-02',
+    p_deposit: 100,
+    p_status: 'CONFIRMED',
+  });
+  report(!!counterErr, 'anon cannot create counter bookings', counterErr ? 'denied' : 'allowed');
+
+  const { error: signErr } = await anon.rpc('bubatrent_sign_rental_agreement', {
+    p_booking_id: '00000000-0000-0000-0000-000000000000',
+    p_signature_data: 'data:image/png;base64,AAAA',
+  });
+  report(!!signErr, 'anon cannot sign agreements', signErr ? 'denied' : 'allowed');
+
   const { data: available, error: availErr } = await anon.rpc('bubatrent_check_availability', {
     p_car_id: '00000000-0000-0000-0000-000000000000',
     p_pickup: '2099-01-01',

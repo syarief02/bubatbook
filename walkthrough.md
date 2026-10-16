@@ -123,16 +123,31 @@ says what to do and what you should see.
 
 ## Test 7: Counter (walk-in) customers
 
-1. **Customers → Create Customer** with IC, phone, address, licence expiry and both images.
+1. **Customers → Create Customer** with IC, phone, address, licence expiry and both images (name
+   it "E2E TEST …").
    ✅ The customer is created already verified.
 2. **Book for Customer**:
+   - Search an unverified customer.
+     ✅ They show **Not verified** and **Next** stays disabled.
+   - Pick the walk-in, a car and dates.
+     ✅ The deposit starts at 30% of the rental (at least RM100). Put `E2E TEST` in **Notes**.
    - **Confirmed**: the deposit is recorded as received.
    - **Deposit Paid** with a receipt: **✓ Verify** is offered.
    - **Deposit Paid** without a receipt: **✓ Mark Deposit Received** is offered.
-3. The customer signs in, enters the same mobile number on Complete Profile, and confirms their
+   - A customer with credit: **Use the customer's credit** shows what is left to collect.
+     ✅ Their credit goes down by that amount, and comes back if you cancel before the deposit is
+     verified.
+3. On a confirmed counter booking press **Sign at Counter**, sign on your device and tick the box.
+   ✅ The booking page shows "Signed … in person at the counter", and the audit log has
+   "Rental agreement signed".
+   ✅ After the full payment is verified, **Mark Picked Up** works.
+4. The customer signs in, enters the same mobile number on Complete Profile, and confirms their
    IC.
-   ✅ The counter booking appears in their My Bookings.
-   ✅ They can open the receipt you uploaded, and sign the agreement.
+   ✅ The counter bookings appear in their My Bookings, with the agreement signed at the counter.
+   ✅ They can open the receipts you uploaded.
+5. A walk-in created **with an email**: on the sign-in page use **Forgot password** with that
+   email.
+   ✅ The reset email arrives and they can sign in to the counter record.
 
 ## Test 8: Credit
 

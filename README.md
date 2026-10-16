@@ -32,12 +32,14 @@
 
 - **Dashboard**: customers to verify, deposits to check, rental revenue, deposits currently held.
 - **Bookings**: the full status flow, with rules enforced by the database. Admins verify deposits
-  and full payments (receipt or cash), send the agreement link, edit dates, reactivate expired
+  and full payments (receipt or cash), send the agreement link or take the customer's signature in
+  person (**Sign at Counter**), edit dates, reactivate expired
   bookings, cancel or delete. Returning a car takes charges (late return, cleaning, fuel, damage)
   off the deposit, or holds the deposit until damage is priced; anything above the deposit is
   tracked as owed until collected. Each booking page lists every payment record and a full audit
   log.
-- **Book for Customer** (counter and phone bookings) and **Create Customer** (walk-ins, verified
+- **Book for Customer** (counter and phone bookings: verified customers only, deposit from the
+  online rule, optional use of the customer's credit) and **Create Customer** (walk-ins, verified
   when created).
 - **Customers**: check documents, verify, reject or revoke, edit details (sensitive edits go to
   the Super Group as change requests), manage roles, add or deduct credit, see booking history.

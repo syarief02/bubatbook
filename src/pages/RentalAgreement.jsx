@@ -7,7 +7,10 @@ import { formatDate, formatDateTime } from '../utils/dates';
 import SignatureCanvas from '../components/SignatureCanvas';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
-import { CheckCircle, FileText, AlertTriangle, Printer } from 'lucide-react';
+import { CheckCircle, FileText, AlertTriangle, Printer, UserCheck } from 'lucide-react';
+
+// Walk-in customers created at the counter get a placeholder login email
+const realEmail = (email) => (email && !email.endsWith('@bubatrent.local') ? email : '');
 
 // Damage liability table by engine CC (from Bubat Resources paper form)
 const LIABILITY_TABLE = [
@@ -31,6 +34,8 @@ export default function RentalAgreement() {
   const [existingAgreement, setExistingAgreement] = useState(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  // The customer whose agreement this is (staff open it to sign in person)
+  const [renter, setRenter] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -61,7 +66,16 @@ export default function RentalAgreement() {
           return;
         }
         setBooking(bookingData);
-        setIsOwner(Boolean(user?.id && bookingData.user_id === user.id));
+        const owner = Boolean(user?.id && bookingData.user_id === user.id);
+        setIsOwner(owner);
+        if (!owner && bookingData.user_id) {
+          const { data: customer } = await supabase
+            .from('bubatrent_booking_profiles')
+            .select('display_name, ic_number, phone, email')
+            .eq('id', bookingData.user_id)
+            .maybeSingle();
+          setRenter(customer);
+        }
 
         // Check if already signed
         const { data: agreement } = await supabase
@@ -122,6 +136,10 @@ export default function RentalAgreement() {
   if (!booking) return null;
 
   const car = booking.bubatrent_booking_cars;
+  const renterInfo = isOwner ? profile : renter;
+  const renterEmail = realEmail(isOwner ? user.email : renter?.email);
+  const renterName =
+    renterInfo?.display_name || booking.customer_name || renterEmail || 'the customer';
 
   if (existingAgreement) {
     return (
@@ -130,10 +148,10 @@ export default function RentalAgreement() {
           {/* Action bar (hidden when printing) */}
           <div className="flex items-center justify-between mb-6 print:hidden">
             <button
-              onClick={() => navigate(isOwner ? '/my-bookings' : '/admin/bookings')}
+              onClick={() => navigate(isOwner ? '/my-bookings' : `/admin/bookings/${id}`)}
               className="text-sm text-slate-400 hover:text-white transition-colors"
             >
-              ← {isOwner ? 'My Bookings' : 'Bookings'}
+              ← {isOwner ? 'My Bookings' : 'Booking'}
             </button>
             <button
               onClick={() => window.print()}
@@ -150,6 +168,11 @@ export default function RentalAgreement() {
             <p className="text-slate-500 text-xs mt-1">
               Signed on {formatDateTime(existingAgreement.agreed_at)}
             </p>
+            {existingAgreement.signed_in_person_by && (
+              <p className="text-slate-500 text-xs mt-0.5">
+                Ditandatangani di kaunter / Signed in person at the counter
+              </p>
+            )}
           </div>
 
           <div className="glass-card mb-6">
@@ -333,14 +356,15 @@ export default function RentalAgreement() {
             </div>
             <p className="text-xs text-slate-500 mt-3">
               Ditandatangani pada / Signed on: {formatDateTime(existingAgreement.agreed_at)}
+              {existingAgreement.signed_in_person_by && ' (di kaunter / in person)'}
             </p>
           </div>
 
           <button
-            onClick={() => navigate(isOwner ? '/my-bookings' : '/admin/bookings')}
+            onClick={() => navigate(isOwner ? '/my-bookings' : `/admin/bookings/${id}`)}
             className="btn-primary w-full print:hidden"
           >
-            {isOwner ? 'Back to My Bookings' : 'Back to Bookings'}
+            {isOwner ? 'Back to My Bookings' : 'Back to Booking'}
           </button>
         </div>
       </div>
@@ -355,6 +379,20 @@ export default function RentalAgreement() {
           <p className="text-slate-400 text-sm">Rental Agreement / Surat Perjanjian Sewa Kereta</p>
         </div>
 
+        {!isOwner && (
+          <div className="glass-card mb-6 flex items-start gap-3 border-amber-500/20 bg-amber-500/5">
+            <UserCheck className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="text-amber-300 font-medium">Signing in person (staff)</p>
+              <p className="text-slate-400 mt-1">
+                Hand this screen to <strong className="text-white">{renterName}</strong> to read the
+                agreement, sign and tick the box. It is saved as their agreement, signed in person
+                on your device. Check their IC first.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="glass-card mb-6">
           <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 text-violet-400" />
@@ -363,19 +401,21 @@ export default function RentalAgreement() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-slate-500 text-xs mb-0.5">Nama / Name</p>
-              <p className="text-white font-medium">{profile?.display_name || user.email}</p>
+              <p className="text-white font-medium">{renterName}</p>
             </div>
             <div>
               <p className="text-slate-500 text-xs mb-0.5">No. K/P / IC Number</p>
-              <p className="text-white font-medium">{profile?.ic_number || '—'}</p>
+              <p className="text-white font-medium">{renterInfo?.ic_number || '—'}</p>
             </div>
             <div>
               <p className="text-slate-500 text-xs mb-0.5">No. Telefon / Phone</p>
-              <p className="text-white font-medium">{profile?.phone || '—'}</p>
+              <p className="text-white font-medium">
+                {renterInfo?.phone || booking.customer_phone || '—'}
+              </p>
             </div>
             <div>
               <p className="text-slate-500 text-xs mb-0.5">Email</p>
-              <p className="text-white font-medium">{user.email}</p>
+              <p className="text-white font-medium">{renterEmail || '—'}</p>
             </div>
           </div>
         </div>

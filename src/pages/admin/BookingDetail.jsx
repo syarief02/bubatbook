@@ -76,6 +76,7 @@ const AUDIT_LABELS = {
   CHANGE_PRICE: 'Price changed',
   AUTO_RELEASE_UNVERIFIED_DEPOSIT: 'Released: deposit not verified in 48 hours',
   ADMIN_CREATE_BOOKING: 'Booking created by admin',
+  SIGN_AGREEMENT: 'Rental agreement signed',
   VIEW_DOCUMENTS: 'Documents viewed',
 };
 
@@ -93,6 +94,7 @@ function auditDetail({ action, details = {} }) {
   if (action === 'CHARGE_ADDED')
     return `${d.label}${d.description ? ` (${d.description})` : ''} ${formatMYR(d.amount)}`;
   if (action === 'CHARGE_REMOVED') return `${formatMYR(d.amount)} — ${d.reason}`;
+  if (action === 'SIGN_AGREEMENT') return d.in_person ? 'in person at the counter' : null;
   const amount = d.amount ?? d.credit_returned;
   return Number(amount) > 0 ? formatMYR(amount) : null;
 }
@@ -230,7 +232,7 @@ export default function AdminBookingDetail() {
     }
     if (newStatus === 'PICKUP' && !agreement) {
       toast.error(
-        'Cannot mark as Picked Up — rental agreement has not been signed yet. Send the agreement link to the customer first.'
+        'Cannot mark as Picked Up — rental agreement has not been signed yet. Send the customer the agreement link, or use Sign at Counter.'
       );
       return;
     }
@@ -552,19 +554,30 @@ export default function AdminBookingDetail() {
               </p>
               <p className="text-xs text-slate-500">
                 {agreement
-                  ? `Signed by ${agreement.customer_name} on ${formatDateTime(agreement.agreed_at)}`
-                  : 'Customer must sign the agreement before vehicle pickup.'}
+                  ? `Signed by ${agreement.customer_name} on ${formatDateTime(agreement.agreed_at)}${agreement.signed_in_person_by ? ', in person at the counter' : ''}`
+                  : 'Customer must sign the agreement before vehicle pickup: send them the link, or let them sign here on your device.'}
               </p>
             </div>
           </div>
           {!agreement && (
-            <button
-              onClick={copyAgreementLink}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 transition-colors whitespace-nowrap"
-            >
-              <ClipboardCopy className="w-4 h-4" />
-              Copy Agreement Link
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={copyAgreementLink}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 transition-colors whitespace-nowrap"
+              >
+                <ClipboardCopy className="w-4 h-4" />
+                Copy Agreement Link
+              </button>
+              {booking.status !== 'RETURNED' && (
+                <Link
+                  to={`/booking/${id}/agreement`}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-colors whitespace-nowrap"
+                >
+                  <FileSignature className="w-4 h-4" />
+                  Sign at Counter
+                </Link>
+              )}
+            </div>
           )}
           {agreement && (
             <div className="flex items-center gap-3">
