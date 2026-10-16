@@ -2,9 +2,10 @@
 
 > A full-stack car rental platform for the Malaysian market. Customers browse cars, book dates,
 > pay a deposit by bank transfer with a receipt upload, sign the rental agreement on screen and
-> pay the rental before pickup. Admins verify customers and payments, run the booking from pickup
-> to return, manage deposits as customer credit, and track rental revenue and expenses, for one
-> or more rental companies (fleets).
+> pay the rental before pickup. Admins verify customers and payments, take counter and phone
+> bookings, run the booking from pickup to return (with charges for late returns or damage), manage
+> deposits as customer credit, and track rental revenue and expenses, for one or more rental
+> companies (fleets).
 
 🌐 **Live:** [rent2go.my](https://rent2go.my) · 📘 **Admin handbook:** in the app at `/admin/manual`
 
@@ -23,9 +24,11 @@
 - **Browse & book** with a date picker and a server-side availability check, up to 6 months ahead.
 - **Checkout** holds the car for 10 minutes. The deposit (30% of the rental, at least RM100) is
   paid by transfer with a receipt upload; existing credit is applied automatically.
-- **Rental agreement** signed on screen once the booking is confirmed, with Print / Save PDF.
+- **Rental agreement** signed on screen once the booking is confirmed (on the customer's phone, or
+  in person on a staff device at the counter), with Print / Save PDF.
 - **My Bookings** shows status, the deposit and payment receipts, the full payment upload, the
-  agreement and the invoice. Customers can cancel while a booking is on hold or deposit paid.
+  agreement, any charges after the rental and the invoice. Customers can cancel while a booking is
+  on hold or deposit paid.
 - **Invoice** and a printable booking receipt; the credit balance shows next to the name.
 
 ### Admin
@@ -33,14 +36,16 @@
 - **Dashboard**: customers to verify, deposits to check, rental revenue, deposits currently held.
 - **Bookings**: the full status flow, with rules enforced by the database. Admins verify deposits
   and full payments (receipt or cash), send the agreement link or take the customer's signature in
-  person (**Sign at Counter**), edit dates, reactivate expired
-  bookings, cancel or delete. Returning a car takes charges (late return, cleaning, fuel, damage)
-  off the deposit, or holds the deposit until damage is priced; anything above the deposit is
-  tracked as owed until collected. Each booking page lists every payment record and a full audit
-  log.
-- **Book for Customer** (counter and phone bookings: verified customers only, deposit from the
-  online rule, optional use of the customer's credit) and **Create Customer** (walk-ins, verified
-  when created).
+  person (**Sign at Counter**), edit dates, reactivate expired bookings, cancel or delete.
+  Returning a car takes charges (late return, cleaning, fuel, damage) off the deposit, or holds the
+  deposit until damage is priced; anything above the deposit is tracked as owed until collected.
+  Each booking page lists every payment record and a full audit log.
+- **Book for Customer** for counter and phone bookings: verified customers with a valid licence
+  only, deposit pre-filled from the online rule, optional use of the customer's credit, notes.
+  Saved in one server step that prices the booking and records the deposit.
+- **Create Customer** for walk-ins: IC, licence and address checked by staff, so the customer is
+  verified when created. They need no account to rent; if they sign up later, their record links
+  to it.
 - **Customers**: check documents, verify, reject or revoke, edit details (sensitive edits go to
   the Super Group as change requests), manage roles, add or deduct credit, see booking history.
 - **Sales**: rental revenue and charges kept separate from refundable deposits, per car, with
@@ -61,7 +66,7 @@
   customer). Charges come off that booking's deposit; the rest is owed and recorded when paid.
   The deposit can be held after the return until a repair quote arrives.
 - **48-hour release**: a deposit not verified within 48 hours releases the booking (EXPIRED), frees
-  the car and returns any credit the customer applied.
+  the car and returns any credit the customer applied. Counter bookings are not released.
 - **Audit trail**: every status and payment change is written to the audit log by the database,
   with who made it.
 - **Login redirect** keeps the chosen dates and destination; pages scroll to the top on navigation.
@@ -95,9 +100,13 @@ src/
 │   ├── ViewAsSelector.jsx, ViewAsBanner.jsx   # Super admin "View As"
 │   ├── SignatureCanvas.jsx    # Rental agreement signature pad
 │   ├── SignedFile.jsx         # Links/images for private files (signed URLs)
+│   ├── ReturnCharges.jsx      # Return car dialog and the Return & Charges card
+│   ├── ChargesEditor.jsx      # Rows of charges (type, amount, note)
 │   ├── GoogleButton.jsx, Navbar.jsx, Footer.jsx, WhatsAppButton.jsx
 │   ├── BookingForm.jsx, DateRangePicker.jsx, PriceCalculator.jsx, CarCard.jsx
-│   └── BookingStatusBadge.jsx, Toast.jsx, LoadingSpinner.jsx, EmptyState.jsx, ErrorBoundary.jsx
+│   ├── BookingStatusBadge.jsx, Toast.jsx, LoadingSpinner.jsx, EmptyState.jsx, ErrorBoundary.jsx
+│   ├── ScrollToTop.jsx        # Scroll to the top on navigation
+│   └── ui/button.tsx          # Shared button
 ├── hooks/
 │   ├── useAuth.jsx            # Session, profile, roles
 │   ├── useFleet.jsx           # Fleets the admin belongs to, active fleet
@@ -108,15 +117,17 @@ src/
 ├── lib/
 │   ├── supabase.js            # Supabase client
 │   ├── storage.js             # Private bucket + signed URLs
-│   └── uploadHelper.js        # Mobile-safe uploads with progress and logging
+│   ├── uploadHelper.js        # Mobile-safe uploads with progress and logging
+│   └── utils.js               # cn() class-name helper
 ├── pages/
 │   ├── Home, CarDetail, Checkout, BookingConfirmation, MyBookings
-│   ├── RentalAgreement        # Sign / view / print the agreement
+│   ├── RentalAgreement        # Sign (customer, or staff in person) / view / print the agreement
 │   ├── Invoice                # Printable invoice
 │   ├── Login, Signup, ResetPassword, CompleteProfile, VerifyAccount, Profile
 │   ├── DocumentUploadPage, Privacy, NotFound
 │   └── admin/
-│       ├── Dashboard, Bookings, BookingDetail, AdminBookForCustomer
+│       ├── Dashboard, Bookings, BookingDetail
+│       ├── AdminBookForCustomer   # Book for Customer (counter and phone bookings)
 │       ├── Customers, CreateCustomer, Cars, Sales, Expenses
 │       ├── FleetSettings, GroupMembers, GroupManagement, ChangeRequests
 │       ├── UploadLogs
@@ -124,6 +135,7 @@ src/
 └── utils/
     ├── pricing.js             # Rental total and deposit (30%, min RM100)
     ├── revenue.js             # Rental revenue vs deposits for Dashboard and Sales
+    ├── charges.js             # Charge types, labels and totals
     ├── dates.js, format.js, phoneUtils.js, search.js, returnTo.js
     └── dbErrors.js            # Friendly messages for database errors
 
@@ -131,7 +143,8 @@ supabase/
 ├── migrations/            # Timestamped SQL, applied in order (see Deploying)
 └── legacy/                # Historical SQL; does not match the live database, never run
 scripts/
-└── check_security.cjs     # What an anonymous visitor can read or change
+├── check_security.cjs     # What an anonymous visitor can read or change
+└── run_migration.cjs      # Despite the name: prints the latest upload logs (needs the service key)
 ```
 
 ---
@@ -140,25 +153,25 @@ scripts/
 
 ### Tables
 
-| Table                                    | Purpose                                                              |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| `bubatrent_booking_profiles`             | Users: role, verification, IC/licence, address, credit balance       |
-| `bubatrent_booking_cars`                 | Cars per fleet: specs, daily price, availability                     |
-| `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state      |
-| `bubatrent_booking_payments`             | Payment records (deposit / full payment / charge, method, reference) |
-| `bubatrent_booking_charges`              | Charges after a rental (late return, cleaning, fuel, damage, other)  |
-| `bubatrent_booking_rental_agreements`    | Signed agreements, terms copied from the booking                     |
-| `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only            |
-| `bubatrent_booking_audit_logs`           | Who did what; written by triggers and functions; undeletable         |
-| `bubatrent_booking_fleet_groups`         | Fleets (rental companies), status, support contacts                  |
-| `bubatrent_booking_fleet_memberships`    | Admin membership and fleet role (Fleet Admin / Staff)                |
-| `bubatrent_booking_change_requests`      | Sensitive customer edits awaiting Super Group approval               |
-| `bubatrent_booking_link_attempts`        | Walk-in account linking attempts (rate limit)                        |
-| `bubatrent_booking_upload_logs`          | Upload diagnostics from customer and admin devices                   |
-| `bubatrent_booking_expense_claims`       | Expense claims (per car or general)                                  |
-| `bubatrent_booking_expense_images`       | Invoice images per claim                                             |
-| `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                          |
-| `bubatrent_booking_verification_updates` | Pending document re-submissions                                      |
+| Table                                    | Purpose                                                               |
+| ---------------------------------------- | --------------------------------------------------------------------- |
+| `bubatrent_booking_profiles`             | Users: role, verification, IC/licence, address, credit balance        |
+| `bubatrent_booking_cars`                 | Cars per fleet: specs, daily price, availability                      |
+| `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state       |
+| `bubatrent_booking_payments`             | Payment records (deposit / full payment / charge, method, reference)  |
+| `bubatrent_booking_charges`              | Charges after a rental (late return, cleaning, fuel, damage, other)   |
+| `bubatrent_booking_rental_agreements`    | Signed agreements (terms from the booking; staff if signed in person) |
+| `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only             |
+| `bubatrent_booking_audit_logs`           | Who did what; written by triggers and functions; undeletable          |
+| `bubatrent_booking_fleet_groups`         | Fleets (rental companies), status, support contacts                   |
+| `bubatrent_booking_fleet_memberships`    | Admin membership and fleet role (Fleet Admin / Staff)                 |
+| `bubatrent_booking_change_requests`      | Sensitive customer edits awaiting Super Group approval                |
+| `bubatrent_booking_link_attempts`        | Walk-in account linking attempts (rate limit)                         |
+| `bubatrent_booking_upload_logs`          | Upload diagnostics from customer and admin devices                    |
+| `bubatrent_booking_expense_claims`       | Expense claims (per car or general)                                   |
+| `bubatrent_booking_expense_images`       | Invoice images per claim                                              |
+| `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                           |
+| `bubatrent_booking_verification_updates` | Pending document re-submissions                                       |
 
 Files (IC, licence, receipts) live in the private `customer-documents` storage bucket.
 
@@ -171,7 +184,8 @@ Anything involving money or status goes through the database, not the browser:
 | `bubatrent_create_hold_booking`                         | Checks the customer and dates, prices the booking, holds the car       |
 | `bubatrent_submit_booking_deposit`                      | Records the deposit and receipt, applies credit, starts the 48 h clock |
 | `bubatrent_admin_verify_deposit`                        | Marks the deposit verified (records a cash payment if none)            |
-| `bubatrent_sign_rental_agreement`                       | Signs once, copying terms from the booking                             |
+| `bubatrent_sign_rental_agreement`                       | Signs once, terms from the booking; by the customer or staff in person |
+| `bubatrent_admin_create_booking`                        | Book for Customer: checks, prices, applies credit, records the deposit |
 | `bubatrent_admin_adjust_credit`                         | Add / deduct credit with a ledger entry, never below zero              |
 | `bubatrent_admin_return_booking`                        | Mark returned with charges off the deposit, or hold the deposit        |
 | `bubatrent_admin_settle_deposit`                        | Release a held deposit, less charges                                   |
@@ -181,7 +195,7 @@ Anything involving money or status goes through the database, not the browser:
 | `bubatrent_release_unverified_deposits`                 | The 48-hour release (pg_cron every 10 min, and on site activity)       |
 | `bubatrent_check_availability`                          | Public availability check                                              |
 | `bubatrent_save_mobile`, `bubatrent_link_walk_in_by_ic` | Mobile number and walk-in account linking                              |
-| `admin_create_walk_in_customer`                         | Creates a counter customer without overwriting existing accounts       |
+| `admin_create_walk_in_customer`                         | Creates a verified counter customer; never overwrites an account       |
 | `bubatrent_protect_*` triggers                          | Stop customers changing protected fields (role, credit, status…)       |
 | `bubatrent_track_booking` trigger                       | Status rules, `updated_at`, deposit to credit on return/cancel         |
 | `bubatrent_audit_booking` trigger                       | Audit entry for every status and payment change                        |
@@ -225,6 +239,12 @@ Enforced by the database for every website request:
 8. Transfer refunds of the remaining credit are recorded with Deduct Credit.
 ```
 
+**Counter and phone bookings** start at step 4. Staff choose the customer, car and dates in Book for
+Customer; the server prices it the same way. **Confirmed** means staff already have the deposit;
+**Deposit Paid** leaves it to Verify (receipt) or Mark Deposit Received (cash). Credit can pay part
+or all of the deposit. The customer signs on the staff device (**Sign at Counter**), and staff
+record the full payment as a receipt or cash.
+
 Rental revenue on the Dashboard and Sales pages counts verified rental payments; charges
 collected are shown next to it. Deposits are shown separately because they are returned.
 
@@ -262,8 +282,10 @@ service-role key, database password or any admin login in a script or file in th
 npm run dev              # Dev server (http://localhost:5173)
 npm run build            # Production build
 npm run preview          # Preview the production build
-npm run lint             # ESLint + Prettier
-npm run check:security   # Exits 1 if anonymous visitors can reach protected data
+npm run lint             # ESLint, including Prettier formatting
+npm run lint:fix         # Fix what ESLint can
+npm run format           # Prettier on the whole repo
+npm run check:security   # Exits 1 if anonymous visitors can reach protected data (needs .env.local)
 ```
 
 ### Google Sign-in
@@ -304,6 +326,10 @@ How accounts link to customers registered at the counter:
 - **Rehearse first**: run the migration inside `begin; … rollback;` against the live database to
   confirm it applies cleanly, then run it for real.
 - **Afterwards**: run `npm run check:security`.
+- **Writing to `auth.users` from SQL** (as `admin_create_walk_in_customer` does): set
+  `confirmation_token`, `recovery_token`, `email_change_token_new` and `email_change` to `''`.
+  Supabase Auth can't load a row with NULLs there ("Database error loading user"), which breaks
+  password reset for that login.
 - The direct database host (`db.<ref>.supabase.co`) is IPv6-only. From an IPv4-only network, use
   the **Session pooler** connection string from Supabase → Connect.
 
@@ -344,8 +370,11 @@ When testing on Android/iOS, verify:
   admin uploaded for them; admins can open all.
 - **Fleet isolation**: admins only reach the cars, bookings, payments, credit and expenses of
   fleets they belong to (super admins see all); customer profiles are a shared pool.
-- **Walk-in customers** get a random password and sign in with "Forgot password" or by linking;
-  the creating function never overwrites an existing account.
+- **Walk-in customers** get a random password. They sign in with "Forgot password" (if staff
+  entered their email) or by linking a new account with mobile number and IC; the creating
+  function never overwrites an existing account.
+- **Signing in person** is limited to admins of the booking's fleet; the agreement records which
+  staff member took it, and the audit log has every signing.
 - **Security headers** (`vercel.json`): no framing, `nosniff`, strict referrer and permissions
   policies.
 - **Route guards**: signed-in pages redirect to login with `returnTo`; admin pages check the role.
