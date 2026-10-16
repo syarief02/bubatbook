@@ -606,6 +606,11 @@ export default function UserManual() {
             <li>
               Paid in cash at the counter? Press <B>✓ Mark Full Payment Received (cash)</B>.
             </li>
+            <li>
+              Did the customer pay a workshop for a repair that is ours to pay, and take it off the
+              rental? Record that first (7.13). <B>Full Payment</B> then shows only what is left to
+              pay, and verifying it records that amount.
+            </li>
           </Bullets>
 
           <Sub>7.5 Pickup</Sub>
@@ -743,6 +748,11 @@ export default function UserManual() {
               <B>Identity Documents</B>: the customer&apos;s IC and licence.
             </li>
             <li>
+              <B>Paid to Workshop</B> (from CONFIRMED): repairs the customer paid the workshop for
+              us, with the bill, where the money went, and <B>+ Customer paid a workshop for us</B>{' '}
+              (7.13).
+            </li>
+            <li>
               <B>Return &amp; Charges</B> (after the return): a held deposit with{' '}
               <B>Settle Deposit</B>, each charge, what the customer owes with <B>Record Payment</B>,
               and <B>+ Add a charge found later</B>.
@@ -765,6 +775,62 @@ export default function UserManual() {
             booking ID. Quick buttons: <B>Confirm</B> (once the deposit is verified),{' '}
             <B>Check deposit</B> and <B>Cancel</B>. Click the arrow to open a booking.
           </p>
+
+          <Sub>7.13 Customer paid a workshop for us</Sub>
+          <p>
+            Sometimes a car needs a repair that is ours to pay (a breakdown, a service, wear and
+            tear), and the customer pays the workshop and takes it off what they owe us. Record it
+            on the booking, so the rental still counts in full, the repair shows as an expense of
+            the car, and the customer&apos;s invoice adds up.
+          </p>
+          <Steps>
+            <li>
+              Get the workshop&apos;s bill and receipt (showing the car&apos;s plate and that it is
+              paid), and the customer&apos;s agreement to the amount in writing (WhatsApp is fine).
+              Check with the workshop that nothing is still owed.
+            </li>
+            <li>
+              Open the booking. Under <B>Paid to Workshop</B> press{' '}
+              <B>+ Customer paid a workshop for us</B>.
+            </li>
+            <li>
+              Enter the <B>Workshop</B>, <B>What was repaired</B>, the <B>Amount paid</B> and the{' '}
+              <B>Date the customer paid</B>, and attach the bill and receipt. The summary shows
+              where the money goes. Press <B>Record Workshop Payment</B>.
+            </li>
+          </Steps>
+          <Bullets>
+            <li>
+              The amount comes off what the customer owes us on this booking, in order: the rental
+              still to pay, then charges owed, then the rest goes to their credit balance (refund
+              it, or leave it for their next booking).
+            </li>
+            <li>
+              Example: rental RM1,000, workshop RM300. <B>Full Payment</B> shows RM700; verify that
+              when they pay. Sales shows RM1,000 rental and a RM300 repair expense for the car.
+            </li>
+            <li>If it covers the whole rental, the full payment is verified automatically.</li>
+            <li>
+              Record it before verifying the full payment. If the customer already uploaded a
+              receipt for the full rental, verify that first; the workshop amount then goes to their
+              credit.
+            </li>
+            <li>
+              The repair is added to <B>Expenses</B> for the car as paid by the customer, with the
+              files. It can&apos;t be deleted there.
+            </li>
+            <li>
+              <strong>Entered by mistake?</strong> Press <B>Remove</B> next to it and give a reason.
+              Everything it did is undone, and its expense is deleted. It can&apos;t be removed once
+              the rest of the rental was recorded as paid, or once the customer has used the credit
+              it gave them; correct the balance with <B>Add Credit</B> or <B>Deduct Credit</B>{' '}
+              instead.
+            </li>
+          </Bullets>
+          <Note tone="warn">
+            If the customer caused the damage, the repair is their cost. Don&apos;t record it here:
+            they still pay the full rental.
+          </Note>
         </Section>
 
         {/* 8. Book for Customer */}
@@ -924,9 +990,10 @@ export default function UserManual() {
             <li>
               <B>Invoice</B>: available once the deposit or full payment is verified, from{' '}
               <B>View Invoice</B> on the booking page or <B>Invoice</B> in My Bookings. It lists the
-              rental and the refundable deposit, the amount paid, and any charges after the rental
-              (what came off the deposit and what is still owed). The fleet name and phone come from
-              Fleet Settings. <B>Print / Save PDF</B> makes a PDF.
+              rental and the refundable deposit, the amount paid, anything the customer paid the
+              workshop for us (and what it was taken off), and any charges after the rental (what
+              came off the deposit and what is still owed). The fleet name and phone come from Fleet
+              Settings. <B>Print / Save PDF</B> makes a PDF.
             </li>
             <li>
               Customers can also print a simple booking receipt from <B>View Details</B> →{' '}
@@ -1008,6 +1075,11 @@ export default function UserManual() {
             </li>
           </Steps>
           <p>
+            A repair the customer paid the workshop for (7.13) appears here by itself, already paid,
+            marked <B>Paid by the customer to the workshop</B>, with a link to the booking. Remove
+            it from the booking, not here.
+          </p>
+          <p>
             Filter by car and date. The total at the top follows the filters: what was paid, and
             what is still waiting to be paid. Submitting, paying, changing and deleting a claim are
             all recorded in the audit log, with who did it.
@@ -1085,11 +1157,11 @@ export default function UserManual() {
             verified or rejected; confirmed; rental agreement signed (and whether in person at the
             counter); full payment uploaded or verified; picked up; returned; cancelled; reactivated
             (with the reason); dates or price changed; deposit added to credit, put on hold or
-            settled; charges added or removed; payments received for charges; deleted; released
-            after 48 hours; and opening the customer&apos;s documents. Steps by the system itself
-            show as <B>System</B>. Expense claims are recorded the same way (submitted, paid,
-            changed, deleted, with the amount and who did it), though there is no page that lists
-            them yet; ask the developer if you need that history.
+            settled; charges added or removed; payments received for charges; workshop payments
+            recorded or removed; deleted; released after 48 hours; and opening the customer&apos;s
+            documents. Steps by the system itself show as <B>System</B>. Expense claims are recorded
+            the same way (submitted, paid, changed, deleted, with the amount and who did it), though
+            there is no page that lists them yet; ask the developer if you need that history.
           </p>
           <p>
             <B>Upload Logs</B> lists file uploads from customers&apos; and admins&apos; devices (IC,

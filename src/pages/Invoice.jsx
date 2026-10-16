@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
 import { chargeLabel } from '../utils/charges';
+import { workshopPayments } from '../utils/workshop';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
 import { Printer, ArrowLeft } from 'lucide-react';
@@ -32,7 +33,7 @@ export default function Invoice() {
         let query = supabase
           .from('bubatrent_booking_bookings')
           .select(
-            '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*)'
+            '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*), bubatrent_booking_workshop_payments(*)'
           )
           .eq('id', id);
         if (!isAdmin && user?.id) query = query.eq('user_id', user.id);
@@ -86,6 +87,9 @@ export default function Invoice() {
   const chargesPaid = completedPayments
     .filter((p) => p.payment_type === 'charge')
     .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  // Repairs the customer paid the workshop for us, taken off what they owe
+  const workshop = workshopPayments(booking);
+  const workshopTotal = (key) => workshop.reduce((sum, w) => sum + Number(w[key] || 0), 0);
   const invoiceNumber = `INV-${booking.id.slice(0, 8).toUpperCase()}`;
   const companyName = fleet?.name || 'Bubat Resources';
   const hasVerifiedPayment =
@@ -252,8 +256,66 @@ export default function Invoice() {
                   <span className="text-green-600 font-medium">{formatMYR(totalPaid)}</span>
                 </div>
               )}
+              {workshopTotal('to_rent') > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-green-600">Dibayar kepada bengkel / Paid to workshop</span>
+                  <span className="text-green-600 font-medium">
+                    {formatMYR(workshopTotal('to_rent'))}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Repairs the customer paid the workshop for, on our behalf */}
+          {workshop.length > 0 && (
+            <div className="mb-8">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Dibayar kepada Bengkel bagi Pihak Kami / Paid to the Workshop on Our Behalf
+              </p>
+              <table className="w-full text-sm mb-3">
+                <tbody>
+                  {workshop.map((w) => (
+                    <tr key={w.id} className="border-b border-gray-100">
+                      <td className="py-2">
+                        <p className="font-medium text-gray-900">{w.workshop}</p>
+                        <p className="text-xs text-gray-400">
+                          {w.description} · {formatDate(w.paid_on)}
+                        </p>
+                      </td>
+                      <td className="py-2 text-right font-medium text-gray-900">
+                        {formatMYR(w.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-end">
+                <div className="w-full sm:w-72 space-y-1 text-sm">
+                  {workshopTotal('to_rent') > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Ditolak daripada sewa / Off the rental</span>
+                      <span className="text-gray-900">{formatMYR(workshopTotal('to_rent'))}</span>
+                    </div>
+                  )}
+                  {workshopTotal('to_charges') > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Ditolak daripada caj / Off charges</span>
+                      <span className="text-gray-900">
+                        {formatMYR(workshopTotal('to_charges'))}
+                      </span>
+                    </div>
+                  )}
+                  {workshopTotal('to_credit') > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Ke baki kredit / To your credit</span>
+                      <span className="text-gray-900">{formatMYR(workshopTotal('to_credit'))}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Charges after the rental (late return, cleaning, fuel, damage) */}
           {charges.length > 0 && (
@@ -296,6 +358,16 @@ export default function Invoice() {
                     <div className="flex justify-between">
                       <span className="text-green-600">Dibayar / Paid for charges</span>
                       <span className="text-green-600">{formatMYR(chargesPaid)}</span>
+                    </div>
+                  )}
+                  {workshopTotal('to_charges') > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-green-600">
+                        Dibayar kepada bengkel / Paid to workshop
+                      </span>
+                      <span className="text-green-600">
+                        {formatMYR(workshopTotal('to_charges'))}
+                      </span>
                     </div>
                   )}
                   {Number(booking.amount_owed) > 0 && (

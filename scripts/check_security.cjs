@@ -36,6 +36,7 @@ function report(ok, name, detail) {
     'bubatrent_booking_fleet_memberships',
     'bubatrent_booking_link_attempts',
     'bubatrent_booking_charges',
+    'bubatrent_booking_workshop_payments',
   ];
   for (const table of privateTables) {
     const { count, error } = await anon.from(table).select('*', { count: 'exact', head: true });
@@ -90,6 +91,17 @@ function report(ok, name, detail) {
     p_signature_data: 'data:image/png;base64,AAAA',
   });
   report(!!signErr, 'anon cannot sign agreements', signErr ? 'denied' : 'allowed');
+
+  const { error: workshopErr } = await anon.rpc('bubatrent_admin_record_workshop_payment', {
+    p_booking_id: '00000000-0000-0000-0000-000000000000',
+    p_claim_id: '00000000-0000-0000-0000-000000000000',
+    p_workshop: 'x',
+    p_description: 'x',
+    p_paid_on: '2000-01-01',
+    p_amount: 1,
+    p_file_paths: [],
+  });
+  report(!!workshopErr, 'anon cannot record workshop payments', workshopErr ? 'denied' : 'allowed');
 
   const { data: available, error: availErr } = await anon.rpc('bubatrent_check_availability', {
     p_car_id: '00000000-0000-0000-0000-000000000000',

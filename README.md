@@ -39,7 +39,9 @@
   person (**Sign at Counter**), edit dates, reactivate expired bookings, cancel or delete.
   Returning a car takes charges (late return, cleaning, fuel, damage) off the deposit, or holds the
   deposit until damage is priced; anything above the deposit is tracked as owed until collected.
-  Each booking page lists every payment record and a full audit log.
+  When a customer pays a workshop for a repair that is ours to pay, staff record it on the
+  booking (**Paid to Workshop**) and it comes off what the customer owes. Each booking page lists
+  every payment record and a full audit log.
 - **Book for Customer** for counter and phone bookings: verified customers with a valid licence
   only, deposit pre-filled from the online rule, optional use of the customer's credit, notes.
   Saved in one server step that prices the booking and records the deposit.
@@ -67,6 +69,10 @@
 - **Charges after the rental**: staff enter each charge (amount typed by staff, note shown to the
   customer). Charges come off that booking's deposit; the rest is owed and recorded when paid.
   The deposit can be held after the return until a repair quote arrives.
+- **Paid to the workshop (contra)**: when the customer pays the workshop for a repair that is
+  ours to pay, it counts as their payment to us: first off the rental still to pay, then charges
+  owed, then the rest to their credit. The rental stays income in full, and the repair becomes a
+  paid expense of the car (marked as paid by the customer). The invoice shows it.
 - **48-hour release**: a deposit not verified within 48 hours releases the booking (EXPIRED), frees
   the car and returns any credit the customer applied. Counter bookings are not released.
 - **Audit trail**: every status and payment change is written to the audit log by the database,
@@ -103,6 +109,7 @@ src/
 │   ├── SignatureCanvas.jsx    # Rental agreement signature pad
 │   ├── SignedFile.jsx         # Links/images for private files (signed URLs)
 │   ├── ReturnCharges.jsx      # Return car dialog and the Return & Charges card
+│   ├── WorkshopPayments.jsx   # Paid to Workshop card: repairs the customer paid for us
 │   ├── ChargesEditor.jsx      # Rows of charges (type, amount, note)
 │   ├── GoogleButton.jsx, Navbar.jsx, Footer.jsx, WhatsAppButton.jsx
 │   ├── BookingForm.jsx, DateRangePicker.jsx, PriceCalculator.jsx, CarCard.jsx
@@ -138,6 +145,7 @@ src/
     ├── pricing.js             # Rental total and deposit (30%, min RM100)
     ├── revenue.js             # Rental revenue vs deposits for Dashboard and Sales
     ├── charges.js             # Charge types, labels and totals
+    ├── workshop.js            # Workshop payments: rental still to pay, where each one went
     ├── dates.js, format.js, phoneUtils.js, search.js, returnTo.js
     └── dbErrors.js            # Friendly messages for database errors
 
@@ -162,6 +170,7 @@ scripts/
 | `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state       |
 | `bubatrent_booking_payments`             | Payment records (deposit / full payment / charge, method, reference)  |
 | `bubatrent_booking_charges`              | Charges after a rental (late return, cleaning, fuel, damage, other)   |
+| `bubatrent_booking_workshop_payments`    | Repairs the customer paid the workshop for us, and where it went      |
 | `bubatrent_booking_rental_agreements`    | Signed agreements (terms from the booking; staff if signed in person) |
 | `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only             |
 | `bubatrent_booking_audit_logs`           | Who did what; written by triggers and functions; undeletable          |
@@ -194,6 +203,9 @@ Anything involving money or status goes through the database, not the browser:
 | `bubatrent_admin_add_booking_charges`                   | Charges found after settling (owed)                                    |
 | `bubatrent_admin_remove_booking_charge`                 | Undo a mistaken charge before any charge payment                       |
 | `bubatrent_admin_record_charge_payment`                 | Record money collected for what the customer owes                      |
+| `bubatrent_admin_verify_full_payment`                   | Verify the rental payment; records what's left after workshop payments |
+| `bubatrent_admin_record_workshop_payment`               | Customer paid a workshop for us: off what they owe; repair as expense  |
+| `bubatrent_admin_remove_workshop_payment`               | Undo a mistaken workshop payment and its expense                       |
 | `bubatrent_release_unverified_deposits`                 | The 48-hour release (pg_cron every 10 min, and on site activity)       |
 | `bubatrent_check_availability`                          | Public availability check                                              |
 | `bubatrent_save_mobile`, `bubatrent_link_walk_in_by_ic` | Mobile number and walk-in account linking                              |

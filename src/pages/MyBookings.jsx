@@ -13,6 +13,13 @@ import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
 import { chargeLabel } from '../utils/charges';
 import {
+  rentDue,
+  rentalAmount,
+  rentPaidToWorkshop,
+  workshopPayments,
+  workshopSplit,
+} from '../utils/workshop';
+import {
   CalendarDays,
   ExternalLink,
   Car,
@@ -107,7 +114,10 @@ export default function MyBookings() {
             const car = booking.bubatrent_booking_cars;
             const showFullPaymentUpload =
               ['CONFIRMED', 'PICKUP'].includes(booking.status) &&
-              !booking.full_payment_receipt_path;
+              !booking.full_payment_receipt_path &&
+              booking.full_payment_status !== 'verified';
+            const workshop = workshopPayments(booking);
+            const paidToWorkshop = rentPaidToWorkshop(booking);
             const fullPaymentPending = booking.full_payment_status === 'uploaded';
 
             return (
@@ -226,12 +236,32 @@ export default function MyBookings() {
                         )}
                       </div>
                     )}
+                    {workshop.length > 0 && (
+                      <div className="mb-3 rounded-xl bg-white/[0.03] p-3 text-xs space-y-1">
+                        <p className="text-slate-400 font-medium">Paid to the workshop for us</p>
+                        {workshop.map((w) => (
+                          <div key={w.id}>
+                            <div className="flex justify-between gap-3">
+                              <span className="text-slate-300">
+                                {w.workshop} — {w.description}
+                              </span>
+                              <span className="text-white shrink-0">{formatMYR(w.amount)}</span>
+                            </div>
+                            <p className="text-slate-500">
+                              {workshopSplit(w, { customer: 'your' })}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Full payment upload */}
                     {showFullPaymentUpload && (
                       <div className="bg-violet-500/5 border border-violet-500/10 rounded-xl p-3 mb-3">
                         <p className="text-xs text-violet-300 mb-2">
-                          Upload your full rental payment receipt ({formatMYR(booking.total_price)})
+                          Upload your full rental payment receipt ({formatMYR(rentDue(booking))})
+                          {paidToWorkshop > 0 &&
+                            ` — the ${formatMYR(rentalAmount(booking))} rental less ${formatMYR(paidToWorkshop)} you paid the workshop for us`}
                         </p>
                         <div className="flex items-center gap-2">
                           <label className="relative flex items-center gap-2 text-xs text-slate-400 cursor-pointer bg-white/5 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors overflow-hidden">

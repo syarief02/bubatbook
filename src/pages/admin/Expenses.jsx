@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useFleet } from '../../hooks/useFleet';
@@ -26,6 +27,12 @@ import {
 import { SignedLink } from '../../components/SignedFile';
 
 const BUCKET = 'customer-documents';
+
+// A repair the customer paid the workshop for directly: recorded and removed
+// on their booking (Paid to Workshop), not here
+function paidByCustomer(claim) {
+  return claim.bubatrent_booking_workshop_payments?.[0] || null;
+}
 
 export default function AdminExpenses() {
   const { activeFleetId } = useFleet();
@@ -63,7 +70,9 @@ export default function AdminExpenses() {
     setLoading(true);
     let claimsQ = supabase
       .from('bubatrent_booking_expense_claims')
-      .select('*, bubatrent_booking_cars(name), bubatrent_booking_expense_images(*)')
+      .select(
+        '*, bubatrent_booking_cars(name), bubatrent_booking_expense_images(*), bubatrent_booking_workshop_payments(booking_id)'
+      )
       .order('created_at', { ascending: false });
     let carsQ = supabase.from('bubatrent_booking_cars').select('id, name');
     if (activeFleetId) {
@@ -455,6 +464,11 @@ export default function AdminExpenses() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white truncate">{claim.description}</p>
+                  {paidByCustomer(claim) && (
+                    <p className="text-[11px] text-cyan-400">
+                      Paid by the customer to the workshop
+                    </p>
+                  )}
                   <p className="text-xs text-slate-500">
                     {claim.bubatrent_booking_cars?.name || 'Others (General)'} ·{' '}
                     {formatDate(claim.expense_date)}
@@ -536,7 +550,32 @@ export default function AdminExpenses() {
                     </div>
                   )}
 
-                  {claim.status === 'completed' && (
+                  {claim.status === 'completed' && paidByCustomer(claim) && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="text-xs text-green-400">
+                        Paid by the customer directly to the workshop on{' '}
+                        {formatDate(claim.expense_date)}, and taken off what they owe us.
+                      </p>
+                      {claim.payment_receipt_path && (
+                        <SignedLink
+                          path={claim.payment_receipt_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300"
+                        >
+                          <FileImage className="w-3.5 h-3.5" /> Proof of Payment
+                        </SignedLink>
+                      )}
+                      <Link
+                        to={`/admin/bookings/${paidByCustomer(claim).booking_id}`}
+                        className="text-xs text-violet-400 hover:text-violet-300"
+                      >
+                        Open booking (remove it there) →
+                      </Link>
+                    </div>
+                  )}
+
+                  {claim.status === 'completed' && !paidByCustomer(claim) && (
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-3">
                         {claim.completed_at && (

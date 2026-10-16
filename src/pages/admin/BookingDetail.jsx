@@ -37,6 +37,14 @@ import {
 
 import { SignedLink, SignedImage } from '../../components/SignedFile';
 import { ChargesCard, ReturnCarDialog } from '../../components/ReturnCharges';
+import { WorkshopPaymentsCard } from '../../components/WorkshopPayments';
+import {
+  WORKSHOP_STATUSES,
+  rentDue,
+  rentalAmount,
+  rentPaidToWorkshop,
+  workshopPayments,
+} from '../../utils/workshop';
 // Status flow definition
 const STATUS_FLOW = {
   HOLD: ['DEPOSIT_PAID', 'CANCELLED'],
@@ -49,13 +57,16 @@ const STATUS_FLOW = {
 };
 
 const BOOKING_SELECT =
-  '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*)';
+  '*, bubatrent_booking_cars(*), bubatrent_booking_payments(*), bubatrent_booking_charges(*), ' +
+  'bubatrent_booking_workshop_payments(*, bubatrent_booking_expense_claims(bubatrent_booking_expense_images(file_path)))';
 
 // Audit log entries. Booking changes are logged by the database.
 const AUDIT_LABELS = {
   CHARGE_ADDED: 'Charge added',
   CHARGE_REMOVED: 'Charge removed',
   CHARGE_PAYMENT: 'Payment received for charges',
+  WORKSHOP_PAYMENT: 'Customer paid the workshop for us',
+  WORKSHOP_PAYMENT_REMOVED: 'Workshop payment removed',
   HOLD_DEPOSIT: 'Deposit put on hold',
   RELEASE_DEPOSIT: 'Held deposit settled',
   DELETE_BOOKING: 'Booking deleted',
@@ -66,6 +77,7 @@ const AUDIT_LABELS = {
   CONFIRM_BOOKING: 'Booking confirmed',
   UPLOAD_FULL_PAYMENT: 'Full payment receipt uploaded',
   VERIFY_FULL_PAYMENT: 'Full payment verified',
+  CHANGE_FULL_PAYMENT_STATUS: 'Full payment to pay again',
   MARK_PICKED_UP: 'Car picked up',
   MARK_RETURNED: 'Car returned',
   CANCEL_BOOKING: 'Booking cancelled',
@@ -94,6 +106,9 @@ function auditDetail({ action, details = {} }) {
   if (action === 'CHARGE_ADDED')
     return `${d.label}${d.description ? ` (${d.description})` : ''} ${formatMYR(d.amount)}`;
   if (action === 'CHARGE_REMOVED') return `${formatMYR(d.amount)} — ${d.reason}`;
+  if (action === 'WORKSHOP_PAYMENT') return `${d.workshop} ${formatMYR(d.amount)}`;
+  if (action === 'WORKSHOP_PAYMENT_REMOVED')
+    return `${d.workshop} ${formatMYR(d.amount)} — ${d.reason}`;
   if (action === 'SIGN_AGREEMENT') return d.in_person ? 'in person at the counter' : null;
   const amount = d.amount ?? d.credit_returned;
   return Number(amount) > 0 ? formatMYR(amount) : null;
@@ -239,7 +254,7 @@ export default function AdminBookingDetail() {
     // Only the rental payment counts; the security deposit is not rent.
     if (newStatus === 'PICKUP' && booking.full_payment_status !== 'verified') {
       toast.error(
-        `Cannot mark as Picked Up — the full rental payment (${formatMYR(booking.full_payment_amount || booking.total_price)}) has not been verified yet.`
+        `Cannot mark as Picked Up — the full rental payment (${formatMYR(rentDue(booking))}) has not been verified yet.`
       );
       return;
     }
@@ -331,43 +346,20 @@ export default function AdminBookingDetail() {
 
   async function handleVerifyFullPayment() {
     try {
-      const { error } = await supabase
-        .from('bubatrent_booking_bookings')
-        .update({ full_payment_status: 'verified' })
-        .eq('id', id);
+      // One server step: marks it verified and records what was left to pay
+      // (the rental less anything the customer paid the workshop for us)
+      const { data: result, error } = await supabase.rpc('bubatrent_admin_verify_full_payment', {
+        p_booking_id: id,
+      });
       if (error) throw error;
-
-      // Update or create the full payment record as completed
-      const { data: existing, error: findErr } = await supabase
-        .from('bubatrent_booking_payments')
-        .select('id')
-        .eq('booking_id', id)
-        .eq('payment_type', 'full_payment')
-        .maybeSingle();
-      if (findErr) throw findErr;
-
-      const { error: payErr } = existing
-        ? await supabase
-            .from('bubatrent_booking_payments')
-            .update({ status: 'completed' })
-            .eq('id', existing.id)
-        : await supabase.from('bubatrent_booking_payments').insert({
-            booking_id: id,
-            amount: booking.full_payment_amount || booking.total_price,
-            // No receipt means the rent was paid in cash at the counter
-            payment_method: booking.full_payment_receipt_path ? 'bank_transfer' : 'cash',
-            receipt_path: booking.full_payment_receipt_path || null,
-            status: 'completed',
-            payment_type: 'full_payment',
-            reference_number: `FP-${Date.now().toString(36).toUpperCase()}`,
-            fleet_group_id: booking.fleet_group_id || null,
-          });
-      if (payErr) throw payErr;
-
+      if (result?.status === 'already_verified') {
+        toast.info('This full payment was already verified.');
+        return;
+      }
       await reloadBooking();
       toast.success('Full payment verified!');
     } catch (err) {
-      toast.error(err.message);
+      toast.error(friendlyDbError(err));
     }
   }
 
@@ -463,6 +455,7 @@ export default function AdminBookingDetail() {
     String(a.created_at).localeCompare(String(b.created_at))
   );
   const nextStatuses = STATUS_FLOW[booking.status] || [];
+  const paidToWorkshop = rentPaidToWorkshop(booking);
   // No receipt to check (a counter booking, or a hold an admin marked as
   // deposit paid): the admin records the cash deposit
   const depositAwaitingCash =
@@ -923,7 +916,7 @@ export default function AdminBookingDetail() {
               <div className="bg-white/[0.02] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm text-white font-medium">
-                    Full Payment ({formatMYR(booking.full_payment_amount || booking.total_price)})
+                    Full Payment ({formatMYR(rentDue(booking))})
                   </p>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${
@@ -937,6 +930,12 @@ export default function AdminBookingDetail() {
                     {booking.full_payment_status || 'pending'}
                   </span>
                 </div>
+                {paidToWorkshop > 0 && (
+                  <p className="text-xs text-slate-400 mb-2">
+                    Rental {formatMYR(rentalAmount(booking))} less {formatMYR(paidToWorkshop)} the
+                    customer paid the workshop for us (see Paid to Workshop).
+                  </p>
+                )}
                 {booking.full_payment_receipt_path && (
                   <SignedLink
                     path={booking.full_payment_receipt_path}
@@ -963,7 +962,7 @@ export default function AdminBookingDetail() {
                       onClick={() => {
                         if (
                           window.confirm(
-                            `Record that the customer paid the full rental of ${formatMYR(booking.full_payment_amount || booking.total_price)} in cash?`
+                            `Record that the customer paid the full rental of ${formatMYR(rentDue(booking))} in cash?`
                           )
                         )
                           handleVerifyFullPayment();
@@ -1022,6 +1021,10 @@ export default function AdminBookingDetail() {
               </div>
             )}
           </div>
+
+          {(WORKSHOP_STATUSES.includes(booking.status) || workshopPayments(booking).length > 0) && (
+            <WorkshopPaymentsCard booking={booking} onChanged={reloadBooking} />
+          )}
 
           {(booking.status === 'RETURNED' || charges.length > 0) && (
             <ChargesCard
