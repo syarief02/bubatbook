@@ -185,7 +185,7 @@ export default function AdminSales() {
         {[
           {
             label: 'Rental Revenue',
-            hint: 'Verified rental payments',
+            hint: 'Rent received and kept',
             value: rentalRevenue,
             icon: TrendingUp,
             color: 'green',

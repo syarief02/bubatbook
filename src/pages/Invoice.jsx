@@ -104,6 +104,8 @@ export default function Invoice() {
   const bookedPrice =
     Number(booking.total_price) - changes.reduce((sum, c) => sum + Number(c.amount || 0), 0);
   const bookedBase = bookedPrice + Number(booking.long_rental_discount || 0);
+  // The car the rental started on, if it was replaced since
+  const firstCar = changes.find((c) => c.kind === 'car_change')?.from_car;
   // Rent given back to the customer's credit when the price went down
   const rentPayments = completedPayments
     .filter((p) => p.payment_type === 'full_payment')
@@ -216,7 +218,9 @@ export default function Invoice() {
                   <td className="py-3">
                     <p className="font-medium text-gray-900">Sewa Kenderaan / Vehicle Rental</p>
                     <p className="text-xs text-gray-400">
-                      {car?.brand} {car?.model} ({car?.plate_number})
+                      {firstCar
+                        ? `${firstCar.name} (${firstCar.plate_number})`
+                        : `${car?.brand} ${car?.model} (${car?.plate_number})`}
                     </p>
                   </td>
                   <td className="py-3 text-center text-gray-600">{bookedDays} hari</td>
