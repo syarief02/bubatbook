@@ -943,14 +943,12 @@ export default function UserManual() {
         <Section id="sales" number={11} icon={DollarSign} iconClass="text-amber-400" title="Sales">
           <p>
             <B>Sales</B> shows, for the selected period (<B>All Time</B>, <B>Today</B>,{' '}
-            <B>This Month</B> or <B>Custom</B>, by the date the booking was made):
+            <B>This Month</B> or <B>Custom</B>). Bookings count by the date they were made; expenses
+            by their expense date.
           </p>
           <Bullets>
             <li>
               <B>Rental Revenue</B>: verified rental payments. This is your income.
-            </li>
-            <li>
-              <B>Deposits Received</B>: verified deposits. Refundable, so not income.
             </li>
             <li>
               <B>Charges Collected</B>: charges after rentals (late return, cleaning, fuel, damage)
@@ -958,11 +956,24 @@ export default function UserManual() {
               shown under it.
             </li>
             <li>
+              <B>Expenses Paid</B>: completed expense claims (section 12). Claims still waiting to
+              be paid are shown under it.
+            </li>
+            <li>
+              <B>Profit</B>: rental revenue plus charges collected, minus expenses paid.
+            </li>
+            <li>
+              <B>Deposits Received</B>: deposit money that came in. Refundable, so not income. The
+              part a customer paid with their credit is not counted again.
+            </li>
+            <li>
               <B>Deposits Held Now</B>: deposits for bookings still running or on hold, whatever the
               period.
             </li>
             <li>
-              <B>Revenue Per Car</B>: bookings, rental revenue, charges and deposits for each car.
+              <B>Revenue and Expenses Per Car</B>: for each car (with its plate), bookings, rental
+              revenue, charges, expenses, profit and deposits. General expenses (Others) have their
+              own row.
             </li>
           </Bullets>
           <p>Cancelled and expired bookings are not counted.</p>
@@ -980,16 +991,26 @@ export default function UserManual() {
           <Steps>
             <li>
               Click <B>Submit Claim</B>. Choose the <B>Car</B> (or <B>Others (General)</B>), the{' '}
-              <B>Expense Date</B>, <B>Amount (RM)</B> and <B>Description</B>, and upload at least
-              one invoice image.
+              <B>Expense Date</B> (today or earlier), the <B>Amount (RM)</B> (sen allowed, e.g.
+              85.50) and a <B>Description</B>, and upload at least one invoice image.{' '}
+              <em>Enforced</em>: the amount and description are required.
             </li>
             <li>
-              The claim appears under <B>Pending</B>. Whoever pays it back uploads the payment
-              receipt on the claim, which moves it to <B>Completed</B>.
+              The claim appears under <B>Pending</B>, with who submitted it. Whoever pays it back
+              opens the claim, chooses <B>Upload payment receipt</B> and presses{' '}
+              <B>Mark Complete</B>. It moves to <B>Completed</B>, showing who paid it, when, and a{' '}
+              <B>Payment Receipt</B> link.
             </li>
-            <li>A claim entered by mistake can be deleted, with its images.</li>
+            <li>
+              A paid claim can&apos;t be changed. If it is wrong, delete it and submit it again. A
+              claim entered by mistake can be deleted, with its images.
+            </li>
           </Steps>
-          <p>Filter by car and date. The total at the top counts completed claims only.</p>
+          <p>
+            Filter by car and date. The total at the top follows the filters: what was paid, and
+            what is still waiting to be paid. Submitting, paying, changing and deleting a claim are
+            all recorded in the audit log, with who did it.
+          </p>
         </Section>
 
         {/* 13. Fleet */}
@@ -1065,7 +1086,9 @@ export default function UserManual() {
             (with the reason); dates or price changed; deposit added to credit, put on hold or
             settled; charges added or removed; payments received for charges; deleted; released
             after 48 hours; and opening the customer&apos;s documents. Steps by the system itself
-            show as <B>System</B>.
+            show as <B>System</B>. Expense claims are recorded the same way (submitted, paid,
+            changed, deleted, with the amount and who did it), though there is no page that lists
+            them yet; ask the developer if you need that history.
           </p>
           <p>
             <B>Upload Logs</B> lists file uploads from customers&apos; and admins&apos; devices (IC,
@@ -1131,6 +1154,14 @@ export default function UserManual() {
               [
                 'The charges are more than the deposit',
                 'The rest is recorded as owed. Collect it and press Record Payment under Return & Charges (7.6).',
+              ],
+              [
+                '"This claim is already paid and can’t be changed"',
+                'Paid claims are locked. Delete the claim and submit it again with the right details (section 12).',
+              ],
+              [
+                '"The expense date can’t be in the future"',
+                'Use the date on the invoice. Claims are entered after the money is spent.',
               ],
               [
                 'A charge can’t be removed',

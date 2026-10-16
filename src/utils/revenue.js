@@ -14,9 +14,15 @@ export function rentalPaid(b) {
     : 0;
 }
 
-/** Deposit received (verified), whether still held or already returned. */
+/**
+ * Deposit money that came in (verified), whether still held or already
+ * returned. The part paid with the customer's credit is left out: it is
+ * money that was already counted when it first came in.
+ */
 export function depositReceived(b) {
-  return b.deposit_status === 'verified' ? Number(b.deposit_amount || 0) : 0;
+  return b.deposit_status === 'verified'
+    ? Math.max(Number(b.deposit_amount || 0) - Number(b.credit_applied || 0), 0)
+    : 0;
 }
 
 /**
@@ -43,4 +49,14 @@ export function chargesOwed(b) {
 
 export function sumBy(rows, fn) {
   return rows.reduce((total, row) => total + fn(row), 0);
+}
+
+/** Expense claims paid out (completed). */
+export function expensePaid(c) {
+  return c.status === 'completed' ? Number(c.total_amount || 0) : 0;
+}
+
+/** Expense claims still waiting to be paid. */
+export function expensePending(c) {
+  return c.status === 'pending' ? Number(c.total_amount || 0) : 0;
 }

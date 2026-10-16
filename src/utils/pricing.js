@@ -14,12 +14,14 @@ export function calculatePrice(pricePerDay, pickupDate, returnDate) {
   return { days, total, deposit };
 }
 
+// Whole ringgit as "RM 140"; amounts with sen keep them, as "RM 85.50"
 export function formatMYR(amount) {
   if (amount == null || isNaN(amount)) return 'RM 0';
+  const sen = Math.round(Number(amount) * 100) % 100 !== 0;
   return new Intl.NumberFormat('ms-MY', {
     style: 'currency',
     currency: 'MYR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: sen ? 2 : 0,
+    maximumFractionDigits: sen ? 2 : 0,
   }).format(amount);
 }

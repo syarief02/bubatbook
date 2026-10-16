@@ -48,9 +48,10 @@
   to it.
 - **Customers**: check documents, verify, reject or revoke, edit details (sensitive edits go to
   the Super Group as change requests), manage roles, add or deduct credit, see booking history.
-- **Sales**: rental revenue and charges kept separate from refundable deposits, per car, with
-  date filters.
-- **Expenses & claims**: claims with invoice images, completed with a payment receipt.
+- **Sales**: rental revenue, charges, expenses paid and profit, kept separate from refundable
+  deposits; per car (with plate) and with date filters.
+- **Expenses & claims**: claims per car or general, with invoice images, paid with a payment
+  receipt. Checked by the database (amount, date, fleet), locked once paid, and in the audit log.
 - **Fleets**: fleet settings and members, approval and suspension of fleets, change requests and
   "View As" for the Super Group.
 - **Upload Logs** for diagnosing failed uploads, and the in-app **User Manual**.
@@ -168,7 +169,7 @@ scripts/
 | `bubatrent_booking_change_requests`      | Sensitive customer edits awaiting Super Group approval                |
 | `bubatrent_booking_link_attempts`        | Walk-in account linking attempts (rate limit)                         |
 | `bubatrent_booking_upload_logs`          | Upload diagnostics from customer and admin devices                    |
-| `bubatrent_booking_expense_claims`       | Expense claims (per car or general)                                   |
+| `bubatrent_booking_expense_claims`       | Expense claims (per car or general); locked once paid                 |
 | `bubatrent_booking_expense_images`       | Invoice images per claim                                              |
 | `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                           |
 | `bubatrent_booking_verification_updates` | Pending document re-submissions                                       |
@@ -200,6 +201,8 @@ Anything involving money or status goes through the database, not the browser:
 | `bubatrent_track_booking` trigger                       | Status rules, `updated_at`, deposit to credit on return/cancel         |
 | `bubatrent_audit_booking` trigger                       | Audit entry for every status and payment change                        |
 | `bubatrent_delete_booking` trigger                      | Gives back held credit and logs before a booking is deleted            |
+| `bubatrent_check_expense_claim` trigger                 | Expense rules (amount, date, fleet); paid claims are locked            |
+| `bubatrent_audit_expense_claim` trigger                 | Audit entry when a claim is submitted, paid, changed or deleted        |
 
 ### Booking status flow
 
@@ -246,7 +249,9 @@ or all of the deposit. The customer signs on the staff device (**Sign at Counter
 record the full payment as a receipt or cash.
 
 Rental revenue on the Dashboard and Sales pages counts verified rental payments; charges
-collected are shown next to it. Deposits are shown separately because they are returned.
+collected are shown next to it. Sales also subtracts paid expense claims to show profit.
+Deposits are shown separately because they are returned, and the part of a deposit paid with
+existing credit is not counted as money received again.
 
 ---
 

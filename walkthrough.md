@@ -188,16 +188,27 @@ On a RETURNED booking:
 1. **Dashboard**:
    ✅ **Rental Revenue** counts rent only.
    ✅ Deposits held, charges collected and charges owed are shown separately.
-2. **Sales**:
-   ✅ Rental Revenue, Charges Collected, Deposits Received and Deposits Held Now, plus the
-   per-car table.
-   ✅ Try All Time / Today / This Month / Custom.
-3. **Expenses**:
-   - **Submit Claim**: car or **Others (General)**, date, amount, description, at least one
-     invoice image.
-     ✅ It appears under **Pending**.
-   - **Upload payment receipt** → **Mark Complete**.
-     ✅ It moves to **Completed** and counts in the total.
+2. **Expenses** (mark test claims "E2E TEST …" in the description):
+   - **Submit Claim** without an amount, or with tomorrow's date.
+     ✅ It is refused.
+   - **Submit Claim** for a car: today's date, amount `85.50`, a description, at least one invoice
+     image. Then one for **Others (General)** dated the last day of last month.
+     ✅ Both appear under **Pending**, and the amount shows as "RM 85.50".
+     ✅ Opening a claim shows "Submitted by …".
+   - **This Month**.
+     ✅ Last month's claim is not listed. The total at the top follows the car and date filters.
+   - On the car's claim, **Upload payment receipt** → **Mark Complete**.
+     ✅ It moves to **Completed** with "Paid by … on …" and a **Payment Receipt** link that opens.
+3. **Sales**:
+   ✅ Rental Revenue, Charges Collected, Expenses Paid, Profit, Deposits Received and Deposits
+   Held Now. Profit = rent + charges − expenses paid.
+   ✅ The per-car table shows each car's plate, expenses and profit; general expenses have their own
+   row.
+   ✅ A deposit paid partly with credit only counts the money that came in under Deposits
+   Received.
+   ✅ Try All Time / Today / This Month / Custom. Expenses follow their expense date.
+4. **Clean up** the test claims with **Delete**.
+   ✅ The claim and its files are removed; the deletion is kept in the audit log.
 
 ## Test 11: Audit log and deleting
 

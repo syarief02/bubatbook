@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
 import { useFleet } from '../../hooks/useFleet';
 import { formatMYR } from '../../utils/pricing';
+import { getTodayString } from '../../utils/dates';
 import {
   BOOKED_STATUSES,
   depositHeld,
@@ -12,26 +13,43 @@ import {
   sumBy,
   chargesCollected,
   chargesOwed,
+  expensePaid,
+  expensePending,
 } from '../../utils/revenue';
-import { DollarSign, TrendingUp, Car, Filter, Wallet, Wrench } from 'lucide-react';
+import {
+  DollarSign,
+  TrendingUp,
+  Car,
+  Filter,
+  Wallet,
+  Wrench,
+  Receipt,
+  PiggyBank,
+} from 'lucide-react';
 
 // Static class names: Tailwind drops classes built at runtime like `bg-${color}-500/10`
 const CARD_BG = {
   green: 'bg-green-500/10',
   yellow: 'bg-yellow-500/10',
   violet: 'bg-violet-500/10',
+  rose: 'bg-rose-500/10',
+  red: 'bg-red-500/10',
+  emerald: 'bg-emerald-500/10',
 };
 const CARD_TEXT = {
   green: 'text-green-400',
   yellow: 'text-yellow-400',
   violet: 'text-violet-400',
   rose: 'text-rose-400',
+  red: 'text-red-400',
+  emerald: 'text-emerald-400',
 };
 
 export default function AdminSales() {
   const { activeFleetId } = useFleet();
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
+  const [claims, setClaims] = useState([]);
   const [cars, setCars] = useState([]);
   const [dateRange, setDateRange] = useState('all');
   const [startDate, setStartDate] = useState('');
@@ -45,13 +63,22 @@ export default function AdminSales() {
       .in('status', BOOKED_STATUSES)
       .order('created_at', { ascending: false });
     let cQuery = supabase.from('bubatrent_booking_cars').select('*');
+    let eQuery = supabase
+      .from('bubatrent_booking_expense_claims')
+      .select('id, car_id, status, total_amount, expense_date');
     if (activeFleetId) {
       bQuery = bQuery.eq('fleet_group_id', activeFleetId);
       cQuery = cQuery.eq('fleet_group_id', activeFleetId);
+      eQuery = eQuery.eq('fleet_group_id', activeFleetId);
     }
-    const [{ data: bData }, { data: cData }] = await Promise.all([bQuery, cQuery]);
+    const [{ data: bData }, { data: cData }, { data: eData }] = await Promise.all([
+      bQuery,
+      cQuery,
+      eQuery,
+    ]);
     setBookings(bData || []);
     setCars(cData || []);
+    setClaims(eData || []);
     setLoading(false);
   }
 
@@ -79,28 +106,61 @@ export default function AdminSales() {
     });
   }
 
+  // Expenses count by the expense date (a calendar date)
+  function getFilteredClaims() {
+    const today = getTodayString();
+    let from = '';
+    let to = '';
+    if (dateRange === 'today') {
+      from = today;
+      to = today;
+    } else if (dateRange === 'month') {
+      from = `${today.slice(0, 8)}01`;
+    } else if (dateRange === 'custom' && startDate && endDate) {
+      from = startDate;
+      to = endDate;
+    }
+    return claims.filter((c) => (!from || c.expense_date >= from) && (!to || c.expense_date <= to));
+  }
+
   const filtered = getFilteredBookings();
+  const filteredClaims = getFilteredClaims();
   const rentalRevenue = sumBy(filtered, rentalPaid);
   const depositsReceived = sumBy(filtered, depositReceived);
   // Not limited to the period: what is held for running bookings today
   const depositsHeldNow = sumBy(bookings, depositHeld);
   const charges = sumBy(filtered, chargesCollected);
   const owed = sumBy(filtered, chargesOwed);
+  const expenses = sumBy(filteredClaims, expensePaid);
+  const expensesPending = sumBy(filteredClaims, expensePending);
+  const profit = rentalRevenue + charges - expenses;
+  const generalExpenses = sumBy(
+    filteredClaims.filter((c) => !c.car_id),
+    expensePaid
+  );
 
-  // Per-car breakdown
+  // Per-car breakdown: cars with bookings or paid expenses in the period
   const carStats = cars
     .map((car) => {
       const carBookings = filtered.filter((b) => b.car_id === car.id);
+      const rent = sumBy(carBookings, rentalPaid);
+      const carCharges = sumBy(carBookings, chargesCollected);
+      const carExpenses = sumBy(
+        filteredClaims.filter((c) => c.car_id === car.id),
+        expensePaid
+      );
       return {
         ...car,
         bookingCount: carBookings.length,
-        rent: sumBy(carBookings, rentalPaid),
+        rent,
         deposits: sumBy(carBookings, depositReceived),
-        charges: sumBy(carBookings, chargesCollected),
+        charges: carCharges,
+        expenses: carExpenses,
+        profit: rent + carCharges - carExpenses,
       };
     })
-    .filter((c) => c.bookingCount > 0)
-    .sort((a, b) => b.rent - a.rent);
+    .filter((c) => c.bookingCount > 0 || c.expenses > 0)
+    .sort((a, b) => b.profit - a.profit);
 
   if (loading)
     return (
@@ -147,7 +207,7 @@ export default function AdminSales() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
         {[
           {
             label: 'Rental Revenue',
@@ -167,8 +227,25 @@ export default function AdminSales() {
             color: 'rose',
           },
           {
+            label: 'Expenses Paid',
+            hint:
+              expensesPending > 0
+                ? `Completed claims · ${formatMYR(expensesPending)} waiting`
+                : 'Completed expense claims',
+            value: expenses,
+            icon: Receipt,
+            color: 'red',
+          },
+          {
+            label: 'Profit',
+            hint: 'Rental revenue + charges − expenses',
+            value: profit,
+            icon: PiggyBank,
+            color: 'emerald',
+          },
+          {
             label: 'Deposits Received',
-            hint: 'Refundable — not revenue',
+            hint: 'Refundable — not revenue; credit reused not counted',
             value: depositsReceived,
             icon: DollarSign,
             color: 'yellow',
@@ -198,17 +275,20 @@ export default function AdminSales() {
         ))}
       </div>
       <p className="text-xs text-slate-500 mb-8">
-        Periods count bookings by the date they were made. Rental payments and charges are income;
-        deposits go back to customers as credit after the rental, less any charges.
+        Periods count bookings by the date they were made, and expenses by the expense date. Rental
+        payments and charges are income; deposits go back to customers as credit after the rental,
+        less any charges.
       </p>
 
       {/* Per-Car Breakdown */}
       <div className="glass-card">
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Car className="w-4 h-4" /> Revenue Per Car
+          <Car className="w-4 h-4" /> Revenue and Expenses Per Car
         </h2>
-        {carStats.length === 0 ? (
-          <p className="text-sm text-slate-500 italic">No bookings in selected period</p>
+        {carStats.length === 0 && generalExpenses === 0 ? (
+          <p className="text-sm text-slate-500 italic">
+            No bookings or expenses in selected period
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -218,21 +298,49 @@ export default function AdminSales() {
                   <th className="pb-3 pr-4">Bookings</th>
                   <th className="pb-3 pr-4">Rental Revenue</th>
                   <th className="pb-3 pr-4">Charges</th>
+                  <th className="pb-3 pr-4">Expenses</th>
+                  <th className="pb-3 pr-4">Profit</th>
                   <th className="pb-3">Deposits (refundable)</th>
                 </tr>
               </thead>
               <tbody>
                 {carStats.map((car) => (
                   <tr key={car.id} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-                    <td className="py-3 pr-4 text-white font-medium">{car.name}</td>
+                    <td className="py-3 pr-4 text-white font-medium">
+                      {car.name}
+                      {car.plate_number && (
+                        <span className="block text-[11px] text-slate-500 font-normal">
+                          {car.plate_number}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-3 pr-4 text-slate-400">{car.bookingCount}</td>
                     <td className="py-3 pr-4 text-green-400 font-semibold">
                       {formatMYR(car.rent)}
                     </td>
                     <td className="py-3 pr-4 text-rose-400">{formatMYR(car.charges)}</td>
+                    <td className="py-3 pr-4 text-red-400">{formatMYR(car.expenses)}</td>
+                    <td
+                      className={`py-3 pr-4 font-semibold ${car.profit < 0 ? 'text-red-400' : 'text-emerald-400'}`}
+                    >
+                      {formatMYR(car.profit)}
+                    </td>
                     <td className="py-3 text-yellow-400">{formatMYR(car.deposits)}</td>
                   </tr>
                 ))}
+                {generalExpenses > 0 && (
+                  <tr className="border-b border-white/[0.03]">
+                    <td className="py-3 pr-4 text-slate-300">Others (General)</td>
+                    <td className="py-3 pr-4 text-slate-500">—</td>
+                    <td className="py-3 pr-4 text-slate-500">—</td>
+                    <td className="py-3 pr-4 text-slate-500">—</td>
+                    <td className="py-3 pr-4 text-red-400">{formatMYR(generalExpenses)}</td>
+                    <td className="py-3 pr-4 text-red-400 font-semibold">
+                      {formatMYR(-generalExpenses)}
+                    </td>
+                    <td className="py-3 text-slate-500">—</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

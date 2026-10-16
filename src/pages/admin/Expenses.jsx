@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
 import { useToast } from '../../components/Toast';
 import { formatMYR } from '../../utils/pricing';
-import { formatDate } from '../../utils/dates';
+import { formatDate, getTodayString } from '../../utils/dates';
+import { friendlyDbError } from '../../utils/dbErrors';
+import { expensePaid, expensePending, sumBy } from '../../utils/revenue';
 import {
   Receipt,
   Plus,
@@ -23,12 +24,15 @@ import {
 } from 'lucide-react';
 
 import { SignedLink } from '../../components/SignedFile';
+
+const BUCKET = 'customer-documents';
+
 export default function AdminExpenses() {
-  const { user } = useAuth();
   const { activeFleetId } = useFleet();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [claims, setClaims] = useState([]);
+  const [people, setPeople] = useState({});
   const [cars, setCars] = useState([]);
   const [tab, setTab] = useState('pending');
   const [showForm, setShowForm] = useState(false);
@@ -41,7 +45,7 @@ export default function AdminExpenses() {
 
   // Form state
   const [formCarId, setFormCarId] = useState('');
-  const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
+  const [formDate, setFormDate] = useState(getTodayString());
   const [formDesc, setFormDesc] = useState('');
   const [formAmount, setFormAmount] = useState('');
   const [formFiles, setFormFiles] = useState([]);
@@ -67,6 +71,19 @@ export default function AdminExpenses() {
       carsQ = carsQ.eq('fleet_group_id', activeFleetId);
     }
     const [{ data: claimsData }, { data: carsData }] = await Promise.all([claimsQ, carsQ]);
+    // Names of who submitted and who paid each claim
+    const ids = [
+      ...new Set(
+        (claimsData || []).flatMap((c) => [c.submitted_by, c.completed_by]).filter(Boolean)
+      ),
+    ];
+    if (ids.length) {
+      const { data: profiles } = await supabase
+        .from('bubatrent_booking_profiles')
+        .select('id, display_name, email')
+        .in('id', ids);
+      setPeople(Object.fromEntries((profiles || []).map((p) => [p.id, p.display_name || p.email])));
+    }
     setClaims(claimsData || []);
     setCars(carsData || []);
     setLoading(false);
@@ -74,37 +91,52 @@ export default function AdminExpenses() {
 
   async function handleSubmitClaim(e) {
     e.preventDefault();
+    const amount = parseFloat(formAmount);
     if (!formCarId || !formDate || !formDesc.trim() || formFiles.length === 0) {
       toast.error('Please fill all fields and upload at least 1 invoice image.');
       return;
     }
+    if (!(amount > 0)) {
+      toast.error('Enter the amount of the claim.');
+      return;
+    }
+    if (formDate > getTodayString()) {
+      toast.error('The expense date can’t be in the future.');
+      return;
+    }
     setSubmitting(true);
+    // Images go up first, so a failed upload leaves no half-saved claim
+    const claimId = crypto.randomUUID();
+    const paths = [];
+    let saved = false;
     try {
-      // Create claim
-      const { data: claim, error: claimErr } = await supabase
-        .from('bubatrent_booking_expense_claims')
-        .insert({
-          car_id: formCarId === 'others' ? null : formCarId,
-          submitted_by: user.id,
-          expense_date: formDate,
-          description: formDesc.trim(),
-          total_amount: formAmount ? parseFloat(formAmount) : null,
-          fleet_group_id: activeFleetId,
-        })
-        .select()
-        .single();
-      if (claimErr) throw claimErr;
-
-      // Upload images
       for (const file of formFiles) {
         const ext = file.name.split('.').pop();
-        const path = `expenses/${claim.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: upErr } = await uploadFileRobust('customer-documents', path, file, toast);
+        const path = `expenses/${claimId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: upErr } = await uploadFileRobust(BUCKET, path, file, toast);
         if (upErr) throw upErr;
-        const { error: imgErr } = await supabase
-          .from('bubatrent_booking_expense_images')
-          .insert({ claim_id: claim.id, file_path: path });
-        if (imgErr) throw imgErr;
+        paths.push(path);
+      }
+
+      // The database checks the claim and records who submitted it
+      const { error: claimErr } = await supabase.from('bubatrent_booking_expense_claims').insert({
+        id: claimId,
+        car_id: formCarId === 'others' ? null : formCarId,
+        expense_date: formDate,
+        description: formDesc.trim(),
+        total_amount: amount,
+        fleet_group_id: activeFleetId,
+      });
+      if (claimErr) throw claimErr;
+      saved = true;
+
+      const { error: imgErr } = await supabase
+        .from('bubatrent_booking_expense_images')
+        .insert(paths.map((file_path) => ({ claim_id: claimId, file_path })));
+      if (imgErr) {
+        await supabase.from('bubatrent_booking_expense_claims').delete().eq('id', claimId);
+        saved = false;
+        throw imgErr;
       }
 
       toast.success('Claim submitted!');
@@ -115,7 +147,8 @@ export default function AdminExpenses() {
       setFormFiles([]);
       await fetchData();
     } catch (err) {
-      toast.error(err.message);
+      if (!saved && paths.length) await supabase.storage.from(BUCKET).remove(paths);
+      toast.error(friendlyDbError(err));
     } finally {
       setSubmitting(false);
     }
@@ -130,51 +163,49 @@ export default function AdminExpenses() {
     try {
       const ext = receiptFile.name.split('.').pop();
       const path = `expenses/${claimId}/receipt_${Date.now()}.${ext}`;
-      const { error: upErr } = await uploadFileRobust(
-        'customer-documents',
-        path,
-        receiptFile,
-        toast
-      );
+      const { error: upErr } = await uploadFileRobust(BUCKET, path, receiptFile, toast);
       if (upErr) throw upErr;
 
+      // The database records who paid it and when
       const { error } = await supabase
         .from('bubatrent_booking_expense_claims')
-        .update({
-          status: 'completed',
-          payment_receipt_path: path,
-          completed_by: user.id,
-          completed_at: new Date().toISOString(),
-        })
+        .update({ status: 'completed', payment_receipt_path: path })
         .eq('id', claimId);
-      if (error) throw error;
+      if (error) {
+        await supabase.storage.from(BUCKET).remove([path]);
+        throw error;
+      }
 
       toast.success('Claim marked as completed!');
       setReceiptFile(null);
       await fetchData();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(friendlyDbError(err));
     } finally {
       setCompletingId(null);
     }
   }
 
   async function handleDeleteClaim(claim) {
-    if (!window.confirm(`Delete claim "${claim.description}"? This cannot be undone.`)) return;
+    if (
+      !window.confirm(
+        `Delete claim "${claim.description}"? This cannot be undone. The deletion is kept in the audit log.`
+      )
+    )
+      return;
     setDeletingId(claim.id);
     try {
-      // Clean up storage files (invoice images + receipt)
-      const paths = (claim.bubatrent_booking_expense_images || []).map((img) => img.file_path);
-      if (claim.payment_receipt_path) paths.push(claim.payment_receipt_path);
-      if (paths.length > 0) {
-        await supabase.storage.from('customer-documents').remove(paths);
-      }
-      // Delete the claim (images cascade-delete)
-      const { error } = await supabase
+      // Delete the claim first (its image rows go with it), then its files
+      const { data: deleted, error } = await supabase
         .from('bubatrent_booking_expense_claims')
         .delete()
-        .eq('id', claim.id);
+        .eq('id', claim.id)
+        .select('id');
       if (error) throw error;
+      if (!deleted?.length) throw new Error('The claim could not be deleted (permission denied).');
+      const paths = (claim.bubatrent_booking_expense_images || []).map((img) => img.file_path);
+      if (claim.payment_receipt_path) paths.push(claim.payment_receipt_path);
+      if (paths.length > 0) await supabase.storage.from(BUCKET).remove(paths);
       toast.success('Claim deleted.');
       setExpanded(null);
       await fetchData();
@@ -185,11 +216,9 @@ export default function AdminExpenses() {
     }
   }
 
-  // Compute effective date range from preset
-  const today = new Date().toISOString().split('T')[0];
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-    .toISOString()
-    .split('T')[0];
+  // Compute effective date range from preset (dates in Malaysia time)
+  const today = getTodayString();
+  const monthStart = `${today.slice(0, 8)}01`;
   const effectiveFrom =
     datePreset === 'today'
       ? today
@@ -200,19 +229,19 @@ export default function AdminExpenses() {
           : '';
   const effectiveTo = datePreset === 'today' ? today : datePreset === 'custom' ? dateTo : '';
 
-  const filteredClaims = claims.filter((c) => {
-    if (tab === 'pending' && c.status !== 'pending') return false;
-    if (tab === 'completed' && c.status !== 'completed') return false;
+  // Claims for the chosen car and dates; the tabs then pick a status
+  const matchingClaims = claims.filter((c) => {
     if (carFilter === 'others' && c.car_id !== null) return false;
     if (carFilter !== 'all' && carFilter !== 'others' && c.car_id !== carFilter) return false;
     if (effectiveFrom && c.expense_date < effectiveFrom) return false;
     if (effectiveTo && c.expense_date > effectiveTo) return false;
     return true;
   });
+  const filteredClaims = matchingClaims.filter((c) => tab === 'all' || c.status === tab);
 
-  const totalExpenses = claims
-    .filter((c) => c.status === 'completed')
-    .reduce((s, c) => s + Number(c.total_amount || 0), 0);
+  const totalPaid = sumBy(matchingClaims, expensePaid);
+  const totalPending = sumBy(matchingClaims, expensePending);
+  const filtersOn = carFilter !== 'all' || datePreset !== 'all';
 
   if (loading)
     return (
@@ -230,7 +259,11 @@ export default function AdminExpenses() {
         </div>
         <div>
           <p className="text-xs text-slate-500">Total Expenses (Completed)</p>
-          <p className="text-xl font-bold text-white">{formatMYR(totalExpenses)}</p>
+          <p className="text-xl font-bold text-white">{formatMYR(totalPaid)}</p>
+          <p className="text-[11px] text-slate-500">
+            {formatMYR(totalPending)} waiting to be paid
+            {filtersOn ? ' · for the car and dates selected below' : ''}
+          </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -267,16 +300,17 @@ export default function AdminExpenses() {
                 <input
                   type="date"
                   value={formDate}
+                  max={today}
                   onChange={(e) => setFormDate(e.target.value)}
                   className="input-field"
                 />
               </div>
               <div>
-                <label className="input-label">Amount (RM)</label>
+                <label className="input-label">Amount (RM) *</label>
                 <input
                   type="number"
                   step="0.01"
-                  min="0"
+                  min="0.01"
                   value={formAmount}
                   onChange={(e) => setFormAmount(e.target.value)}
                   className="input-field"
@@ -416,7 +450,10 @@ export default function AdminExpenses() {
             <div key={claim.id} className="glass-card !p-4">
               <div
                 className="flex items-center gap-3 cursor-pointer"
-                onClick={() => setExpanded(expanded === claim.id ? null : claim.id)}
+                onClick={() => {
+                  setExpanded(expanded === claim.id ? null : claim.id);
+                  setReceiptFile(null);
+                }}
               >
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center ${claim.status === 'completed' ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}
@@ -444,6 +481,10 @@ export default function AdminExpenses() {
 
               {expanded === claim.id && (
                 <div className="mt-4 pt-4 border-t border-white/5 space-y-3 animate-fade-in">
+                  <p className="text-xs text-slate-500">
+                    Submitted by {people[claim.submitted_by] || 'an admin'} on{' '}
+                    {formatDate(claim.created_at)}
+                  </p>
                   {/* Invoice images */}
                   {claim.bubatrent_booking_expense_images?.length > 0 && (
                     <div>
@@ -507,12 +548,25 @@ export default function AdminExpenses() {
                   )}
 
                   {claim.status === 'completed' && (
-                    <div className="flex items-center justify-between">
-                      {claim.completed_at && (
-                        <p className="text-xs text-green-400">
-                          Completed on {formatDate(claim.completed_at)}
-                        </p>
-                      )}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-3">
+                        {claim.completed_at && (
+                          <p className="text-xs text-green-400">
+                            Paid by {people[claim.completed_by] || 'an admin'} on{' '}
+                            {formatDate(claim.completed_at)}
+                          </p>
+                        )}
+                        {claim.payment_receipt_path && (
+                          <SignedLink
+                            path={claim.payment_receipt_path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300"
+                          >
+                            <FileImage className="w-3.5 h-3.5" /> Payment Receipt
+                          </SignedLink>
+                        )}
+                      </div>
                       <button
                         onClick={() => handleDeleteClaim(claim)}
                         disabled={deletingId === claim.id}
