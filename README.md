@@ -435,7 +435,7 @@ Car images live in `public/cars/`.
   the first one is also the car's main picture (`image_url`). Strip location data (EXIF/GPS)
   from phone photos and resize them (about 1280 px wide) before adding them.
 - **Photos of similar vehicles** from Wikimedia Commons (Alza, Ranger recoloured from red,
-  Vellfire, Vanette), used under CC BY-SA licences: the car page shows the author, licence and
+  Vanette), used under CC BY-SA licences: the car page shows the author, licence and
   changes for each, from `PHOTO_CREDITS` in the same file.
 - **Studio renders** for the rest.
 
