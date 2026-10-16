@@ -62,7 +62,7 @@ export default function FleetSettings() {
     }
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('bubatrent_booking_fleet_groups')
         .update({
           name: form.name.trim(),
@@ -72,8 +72,11 @@ export default function FleetSettings() {
           weekly_discount_pct: weekly,
           monthly_discount_pct: monthly,
         })
-        .eq('id', activeFleetId);
+        .eq('id', activeFleetId)
+        .select('id');
       if (error) throw error;
+      // Staff can't update the fleet: the database changes no row, without an error
+      if (!data?.length) throw new Error('Only a Fleet Admin or a super admin can change these.');
       toast.success('Fleet settings updated');
       setEditing(false);
       refetchFleets();

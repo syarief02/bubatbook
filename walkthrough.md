@@ -47,6 +47,8 @@ says what to do and what you should see.
 2. Press **Book Now · Pay RM… Deposit**, fill in the details (add the test note) and press
    **Continue to Payment**.
    ✅ Deposit = 30% of the rental, at least RM100. Any credit is applied automatically.
+   ✅ For 7 days or more, the car page and checkout show the long-rental discount (10%; 20% for
+   30 days or more, as set in Fleet Settings) and the deposit is 30% of the discounted rental.
 3. Upload a receipt and press **Submit Deposit Payment** (or **Confirm Booking** if credit
    covers the deposit).
    ✅ The confirmation page shows **DEPOSIT_PAID** and the 48-hour notice.
@@ -81,7 +83,7 @@ says what to do and what you should see.
 2. **Admin**: press **Mark Picked Up**.
    ✅ It is refused: the full rental payment hasn't been verified. The deposit doesn't count as
    rent.
-3. **Customer**: My Bookings → **Upload your full rental payment receipt (RM…)** → **Upload**.
+3. **Customer**: My Bookings → **Upload your rental payment receipt (RM…)** → **Upload**.
    ✅ "Full payment receipt submitted — awaiting verification".
    ✅ A **Payment Receipt** link appears.
 4. **Admin**: **View Receipt** → **✓ Verify Full Payment**.
@@ -136,8 +138,12 @@ says what to do and what you should see.
      ✅ They show **Not verified**, a warning links to Customers, and **Next → Select Car** stays
      disabled. A customer whose licence has expired shows **Licence expired**.
    - Pick the walk-in, a car and dates.
-     ✅ The total is days × the daily price. The deposit starts at 30% of the rental (at least
-     RM100); after you change it, **Use it** puts the rule back. Put `E2E TEST` in **Notes**.
+     ✅ The total is days × the daily price, less the long-rental discount for 7 days or more.
+     The deposit starts at 30% of the rental (at least RM100); after you change it, **Use it**
+     puts the rule back. Put `E2E TEST` in **Notes**.
+   - Type an **Agreed price (optional)** with no **Reason**.
+     ✅ It is refused. With a reason, the deposit rule follows the agreed price, and the booking's
+     **Change Rental** card and invoice show "Agreed price: …" with the reason.
    - **Review & Confirm** → **Create Booking**.
      ✅ You land on the booking page. The audit log starts with "Booking created by admin".
    - **Confirmed**: the deposit is recorded as received.
@@ -222,7 +228,47 @@ On a RETURNED booking:
    ✅ Their credit history is kept.
    ✅ Admins can't delete credit history.
 
-## Test 12: Mobile uploads
+## Test 12: Customer paid a workshop for us (admin)
+
+On a CONFIRMED test booking whose rent isn't paid yet:
+
+1. **Paid to Workshop** → **+ Customer paid a workshop for us**: a workshop name, what was
+   repaired, an amount below the rental, today's date and any picture as the bill → **Record
+   Workshop Payment**.
+   ✅ **Full Payment** shows only the rest of the rental, and says how much was paid to the
+   workshop.
+   ✅ **Expenses** has the repair for the car, already paid, marked **Paid by the customer to the
+   workshop**, with a link to the booking.
+2. Press **Remove** next to it, with a reason.
+   ✅ **Full Payment** is back to the whole rental and the expense is gone.
+
+## Test 13: Changing a rental (admin)
+
+On a CONFIRMED test booking of a few days with the agreement signed. Leave the rent unpaid:
+paid rent that a change gives back goes to the customer's credit history, which can't be
+deleted.
+
+1. **Change Rental** → **Change price**, a lower price without a reason.
+   ✅ It is refused. With a reason, the card lists "Agreed price: …" and the new price.
+2. **Extend** by two days.
+   ✅ The extra rent is the price for the new length less the old one (a rental that reaches 7
+   days gets the weekly discount on all its days). **Full Payment** shows the new amount.
+   ✅ Extending into another booking of the same car is refused and names the last free day.
+3. **Replace car** with another available car, ticking **Mark … unavailable**.
+   ✅ Before pickup the whole booking moves to the new car. The old car is hidden from the
+   website until you set it available again in **Cars**.
+4. **End early** two days before the return date, **Customer's choice**.
+   ✅ The preview shows the unused days less the 25% penalty on the rental. **Car broke down, no
+   replacement** shows the unused days with no penalty.
+   ✅ After **End Early** the rental price drops by that amount. (Had the customer paid, the
+   overpaid rent would go to their credit, or, for a counter customer without an account, the
+   message says to refund it by hand.)
+5. ✅ The **Invoice** lists each change and adds up, **My Bookings** lists them for the customer,
+   and the signed agreement lists them under "Changes after signing".
+
+Clean up: delete the booking, and make the car you marked unavailable available again.
+
+## Test 14: Mobile uploads
 
 Follow the **Mobile Upload Smoke Test Checklist** in the README on an Android and an iOS phone.
 

@@ -347,14 +347,20 @@ export default function UserManual() {
           </Bullets>
           <Sub>How prices are worked out</Sub>
           <Bullets>
-            <li>Rental total = number of days × Price/Day.</li>
             <li>
-              Deposit = 30% of the rental total, at least RM100. The car&apos;s <B>Deposit</B> field
-              is not used.
+              Rental total = number of days × Price/Day, less the fleet&apos;s long-rental discount:
+              10% off for 7 days or more, 20% off for 30 days or more (change them in Fleet
+              Settings, section 13). Because of the bigger discount, 30 days can cost less than 29:
+              at RM140/day, 29 days are RM3,654 and 30 days RM3,360.
             </li>
             <li>
-              The price is fixed when the booking is made. Changing a car&apos;s price later does
-              not change existing bookings.
+              Deposit = 30% of the rental total, rounded up to the ringgit, at least RM100. The
+              car&apos;s <B>Deposit</B> field is not used.
+            </li>
+            <li>
+              The price is fixed when the booking is made. Changing a car&apos;s price or the
+              discounts later does not change existing bookings. To change one booking&apos;s price,
+              use <B>Change price</B> (7.14).
             </li>
             <li>Customers can book from today up to 6 months ahead.</li>
           </Bullets>
@@ -611,6 +617,12 @@ export default function UserManual() {
               rental? Record that first (7.13). <B>Full Payment</B> then shows only what is left to
               pay, and verifying it records that amount.
             </li>
+            <li>
+              Did the rental get dearer after it was paid (<B>Extend</B>, or a higher price, 7.14)?{' '}
+              <B>Full Payment</B> opens again for the difference only. The customer uploads a
+              receipt for it in My Bookings (while the booking is Confirmed or Picked Up), or you
+              record it as above. If it got cheaper, the difference goes to their credit.
+            </li>
           </Bullets>
 
           <Sub>7.5 Pickup</Sub>
@@ -643,6 +655,11 @@ export default function UserManual() {
             </li>
           </Steps>
           <Bullets>
+            <li>
+              <strong>Back before the booked return date?</strong> <B>Mark Returned</B> doesn&apos;t
+              change the price. To give back the unused days, use <B>End early</B> (7.14), before or
+              after marking it returned. The form reminds you when the date is earlier than booked.
+            </li>
             <li>
               Charges come off this booking&apos;s deposit; the rest of the deposit goes to the
               customer&apos;s credit. The customer sees each charge and its note in My Bookings and
@@ -827,10 +844,14 @@ export default function UserManual() {
             </li>
             <li>
               <strong>Entered by mistake?</strong> Press <B>Remove</B> next to it and give a reason.
-              Everything it did is undone, and its expense is deleted. It can&apos;t be removed once
-              the rest of the rental was recorded as paid, or once the customer has used the credit
-              it gave them; correct the balance with <B>Add Credit</B> or <B>Deduct Credit</B>{' '}
-              instead.
+              Everything it did is undone, and its expense is deleted: the rent it paid is to pay
+              again under <B>Full Payment</B>, and the charges it paid are owed again. It can&apos;t
+              be removed once the customer has used the credit it gave them; correct the balance
+              with <B>Add Credit</B> or <B>Deduct Credit</B> instead.
+            </li>
+            <li>
+              A counter customer without an account has no credit balance, so the amount can be at
+              most what they owe on the booking.
             </li>
           </Bullets>
           <Note tone="warn">
@@ -845,10 +866,11 @@ export default function UserManual() {
           </p>
           <Bullets>
             <li>
-              <B>Change price</B> (from Deposit Paid): a price agreed with the customer, or a
-              correction. A reason is required. If the customer already paid more than the new
-              price, the difference goes to their credit; if the price goes up, the rest is to pay
-              under <B>Full Payment</B>.
+              <B>Change price</B> (Deposit Paid to Returned): a discount agreed with the customer,
+              or a correction. Any admin can do it, but a reason is required and it is shown to the
+              customer. If the customer already paid more than the new price, the difference goes to
+              their credit; if the price goes up, the rest is to pay under <B>Full Payment</B>. The
+              deposit doesn&apos;t change.
             </li>
             <li>
               <B>Extend</B> (Confirmed or Picked Up): choose the new return date. The extra rent is
@@ -862,15 +884,32 @@ export default function UserManual() {
               <B>End early</B> (Confirmed, Picked Up or Returned): choose the last day and why.{' '}
               <B>Customer&apos;s choice</B>: the unused days less the agreement&apos;s 25% penalty
               on the rental. <B>Car broke down, no replacement</B>: the unused days, no penalty. You
-              can type a different amount, with a reason. What the customer paid above the new price
-              goes to their credit. The car is free again after the new date. This does not mark the
-              car returned: use <B>Mark Returned</B> as usual.
+              can type a different amount (up to the unused days), with a reason. What the customer
+              paid above the new price goes to their credit. The rental keeps at least one day; to
+              stop it before that, <B>Cancel</B> it. The car is free again after the new date. This
+              does not mark the car returned: use <B>Mark Returned</B> as usual.
             </li>
             <li>
-              <B>Replace car</B> (Confirmed or Picked Up): choose another car of the fleet and, once
-              picked up, the day it starts. Same price. Tick <B>Mark … unavailable</B> to stop the
-              broken car being booked until you make it available again in Cars. Sales splits the
-              rental between the two cars by days.
+              <B>Replace car</B> (Confirmed or Picked Up): choose another car of the fleet. Before
+              pickup the whole booking moves to it; once picked up, choose the day it starts. Same
+              price. Tick <B>Mark … unavailable</B> to stop the broken car being booked until you
+              make it available again in Cars. It is refused if the new car is booked in those days.
+              Sales splits the rental between the two cars by days.
+            </li>
+          </Bullets>
+          <Bullets>
+            <li>
+              A counter customer without an account has no credit balance: when money is due back to
+              them, the message tells you to refund it by hand.
+            </li>
+            <li>
+              Each change is listed with its date and time. The Audit Log shows who made it (Dates
+              changed, Price changed, Car replaced). Money that goes back is in the customer&apos;s
+              credit history.
+            </li>
+            <li>
+              To move a booking to other dates at the same price before pickup, use{' '}
+              <B>Edit Dates</B> (7.9) instead.
             </li>
           </Bullets>
           <Note tone="info" title="Example: early return">
@@ -986,8 +1025,19 @@ export default function UserManual() {
               the customer had applied to it.
             </li>
             <li>A deleted booking: whatever it still held, as above.</li>
+            <li>Removing a charge that was taken from the deposit: that part (7.6).</li>
+            <li>
+              <B>Change price</B> or <B>End early</B> when the customer had already paid more rent
+              than the new price: the difference (7.14).
+            </li>
+            <li>
+              A workshop payment larger than what the customer owed on the booking: the rest (7.13).
+            </li>
           </Bullets>
-          <p>Each of these happens once per booking and appears in the audit log.</p>
+          <p>
+            A deposit goes back once per booking. Every change to a balance appears in the
+            customer&apos;s credit history with its reason.
+          </p>
           <Sub>Adding and deducting credit by hand</Sub>
           <p>
             Open the customer in <B>Customers</B>; the <B>Deposit Credit</B> section shows the
@@ -1032,17 +1082,21 @@ export default function UserManual() {
               <B>Rental agreement</B>: <B>View Full Agreement</B> on the booking page, or{' '}
               <B>Agreement</B> in the customer&apos;s My Bookings. Both have <B>Print / Save PDF</B>
               . Still available after the car is returned. One signed on your device says
-              &quot;Signed in person at the counter&quot;. A counter customer without an account
-              can&apos;t open My Bookings, so print the agreement and invoice for them from the
-              booking page.
+              &quot;Signed in person at the counter&quot;. The signed agreement keeps the car, dates
+              and price as signed; changes made afterwards (7.14) are listed below it under{' '}
+              <B>Changes after signing</B>, with the return date and rental now. A counter customer
+              without an account can&apos;t open My Bookings, so print the agreement and invoice for
+              them from the booking page.
             </li>
             <li>
               <B>Invoice</B>: available once the deposit or full payment is verified, from{' '}
               <B>View Invoice</B> on the booking page or <B>Invoice</B> in My Bookings. It lists the
-              rental and the refundable deposit, the amount paid, anything the customer paid the
-              workshop for us (and what it was taken off), and any charges after the rental (what
-              came off the deposit and what is still owed). The fleet name and phone come from Fleet
-              Settings. <B>Print / Save PDF</B> makes a PDF.
+              rental as booked (with its long-rental discount), each change to it (agreed price with
+              the reason, extension, early return, replacement car), any rent given back to the
+              customer&apos;s credit, the refundable deposit, the amount paid, anything the customer
+              paid the workshop for us (and what it was taken off), and any charges after the rental
+              (what came off the deposit and what is still owed). The fleet name and phone come from
+              Fleet Settings. <B>Print / Save PDF</B> makes a PDF.
             </li>
             <li>
               Customers can also print a simple booking receipt from <B>View Details</B> →{' '}
@@ -1155,8 +1209,11 @@ export default function UserManual() {
             <li>
               <B>Long-rental discounts</B>: the percentage off for rentals of 7 days or more and of
               30 days or more (10% and 20% to start). Online and counter bookings use them; the car
-              page shows the discount. 0 turns it off. Bookings already made keep their price. Only
-              a Fleet Admin can change them.
+              page shows the discount. 0 turns it off. Bookings already made keep their price.
+            </li>
+            <li>
+              Only a Fleet Admin or a super admin can change Fleet Settings; Staff get a message
+              saying so.
             </li>
             <li>
               You can also create a new fleet. You become its Fleet Admin, and it waits for Super
@@ -1212,14 +1269,14 @@ export default function UserManual() {
             Each booking&apos;s <B>Audit Log</B> is written by the system and can&apos;t be edited.
             It records who did each step and when: booking created by admin; deposit submitted,
             verified or rejected; confirmed; rental agreement signed (and whether in person at the
-            counter); full payment uploaded or verified; picked up; returned; cancelled; reactivated
-            (with the reason); dates or price changed; deposit added to credit, put on hold or
+            counter); full payment uploaded or verified, or to pay again after a change; picked up;
+            returned; cancelled; reactivated (with the reason); dates or price changed (Edit Dates,
+            Change price, Extend, End early); car replaced; deposit added to credit, put on hold or
             settled; charges added or removed; payments received for charges; workshop payments
-            recorded or removed; dates and price changed; car replaced; deleted; released after 48
-            hours; and opening the customer&apos;s documents. Steps by the system itself show as{' '}
-            <B>System</B>. Expense claims are recorded the same way (submitted, paid, changed,
-            deleted, with the amount and who did it), though there is no page that lists them yet;
-            ask the developer if you need that history.
+            recorded or removed; deleted; released after 48 hours; and opening the customer&apos;s
+            documents. Steps by the system itself show as <B>System</B>. Expense claims are recorded
+            the same way (submitted, paid, changed, deleted, with the amount and who did it), though
+            there is no page that lists them yet; ask the developer if you need that history.
           </p>
           <p>
             <B>Upload Logs</B> lists file uploads from customers&apos; and admins&apos; devices (IC,
@@ -1297,6 +1354,26 @@ export default function UserManual() {
               [
                 'A charge can’t be removed',
                 'A payment for charges was already recorded on the booking. Give money back with Add Credit on the customer instead.',
+              ],
+              [
+                'Full Payment shows an amount to pay again after it was verified',
+                'The rental was extended or its price went up. Only the difference is to pay; record it as usual (7.4).',
+              ],
+              [
+                '"This car is booked from … Extend to … at the latest, or replace the car"',
+                'Another booking starts then. Extend up to the day shown, or move the customer to another car with Replace car and extend that (7.14).',
+              ],
+              [
+                '"That car is booked between … Choose another car"',
+                'The replacement car has a booking in those days. Pick another car (7.14).',
+              ],
+              [
+                '"The customer has already used the RM… credit this gave them, so it can’t be removed"',
+                'The workshop payment gave them credit they have since spent. Correct it with Add Credit or Deduct Credit instead (7.13).',
+              ],
+              [
+                '"This booking has no customer account, so the RM… left over can’t go to their credit"',
+                'A counter customer without an account has no credit balance. Record at most what they owe on the booking and settle the rest with them by hand (7.13).',
               ],
             ].map(([q, a]) => (
               <div key={q} className="bg-white/5 p-3 rounded-xl border border-white/10">
