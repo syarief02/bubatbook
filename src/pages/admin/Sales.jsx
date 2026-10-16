@@ -4,7 +4,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
 import { useFleet } from '../../hooks/useFleet';
 import { formatMYR } from '../../utils/pricing';
-import { getTodayString } from '../../utils/dates';
+import { periodRange, inPeriod } from '../../utils/dates';
 import {
   BOOKED_STATUSES,
   depositHeld,
@@ -87,44 +87,11 @@ export default function AdminSales() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFleetId]);
 
-  // Periods are in the browser's local time (Malaysia), by booking date
-  function getFilteredBookings() {
-    const now = new Date();
-    let from = null;
-    let to = null;
-    if (dateRange === 'today') {
-      from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    } else if (dateRange === 'month') {
-      from = new Date(now.getFullYear(), now.getMonth(), 1);
-    } else if (dateRange === 'custom' && startDate && endDate) {
-      from = new Date(`${startDate}T00:00:00`);
-      to = new Date(`${endDate}T23:59:59.999`);
-    }
-    return bookings.filter((b) => {
-      const created = new Date(b.created_at);
-      return (!from || created >= from) && (!to || created <= to);
-    });
-  }
-
-  // Expenses count by the expense date (a calendar date)
-  function getFilteredClaims() {
-    const today = getTodayString();
-    let from = '';
-    let to = '';
-    if (dateRange === 'today') {
-      from = today;
-      to = today;
-    } else if (dateRange === 'month') {
-      from = `${today.slice(0, 8)}01`;
-    } else if (dateRange === 'custom' && startDate && endDate) {
-      from = startDate;
-      to = endDate;
-    }
-    return claims.filter((c) => (!from || c.expense_date >= from) && (!to || c.expense_date <= to));
-  }
-
-  const filtered = getFilteredBookings();
-  const filteredClaims = getFilteredClaims();
+  // A rental counts in the period of its pickup date; an expense by its
+  // expense date (Malaysia calendar days)
+  const period = periodRange(dateRange, startDate, endDate);
+  const filtered = bookings.filter((b) => inPeriod(b.pickup_date, period));
+  const filteredClaims = claims.filter((c) => inPeriod(c.expense_date, period));
   const rentalRevenue = sumBy(filtered, rentalPaid);
   const depositsReceived = sumBy(filtered, depositReceived);
   // Not limited to the period: what is held for running bookings today
@@ -275,7 +242,7 @@ export default function AdminSales() {
         ))}
       </div>
       <p className="text-xs text-slate-500 mb-8">
-        Periods count bookings by the date they were made, and expenses by the expense date. Rental
+        Periods count rentals by their pickup date, and expenses by the expense date. Rental
         payments and charges are income; deposits go back to customers as credit after the rental,
         less any charges.
       </p>

@@ -49,7 +49,8 @@
 - **Customers**: check documents, verify, reject or revoke, edit details (sensitive edits go to
   the Super Group as change requests), manage roles, add or deduct credit, see booking history.
 - **Sales**: rental revenue, charges, expenses paid and profit, kept separate from refundable
-  deposits; per car (with plate) and with date filters.
+  deposits; per car (with plate), with date filters (rentals by pickup date, expenses by expense
+  date).
 - **Expenses & claims**: claims per car or general, with invoice images, paid with a payment
   receipt. Checked by the database (amount, date, fleet), locked once paid, and in the audit log.
 - **Fleets**: fleet settings and members, approval and suspension of fleets, change requests and

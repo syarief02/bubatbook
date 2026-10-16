@@ -206,7 +206,9 @@ On a RETURNED booking:
    row.
    ✅ A deposit paid partly with credit only counts the money that came in under Deposits
    Received.
-   ✅ Try All Time / Today / This Month / Custom. Expenses follow their expense date.
+   ✅ Try All Time / Today / This Month / Custom. A rental counts by its pickup date: a test booking
+   months ahead shows only under All Time or a Custom range that includes its pickup. Expenses
+   count by their expense date.
 4. **Clean up** the test claims with **Delete**.
    ✅ The claim and its files are removed; the deletion is kept in the audit log.
 

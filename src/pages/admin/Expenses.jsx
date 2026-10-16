@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
 import { useToast } from '../../components/Toast';
 import { formatMYR } from '../../utils/pricing';
-import { formatDate, getTodayString } from '../../utils/dates';
+import { formatDate, getTodayString, periodRange, inPeriod } from '../../utils/dates';
 import { friendlyDbError } from '../../utils/dbErrors';
 import { expensePaid, expensePending, sumBy } from '../../utils/revenue';
 import {
@@ -216,26 +216,15 @@ export default function AdminExpenses() {
     }
   }
 
-  // Compute effective date range from preset (dates in Malaysia time)
+  // Date range from the preset (Malaysia calendar days)
   const today = getTodayString();
-  const monthStart = `${today.slice(0, 8)}01`;
-  const effectiveFrom =
-    datePreset === 'today'
-      ? today
-      : datePreset === 'month'
-        ? monthStart
-        : datePreset === 'custom'
-          ? dateFrom
-          : '';
-  const effectiveTo = datePreset === 'today' ? today : datePreset === 'custom' ? dateTo : '';
+  const period = periodRange(datePreset, dateFrom, dateTo);
 
   // Claims for the chosen car and dates; the tabs then pick a status
   const matchingClaims = claims.filter((c) => {
     if (carFilter === 'others' && c.car_id !== null) return false;
     if (carFilter !== 'all' && carFilter !== 'others' && c.car_id !== carFilter) return false;
-    if (effectiveFrom && c.expense_date < effectiveFrom) return false;
-    if (effectiveTo && c.expense_date > effectiveTo) return false;
-    return true;
+    return inPeriod(c.expense_date, period);
   });
   const filteredClaims = matchingClaims.filter((c) => tab === 'all' || c.status === tab);
 

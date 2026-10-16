@@ -943,8 +943,9 @@ export default function UserManual() {
         <Section id="sales" number={11} icon={DollarSign} iconClass="text-amber-400" title="Sales">
           <p>
             <B>Sales</B> shows, for the selected period (<B>All Time</B>, <B>Today</B>,{' '}
-            <B>This Month</B> or <B>Custom</B>). Bookings count by the date they were made; expenses
-            by their expense date.
+            <B>This Month</B> or <B>Custom</B>). A rental counts in the period of its pickup date,
+            so a booking made today for March shows under March, not Today. Expenses count by their
+            expense date. <B>This Month</B> is the whole calendar month.
           </p>
           <Bullets>
             <li>
