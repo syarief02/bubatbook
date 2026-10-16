@@ -428,11 +428,16 @@ fleets (statuses: Pending Verification, Verified, Rejected, Suspended).
 
 ## 📷 Car Photos
 
-Car images live in `public/cars/`. Most are studio renders. The Perodua Alza (black), Ford Ranger
-(blue, recoloured from red), Toyota Vellfire (silver) and Nissan Vanette photos are of similar
-vehicles from Wikimedia Commons, used under CC BY-SA licences: the car page shows the author,
-licence and changes for each, from `src/utils/carPhotos.js`. Add any new photo of that kind to
-that file, or replace it with your own photo of the vehicle.
+Car images live in `public/cars/`.
+
+- **Owner's photos** (best): a folder per vehicle, e.g. `public/cars/vqb5567/`, listed by plate
+  number in `CAR_GALLERIES` in `src/utils/carPhotos.js`. The car page shows them as a gallery;
+  the first one is also the car's main picture (`image_url`). Strip location data (EXIF/GPS)
+  from phone photos and resize them (about 1280 px wide) before adding them.
+- **Photos of similar vehicles** from Wikimedia Commons (Alza, Ranger recoloured from red,
+  Vellfire, Vanette), used under CC BY-SA licences: the car page shows the author, licence and
+  changes for each, from `PHOTO_CREDITS` in the same file.
+- **Studio renders** for the rest.
 
 ---
 

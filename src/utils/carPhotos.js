@@ -33,3 +33,18 @@ export const PHOTO_CREDITS = {
     changes: 'resized',
   },
 };
+
+// The owner's own photos of a vehicle, by plate number, shown as a gallery on
+// the car page. The first one is also the car's main picture (image_url).
+// Location data (GPS) is removed from phone photos before they are added.
+export const CAR_GALLERIES = {
+  'VQB 5567': [
+    '/cars/vqb5567/1.jpg',
+    '/cars/vqb5567/2.jpg',
+    '/cars/vqb5567/3.jpg',
+    '/cars/vqb5567/4.jpg',
+    '/cars/vqb5567/5.jpg',
+    '/cars/vqb5567/6.jpg',
+    '/cars/vqb5567/7.jpg',
+  ],
+};

@@ -7,7 +7,7 @@ import DateRangePicker from '../components/DateRangePicker';
 import PriceCalculator from '../components/PriceCalculator';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
-import { PHOTO_CREDITS } from '../utils/carPhotos';
+import { PHOTO_CREDITS, CAR_GALLERIES } from '../utils/carPhotos';
 import {
   ArrowLeft,
   Users,
@@ -32,6 +32,10 @@ export default function CarDetail() {
   const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
   const [isAvailable, setIsAvailable] = useState(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+  // Gallery photo being shown; back to the first one on another car's page
+  const [photo, setPhoto] = useState({ carId: id, index: 0 });
+  const photoIndex = photo.carId === id ? photo.index : 0;
+  const setPhotoIndex = (index) => setPhoto({ carId: id, index });
 
   // Check availability when dates change
   useEffect(() => {
@@ -83,6 +87,8 @@ export default function CarDetail() {
   }
 
   const features = car.features || [];
+  const gallery = CAR_GALLERIES[car.plate_number] || null;
+  const shownPhoto = gallery ? gallery[photoIndex] || gallery[0] : car.image_url;
 
   return (
     <div className="page-container">
@@ -97,15 +103,17 @@ export default function CarDetail() {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left: Car Details */}
         <div className="flex-1 min-w-0">
-          {/* Image */}
+          {/* Image, with the owner's photo gallery when there is one */}
           <div
-            className={`rounded-2xl overflow-hidden aspect-[16/9] ${PHOTO_CREDITS[car.image_url] ? 'mb-1.5' : 'mb-6'}`}
+            className={`rounded-2xl overflow-hidden aspect-[16/9] bg-dark-900 ${PHOTO_CREDITS[car.image_url] || gallery ? 'mb-1.5' : 'mb-6'}`}
           >
-            {car.image_url ? (
+            {shownPhoto ? (
               <img
-                src={car.image_url}
-                alt={car.name}
-                className="w-full h-full object-cover"
+                src={shownPhoto}
+                alt={
+                  gallery ? `${car.name}, photo ${photoIndex + 1} of ${gallery.length}` : car.name
+                }
+                className={`w-full h-full ${photoIndex === 0 ? 'object-cover' : 'object-contain'}`}
                 loading="lazy"
                 referrerPolicy="no-referrer"
               />
@@ -115,7 +123,22 @@ export default function CarDetail() {
               </div>
             )}
           </div>
-          {PHOTO_CREDITS[car.image_url] && (
+          {gallery && (
+            <div className="flex gap-2 overflow-x-auto pb-1 mb-6">
+              {gallery.map((src, i) => (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => setPhotoIndex(i)}
+                  aria-label={`Show photo ${i + 1}`}
+                  className={`shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition-colors ${i === photoIndex ? 'border-violet-400' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                >
+                  <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
+          {!gallery && PHOTO_CREDITS[car.image_url] && (
             <p className="text-[11px] text-slate-500 mb-6">
               Photo of a similar vehicle by {PHOTO_CREDITS[car.image_url].author},{' '}
               <a
