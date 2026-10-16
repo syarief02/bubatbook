@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, FileImage, Wrench, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { uploadFileRobust } from '../lib/uploadHelper';
@@ -21,8 +22,10 @@ function depositAvailable(booking) {
     : 0;
 }
 
+// Rendered on document.body: inside a glass-card (backdrop-filter) a fixed
+// overlay is clipped to the card and drawn under the cards after it.
 export function Modal({ title, onClose, children }) {
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
@@ -39,7 +42,8 @@ export function Modal({ title, onClose, children }) {
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
