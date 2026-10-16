@@ -426,6 +426,16 @@ fleets (statuses: Pending Verification, Verified, Rejected, Suspended).
 
 ---
 
+## 📷 Car Photos
+
+Car images live in `public/cars/`. Most are studio renders. The Perodua Alza (black), Ford Ranger
+(blue) and Nissan Vanette photos are of similar vehicles from Wikimedia Commons, used under
+CC BY-SA licences: the car page shows the author, licence and changes for each, from
+`src/utils/carPhotos.js`. Add any new photo of that kind to that file, or replace it with your
+own photo of the vehicle.
+
+---
+
 ## 📧 Contact
 
 - **Company:** Bubat Resources

@@ -7,6 +7,7 @@ import DateRangePicker from '../components/DateRangePicker';
 import PriceCalculator from '../components/PriceCalculator';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
+import { PHOTO_CREDITS } from '../utils/carPhotos';
 import {
   ArrowLeft,
   Users,
@@ -97,7 +98,9 @@ export default function CarDetail() {
         {/* Left: Car Details */}
         <div className="flex-1 min-w-0">
           {/* Image */}
-          <div className="rounded-2xl overflow-hidden mb-6 aspect-[16/9]">
+          <div
+            className={`rounded-2xl overflow-hidden aspect-[16/9] ${PHOTO_CREDITS[car.image_url] ? 'mb-1.5' : 'mb-6'}`}
+          >
             {car.image_url ? (
               <img
                 src={car.image_url}
@@ -112,6 +115,29 @@ export default function CarDetail() {
               </div>
             )}
           </div>
+          {PHOTO_CREDITS[car.image_url] && (
+            <p className="text-[11px] text-slate-500 mb-6">
+              Photo of a similar vehicle by {PHOTO_CREDITS[car.image_url].author},{' '}
+              <a
+                href={PHOTO_CREDITS[car.image_url].licenseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-slate-300"
+              >
+                {PHOTO_CREDITS[car.image_url].license}
+              </a>
+              , via{' '}
+              <a
+                href={PHOTO_CREDITS[car.image_url].source}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-slate-300"
+              >
+                Wikimedia Commons
+              </a>{' '}
+              ({PHOTO_CREDITS[car.image_url].changes}).
+            </p>
+          )}
 
           {/* Car Info */}
           <div className="glass-card mb-6">
