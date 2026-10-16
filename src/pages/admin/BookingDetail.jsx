@@ -173,7 +173,7 @@ export default function AdminBookingDetail() {
             }),
             supabase
               .from('bubatrent_booking_rental_agreements')
-              .select('id, agreed_at, customer_name, signature_data')
+              .select('id, agreed_at, customer_name, signature_data, signed_in_person_by')
               .eq('booking_id', id)
               .maybeSingle()
               .then((r) => r.data)
