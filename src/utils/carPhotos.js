@@ -10,13 +10,6 @@ export const PHOTO_CREDITS = {
     source: 'https://commons.wikimedia.org/wiki/File:Perodua_Alza_1.5_X_(Elegant_Black).jpg',
     changes: 'cropped, number plate blurred',
   },
-  '/cars/ford-ranger-2019-blue.jpg': {
-    author: 'RL GNZLZ',
-    license: 'CC BY-SA 2.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/2.0/',
-    source: 'https://commons.wikimedia.org/wiki/File:Ford_Ranger_XLT_2.5_2019.jpg',
-    changes: 'colour changed from red to blue, number plate blurred',
-  },
   '/cars/nissan-vanette.jpg': {
     author: 'Two hundred percent',
     license: 'CC BY-SA 3.0',
@@ -31,6 +24,15 @@ export const PHOTO_CREDITS = {
 // the car page. The first one is also the car's main picture (image_url).
 // Location data (GPS) is removed from phone photos before they are added.
 export const CAR_GALLERIES = {
+  'VDM 6927': [
+    '/cars/vdm6927/1.jpg',
+    '/cars/vdm6927/2.jpg',
+    '/cars/vdm6927/3.jpg',
+    '/cars/vdm6927/4.jpg',
+    '/cars/vdm6927/5.jpg',
+    '/cars/vdm6927/6.jpg',
+    '/cars/vdm6927/7.jpg',
+  ],
   'VJC 5290': [
     '/cars/vjc5290/1.jpg',
     '/cars/vjc5290/2.jpg',

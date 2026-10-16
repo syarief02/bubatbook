@@ -434,9 +434,9 @@ Car images live in `public/cars/`.
   number in `CAR_GALLERIES` in `src/utils/carPhotos.js`. The car page shows them as a gallery;
   the first one is also the car's main picture (`image_url`). Strip location data (EXIF/GPS)
   from phone photos and resize them (about 1280 px wide) before adding them.
-- **Photos of similar vehicles** from Wikimedia Commons (Alza, Ranger recoloured from red,
-  Vanette), used under CC BY-SA licences: the car page shows the author, licence and
-  changes for each, from `PHOTO_CREDITS` in the same file.
+- **Photos of similar vehicles** from Wikimedia Commons (Alza, Vanette), used under CC BY-SA
+  licences: the car page shows the author, licence and changes for each, from `PHOTO_CREDITS`
+  in the same file.
 - **Studio renders** for the rest.
 
 ---
