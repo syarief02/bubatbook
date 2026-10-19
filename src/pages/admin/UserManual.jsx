@@ -107,8 +107,8 @@ const STATUSES = [
     name: 'HOLD',
     color: 'text-yellow-400',
     meaning:
-      'The customer is at checkout. The car is held for them for 10 minutes, and for a fresh 10 minutes once they sign the rental agreement.',
-    next: 'The customer signs the agreement, then pays the deposit. Expires by itself if no deposit is submitted.',
+      'The customer is at checkout. The car is held for them for 24 hours (or until the pick-up day ends, if that is sooner) while they sign the rental agreement and pay the deposit. They can leave and carry on from My Bookings, for example while waiting for your bank details on WhatsApp.',
+    next: 'The customer signs the agreement, then pays the deposit. Expires by itself if no deposit is submitted in time; press Cancel in Bookings to free the car sooner.',
   },
   {
     name: 'DEPOSIT_PAID',
@@ -1382,7 +1382,7 @@ export default function UserManual() {
               ],
               [
                 '"Those dates overlap with another booking"',
-                'Another booking holds the car then. A customer checkout hold clears itself after 10 minutes.',
+                'Another booking holds the car then. An unpaid online checkout (Hold) frees up within 24 hours; press Cancel on it in Bookings to free the car sooner.',
               ],
               [
                 'A customer says they can’t book',

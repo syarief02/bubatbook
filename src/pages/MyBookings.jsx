@@ -167,6 +167,26 @@ export default function MyBookings() {
                       </div>
                     </div>
 
+                    {booking.status === 'HOLD' &&
+                      (new Date(booking.hold_expires_at) > new Date() ? (
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                          <p className="text-xs text-yellow-400">
+                            Held for you until {formatDateTime(booking.hold_expires_at)}. Pay the
+                            deposit before then to keep it.
+                          </p>
+                          <Link
+                            to={`/checkout/${booking.car_id}?pickup=${booking.pickup_date}&return=${booking.return_date}`}
+                            className="btn-primary !py-1.5 !px-3 text-xs"
+                          >
+                            Continue booking
+                          </Link>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-400 mb-3">
+                          The hold ran out before the deposit was paid. Book again if the car is
+                          still free.
+                        </p>
+                      ))}
                     {booking.status === 'DEPOSIT_PAID' &&
                       booking.deposit_status !== 'verified' &&
                       booking.deposit_review_due_at && (

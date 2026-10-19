@@ -41,7 +41,8 @@ export async function expireStaleHolds() {
 }
 
 /**
- * Hold a car for 10 minutes while the customer checks out.
+ * Hold a car for 24 hours (or until the pick-up day ends) while the customer
+ * checks out. Coming back for the same car and dates returns the same hold.
  * The server computes price and deposit from the car's daily rate and rejects
  * overlapping dates, so two customers can never hold the same car and day.
  */

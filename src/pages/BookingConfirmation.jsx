@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useToast } from '../components/Toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
-import { formatDate } from '../utils/dates';
+import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
 import {
   CheckCircle,
@@ -215,8 +215,15 @@ export default function BookingConfirmation() {
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Booking on Hold</h1>
             <p className="text-slate-400">
-              Please upload your deposit receipt to secure this booking. Hold expires in 10 minutes.
+              Please upload your deposit receipt to secure this booking. It&apos;s held for you
+              until {formatDateTime(booking.hold_expires_at)}.
             </p>
+            <Link
+              to={`/checkout/${booking.car_id}?pickup=${booking.pickup_date}&return=${booking.return_date}`}
+              className="btn-primary inline-flex items-center gap-2 mt-4"
+            >
+              Continue booking
+            </Link>
           </>
         ) : (
           <>

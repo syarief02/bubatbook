@@ -14,7 +14,7 @@ import BookingForm from '../components/BookingForm';
 import RentalAgreementForm from '../components/RentalAgreementForm';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR, longRentalLabel } from '../utils/pricing';
-import { formatDate, formatTimeRemaining } from '../utils/dates';
+import { formatDate, formatDateTime, formatTimeRemaining } from '../utils/dates';
 import { hasBankDetails } from '../utils/banks';
 import {
   ArrowLeft,
@@ -78,6 +78,21 @@ export default function Checkout() {
       try {
         setLoading(true);
         const hold = await createHoldBooking(car.id, pickupDate, returnDate);
+        // Back for a car they already hold: carry on where they left off
+        if (hold.customer_name) {
+          setCustomerInfo({
+            name: hold.customer_name,
+            email: hold.customer_email,
+            phone: hold.customer_phone,
+            notes: hold.notes || '',
+          });
+          const { data: signed } = await supabase
+            .from('bubatrent_booking_rental_agreements')
+            .select('id')
+            .eq('booking_id', hold.id)
+            .maybeSingle();
+          setStep(signed ? 3 : 1);
+        }
         setBooking(hold);
       } catch (err) {
         holdCreatedRef.current = false;
@@ -232,7 +247,7 @@ export default function Checkout() {
 
   async function handleAgreementSigned() {
     setStep(3);
-    // Signing gives a fresh 10 minutes to pay: show the new time left
+    // Signing leaves at least 10 minutes to pay: show the time left
     const { data } = await supabase
       .from('bubatrent_booking_bookings')
       .select('hold_expires_at')
@@ -294,8 +309,8 @@ export default function Checkout() {
       {booking && !isExpired && (
         <div className="glass-card !p-3 flex items-center justify-between mb-6 border-yellow-500/20">
           <div className="flex items-center gap-2 text-sm text-yellow-300">
-            <Clock className="w-4 h-4" />
-            <span>Booking held for you</span>
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>Held for you until {formatDateTime(booking.hold_expires_at)}</span>
           </div>
           <span className="text-sm font-mono font-bold text-yellow-300">{timeRemaining}</span>
         </div>
@@ -347,11 +362,13 @@ export default function Checkout() {
               <BookingForm
                 onSubmit={handleInfoSubmit}
                 loading={loading}
-                initialData={{
-                  email: user?.email || '',
-                  name: profile?.display_name || '',
-                  phone: profile?.phone || '',
-                }}
+                initialData={
+                  customerInfo || {
+                    email: user?.email || '',
+                    name: profile?.display_name || '',
+                    phone: profile?.phone || '',
+                  }
+                }
               />
             </div>
           )}
@@ -402,7 +419,7 @@ export default function Checkout() {
                 <h2 className="text-lg font-semibold text-white mb-2">Rental Agreement</h2>
                 <p className="text-sm text-slate-400">
                   Perjanjian Sewaan Kenderaan. Read and sign the agreement before paying the
-                  deposit. Once you sign, you get a fresh 10 minutes to pay.
+                  deposit.
                 </p>
               </div>
               <RentalAgreementForm
@@ -509,6 +526,14 @@ export default function Checkout() {
                         <MessageCircle className="w-5 h-5" />
                         <span>WhatsApp Admin for Bank Details</span>
                       </a>
+                      <p className="text-xs text-slate-500 -mt-3 mb-6">
+                        Waiting for a reply? You can leave this page: the car stays held for you
+                        until {formatDateTime(booking.hold_expires_at)}. Come back from{' '}
+                        <Link to="/my-bookings" className="text-violet-400 hover:underline">
+                          My Bookings
+                        </Link>{' '}
+                        to upload the receipt.
+                      </p>
 
                       <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6 overflow-hidden">
                         <input

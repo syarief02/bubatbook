@@ -472,7 +472,7 @@ export default function AdminBookForCustomer() {
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" /> Online checkout in
-                  progress (frees up within 10 minutes if not paid)
+                  progress (frees up within 24 hours if not paid, or cancel it in Bookings)
                 </span>
               </div>
             </div>

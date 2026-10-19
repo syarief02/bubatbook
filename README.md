@@ -25,12 +25,13 @@
 - **Bank details** (bank, account number, holder name) on the profile, editable by the customer;
   online bookings need them. Every change is in the audit log (last 4 digits only).
 - **Browse & book** with a date picker and a server-side availability check, up to 6 months ahead.
-- **Checkout** holds the car for 10 minutes: your info, review, the rental agreement, then the
-  deposit (30% of the rental, at least RM100), paid by transfer with a receipt upload; existing
-  credit is applied automatically.
+- **Checkout** holds the car for 24 hours (or until the pick-up day ends): your info, review, the
+  rental agreement, then the deposit (30% of the rental, at least RM100), paid by transfer with a
+  receipt upload; existing credit is applied automatically.
 - **Rental agreement** signed on screen at checkout, on the customer's own device, before the
-  deposit can be paid (signing restarts the 10 minutes). Counter bookings are signed in person on a
-  staff device, or by the customer in My Bookings. Print / Save PDF.
+  deposit can be paid. Customers can leave and carry on from My Bookings while they wait for the
+  bank details. Counter bookings are signed in person on a staff device, or by the customer in My
+  Bookings. Print / Save PDF.
 - **My Bookings** shows status, the deposit and payment receipts, the full payment upload, the
   agreement, any charges after the rental and the invoice. Customers can cancel while a booking is
   on hold or deposit paid.
@@ -246,7 +247,7 @@ HOLD ──────► DEPOSIT_PAID ──────► CONFIRMED ──�
   ├─► CANCELLED   ├─► CANCELLED        └─► CANCELLED
   └─► EXPIRED     └─► EXPIRED (deposit not verified within 48 h)
      (hold ran         │
-      out, 10 min)     └─► reactivated by an admin ─► DEPOSIT_PAID
+      out, 24 h)       └─► reactivated by an admin ─► DEPOSIT_PAID
 ```
 
 Enforced by the database for every website request:
@@ -263,9 +264,10 @@ Enforced by the database for every website request:
 
 ```
 1. Customer picks a car and dates (availability checked on the server).
-2. Checkout places a 10-minute hold; the server prices it:
+2. Checkout places a 24-hour hold (or until the pick-up day ends); the server prices it:
    rental = days × daily rate, deposit = max(RM100, 30% of rental).
-3. Customer signs the rental agreement on their own device (the hold restarts at 10 minutes).
+   Coming back for the same car and dates returns the same hold.
+3. Customer signs the rental agreement on their own device (at least 10 minutes are left to pay).
 4. Customer uploads the deposit receipt (credit is applied first; if it covers the whole
    deposit, no receipt is needed). The booking becomes DEPOSIT_PAID with a 48-hour deadline.
 5. Admin verifies the deposit, then confirms the booking.

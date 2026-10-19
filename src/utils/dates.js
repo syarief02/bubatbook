@@ -76,8 +76,10 @@ export function formatTimeRemaining(expiresAt) {
 
   if (diff <= 0) return 'Expired';
 
-  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  const mmss = `${minutes.toString().padStart(hours ? 2 : 1, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  return hours ? `${hours}:${mmss}` : mmss;
 }

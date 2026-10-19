@@ -67,16 +67,21 @@ says what to do and what you should see.
 3. Read the agreement, sign, tick the box → **Tandatangan & Setuju (Sign & Agree)**.
    ✅ It shows your name, IC and phone, the car and plate, the dates, total and deposit.
    ✅ The sign button stays off until you sign and tick the box.
-   ✅ The hold timer starts again at about 10:00 and the Payment step opens.
+   ✅ The Payment step opens. The bar at the top says **Held for you until** about this time
+   tomorrow (or midnight, if pick-up is today), with the time left counting down.
    ✅ Deposit = 30% of the rental, at least RM100. Any credit is applied automatically.
    ✅ For 7 days or more, the car page and checkout show the long-rental discount (10%; 20% for
    30 days or more, as set in Fleet Settings) and the deposit is 30% of the discounted rental.
-4. Upload a receipt and press **Submit Deposit Payment** (or **Confirm Booking** if credit
+4. **Leave and come back**: go to **My Bookings**.
+   ✅ The booking says **Held for you until …** with a **Continue booking** button.
+   ✅ **Continue booking** opens checkout on the Payment step, the timer still counting down
+   (no new hold, nothing to sign again).
+5. Upload a receipt and press **Submit Deposit Payment** (or **Confirm Booking** if credit
    covers the deposit).
    ✅ The confirmation page shows **DEPOSIT_PAID** and the 48-hour notice.
    ✅ **Print Receipt** opens a printable receipt.
    ✅ Next Steps doesn't ask a verified customer for ID.
-5. **My Bookings** shows the booking with a **Deposit Receipt** link that opens the image, and
+6. **My Bookings** shows the booking with a **Deposit Receipt** link that opens the image, and
    an **Agreement** link to the signed copy (dates like "16 Oct 2026, 10:30", **Print / Save
    PDF**).
    ✅ The admin booking page already shows "Signed by … on …" (without "in person").
