@@ -312,6 +312,12 @@ export default function VerifyAccount() {
           <p className="text-sm text-slate-400 mb-2">
             Your identity has been verified. You can now book cars.
           </p>
+          {latestUpdate?.status === 'rejected' && (
+            <p className="text-xs text-red-300 mb-2">
+              Your last update wasn&apos;t accepted
+              {latestUpdate.rejection_reason ? `: ${latestUpdate.rejection_reason}` : '.'}
+            </p>
+          )}
           <p className="text-xs text-slate-500 mb-6">
             {profile?.licence_expiry &&
               `Licence valid until ${formatDate(profile.licence_expiry)}. `}
