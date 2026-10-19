@@ -13,6 +13,8 @@ import {
   UserCheck,
   Users,
   Receipt,
+  Bell,
+  ChevronRight,
 } from 'lucide-react';
 
 // Static color maps — dynamic template literals like `bg-${color}-500/10`
@@ -74,8 +76,57 @@ export default function AdminDashboard() {
     { label: 'Registered Users', value: stats?.totalCustomers || 0, icon: Users, color: 'cyan' },
   ];
 
+  // Things waiting for an admin; the panel shows only when something is waiting
+  const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  const todo = [
+    stats?.depositsToReview > 0 && {
+      label: `${plural(stats.depositsToReview, 'deposit receipt')} to check`,
+      detail: 'Online deposits are released after 48 hours',
+      to: '/admin/bookings?status=DEPOSIT_PAID',
+    },
+    stats?.depositsOnHold > 0 && {
+      label: `${plural(stats.depositsOnHold, 'deposit')} on hold to settle (${formatMYR(stats.depositsOnHoldAmount)})`,
+      detail: 'Returned cars waiting for the damage cost',
+      to: '/admin/bookings?deposit=held',
+    },
+    stats?.customersWithCredit > 0 && {
+      label: `${formatMYR(stats.creditOwed)} credit owed to ${plural(stats.customersWithCredit, 'customer')}`,
+      detail: 'Refund by transfer, or keep for their next booking',
+      to: '/admin/customers?credit=1',
+    },
+    stats?.pendingVerifications > 0 && {
+      label: `${plural(stats.pendingVerifications, 'customer')} to verify`,
+      detail: 'Waiting for you to check their documents',
+      to: '/admin/customers?verification=pending',
+    },
+  ].filter(Boolean);
+
   return (
     <AdminLayout title="Dashboard">
+      {/* Needs your attention */}
+      {todo.length > 0 && (
+        <div className="glass-card mb-8 border-amber-500/20 bg-amber-500/5">
+          <h2 className="text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
+            <Bell className="w-4 h-4" /> Needs your attention
+          </h2>
+          <div className="divide-y divide-white/5">
+            {todo.map(({ label, detail, to }) => (
+              <Link
+                key={to}
+                to={to}
+                className="flex items-center justify-between gap-3 py-2.5 group"
+              >
+                <span className="text-sm text-slate-200 group-hover:text-white">{label}</span>
+                <span className="text-xs text-slate-500 flex items-center gap-1 text-right">
+                  <span className="hidden sm:inline">{detail}</span>
+                  <ChevronRight className="w-4 h-4 shrink-0" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {cards.map(({ label, value, icon: Icon, color, to }, i) => {

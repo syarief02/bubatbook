@@ -37,7 +37,8 @@
 
 ### Admin
 
-- **Dashboard**: customers to verify, deposits to check, rental revenue, deposits currently held.
+- **Dashboard**: a "Needs your attention" list (deposit receipts to check, deposits on hold to
+  settle, credit owed to customers, customers to verify), rental revenue, deposits currently held.
 - **Bookings**: the full status flow, with rules enforced by the database. Admins verify deposits
   and full payments (receipt or cash), send the agreement link or take the customer's signature in
   person (**Sign at Counter**), edit dates, reactivate expired bookings, cancel or delete.

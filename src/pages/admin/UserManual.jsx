@@ -252,9 +252,9 @@ export default function UserManual() {
         >
           <Steps>
             <li>
-              Open the <B>Dashboard</B>. Click <B>Deposits to Check</B> and verify or reject each
-              receipt (section 7.1). <strong>Do this within 48 hours</strong>: an unverified deposit
-              releases the booking automatically.
+              Open the <B>Dashboard</B> and work through <B>Needs your attention</B>. Verify or
+              reject each deposit receipt (section 7.1). <strong>Do this within 48 hours</strong>:
+              an unverified deposit releases the booking automatically.
             </li>
             <li>
               Click <B>Customers to Verify</B> and check each customer&apos;s IC and licence
@@ -268,7 +268,9 @@ export default function UserManual() {
             <li>
               For cars coming back, inspect them and press <B>Mark Returned</B>, entering any
               charges for late return, cleaning, fuel or damage. Settle deposits you put on hold
-              once you have the repair quote, and record payments for anything owed (section 7.6).
+              once you have the repair quote (they stay in Needs your attention until you do), and
+              record payments for anything owed (section 7.6). Refund credit by transfer to the
+              customer&apos;s bank account, or keep it for their next booking.
             </li>
             <li>
               Submit expense claims for money you spent on the cars, and complete claims you have
@@ -285,6 +287,23 @@ export default function UserManual() {
           iconClass="text-indigo-400"
           title="Dashboard"
         >
+          <p>
+            <B>Needs your attention</B>, at the top, appears whenever something is waiting for you.
+            Each line opens the list to work through:
+          </p>
+          <Bullets>
+            <li>deposit receipts to check (released after 48 hours if you don&apos;t);</li>
+            <li>
+              deposits on hold to settle: returned cars whose deposit you held until the damage cost
+              is known (opens Bookings with <B>Deposit on hold</B>);
+            </li>
+            <li>
+              credit owed to customers: deposits that went back to their credit, to refund by
+              transfer or keep for their next booking (opens Customers with <B>💰 Has Credit</B>);
+            </li>
+            <li>customers to verify.</li>
+          </Bullets>
+          <p>Below it:</p>
           <Bullets>
             <li>
               <B>Total Bookings</B>: bookings that are holding, booked, out or returned (not
@@ -400,7 +419,9 @@ export default function UserManual() {
           <p>
             <B>Customers</B> has a search box (name, email or phone), a role filter and status
             filters: <B>✅ Verified</B>, <B>❌ Not Verified</B> (nothing sent yet) and{' '}
-            <B>⏳ Pending</B> (sent, waiting for you). Click a customer to open their details.
+            <B>⏳ Pending</B> (sent, waiting for you), plus <B>💰 Has Credit</B> for customers
+            holding credit. Click a customer to open their details; each booking in their{' '}
+            <B>Booking History</B> opens that booking, and one with a deposit on hold says so.
           </p>
           <Sub>Checking documents</Sub>
           <Steps>

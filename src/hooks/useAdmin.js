@@ -103,6 +103,16 @@ export function useAdminStats(fleetId) {
       const { data: moneyRows, error: moneyErr } = await moneyQuery;
       if (moneyErr) throw moneyErr;
 
+      // Returned cars whose deposit is on hold until the damage cost is known
+      const onHold = (moneyRows || []).filter((b) => b.status === 'RETURNED' && b.deposit_on_hold);
+      // Credit customers hold (returned deposits), to refund by transfer or keep.
+      // Credit belongs to the customer, not a fleet, like pendingVerifications.
+      const { data: creditRows, error: creditErr } = await supabase
+        .from('bubatrent_booking_profiles')
+        .select('deposit_credit')
+        .gt('deposit_credit', 0);
+      if (creditErr) throw creditErr;
+
       return {
         totalBookings: totalBookings || 0,
         activeBookings: activeBookings || 0,
@@ -114,6 +124,10 @@ export function useAdminStats(fleetId) {
         depositsHeld: sumBy(moneyRows || [], depositHeld),
         chargesCollected: sumBy(moneyRows || [], chargesCollected),
         chargesOwed: sumBy(moneyRows || [], chargesOwed),
+        depositsOnHold: onHold.length,
+        depositsOnHoldAmount: sumBy(onHold, (b) => Number(b.deposit_amount) || 0),
+        customersWithCredit: (creditRows || []).length,
+        creditOwed: sumBy(creditRows || [], (p) => Number(p.deposit_credit) || 0),
         totalCustomers: totalCustomers || 0,
       };
     },
@@ -203,6 +217,7 @@ export function useAdminCustomers(filters = {}) {
       filters.search,
       filters.fleetId,
       filters.verification,
+      filters.credit,
     ],
     queryFn: async () => {
       let query = supabase
@@ -229,6 +244,11 @@ export function useAdminCustomers(filters = {}) {
         query = query.eq('is_verified', false).is('ic_number', null).is('ic_file_path', null);
       } else if (filters.verification === 'pending') {
         query = query.eq('is_verified', false).or('ic_number.not.is.null,ic_file_path.not.is.null');
+      }
+
+      // Customers holding credit (deposits returned as credit, to refund or keep)
+      if (filters.credit) {
+        query = query.gt('deposit_credit', 0);
       }
 
       const { data, error: fetchError } = await query;

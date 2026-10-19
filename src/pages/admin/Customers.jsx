@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import {
@@ -38,6 +38,7 @@ import {
   Loader2,
   UserPlus,
   Landmark,
+  ChevronRight,
 } from 'lucide-react';
 import { useToast } from '../../components/Toast';
 import { supabase } from '../../lib/supabase';
@@ -59,6 +60,8 @@ export default function Customers() {
       ? searchParams.get('verification')
       : 'ALL'
   );
+  // ?credit=1 (from the dashboard): customers holding credit, to refund or keep
+  const [creditOnly, setCreditOnly] = useState(() => searchParams.get('credit') === '1');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -113,6 +116,7 @@ export default function Customers() {
     role: roleFilter,
     fleetId: activeFleetId,
     verification: verificationFilter !== 'ALL' ? verificationFilter : undefined,
+    credit: creditOnly,
   });
 
   async function handleExpand(customerId) {
@@ -225,6 +229,16 @@ export default function Customers() {
                     : '⏳ Pending'}
             </button>
           ))}
+          <button
+            onClick={() => setCreditOnly((v) => !v)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+              creditOnly
+                ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                : 'bg-white/5 text-slate-400 hover:bg-white/10'
+            }`}
+          >
+            💰 Has Credit
+          </button>
         </div>
       </div>
 
@@ -1350,9 +1364,11 @@ export default function Customers() {
                       ) : (
                         <div className="space-y-2">
                           {bookings.map((b) => (
-                            <div
+                            <Link
                               key={b.id}
-                              className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                              to={`/admin/bookings/${b.id}`}
+                              title="Open booking"
+                              className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-transparent hover:border-violet-500/20 transition-colors"
                             >
                               {b.bubatrent_booking_cars?.image_url && (
                                 <img
@@ -1369,6 +1385,11 @@ export default function Customers() {
                                   <CalendarDays className="w-3 h-3" />
                                   {formatDate(b.pickup_date)} → {formatDate(b.return_date)}
                                 </div>
+                                {b.status === 'RETURNED' && b.deposit_on_hold && (
+                                  <div className="text-[11px] text-amber-400 mt-0.5">
+                                    Deposit {formatMYR(b.deposit_amount)} on hold: settle it
+                                  </div>
+                                )}
                               </div>
                               <div className="text-right shrink-0">
                                 <div className="text-sm font-medium text-white">
@@ -1376,7 +1397,8 @@ export default function Customers() {
                                 </div>
                                 <BookingStatusBadge status={b.status} />
                               </div>
-                            </div>
+                              <ChevronRight className="w-4 h-4 text-slate-600 shrink-0" />
+                            </Link>
                           ))}
                         </div>
                       )}

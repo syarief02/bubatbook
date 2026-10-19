@@ -26,6 +26,8 @@ export default function AdminBookings() {
   const toast = useToast();
   const { activeFleetId } = useFleet();
   const [searchParams] = useSearchParams();
+  // ?deposit=held (from the dashboard): returned cars whose deposit waits to be settled
+  const [heldOnly, setHeldOnly] = useState(() => searchParams.get('deposit') === 'held');
   const [statusFilter, setStatusFilter] = useState(() =>
     STATUSES.includes(searchParams.get('status')) ? searchParams.get('status') : 'ALL'
   );
@@ -37,6 +39,7 @@ export default function AdminBookings() {
 
   // Client-side filter by customer name/email
   const filteredBookings = bookings.filter((b) => {
+    if (heldOnly && !(b.status === 'RETURNED' && b.deposit_on_hold)) return false;
     if (!customerSearch) return true;
     const q = customerSearch.toLowerCase();
     return (
@@ -89,6 +92,16 @@ export default function AdminBookings() {
             {s}
           </button>
         ))}
+        <button
+          onClick={() => setHeldOnly((v) => !v)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+            heldOnly
+              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
+          }`}
+        >
+          Deposit on hold
+        </button>
         <span className="text-xs text-slate-600 ml-auto whitespace-nowrap">
           {filteredBookings.length} result{filteredBookings.length !== 1 ? 's' : ''}
         </span>
@@ -107,9 +120,11 @@ export default function AdminBookings() {
           description={
             customerSearch
               ? 'Try a different search term'
-              : statusFilter !== 'ALL'
-                ? `No ${statusFilter} bookings.`
-                : 'No bookings yet.'
+              : heldOnly
+                ? 'No deposits on hold.'
+                : statusFilter !== 'ALL'
+                  ? `No ${statusFilter} bookings.`
+                  : 'No bookings yet.'
           }
         />
       ) : (
@@ -134,6 +149,11 @@ export default function AdminBookings() {
                           {car?.name || 'Car'}
                         </h3>
                         <BookingStatusBadge status={booking.status} />
+                        {booking.status === 'RETURNED' && booking.deposit_on_hold && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 whitespace-nowrap">
+                            Deposit on hold
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <p className="text-xs text-slate-500 truncate">
