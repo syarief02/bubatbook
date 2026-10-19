@@ -307,12 +307,14 @@ export default function Checkout() {
 
       {/* Hold Timer */}
       {booking && !isExpired && (
-        <div className="glass-card !p-3 flex items-center justify-between mb-6 border-yellow-500/20">
-          <div className="flex items-center gap-2 text-sm text-yellow-300">
+        <div className="glass-card !p-3 flex items-center justify-between gap-3 mb-6 border-yellow-500/20">
+          <div className="flex items-center gap-2 min-w-0 text-sm text-yellow-300">
             <Clock className="w-4 h-4 shrink-0" />
             <span>Held for you until {formatDateTime(booking.hold_expires_at)}</span>
           </div>
-          <span className="text-sm font-mono font-bold text-yellow-300">{timeRemaining}</span>
+          <span className="shrink-0 text-sm font-mono font-bold text-yellow-300">
+            {timeRemaining}
+          </span>
         </div>
       )}
 
