@@ -301,6 +301,9 @@ export default function UserManual() {
               credit owed to customers: deposits that went back to their credit, to refund by
               transfer or keep for their next booking (opens Customers with <B>💰 Has Credit</B>);
             </li>
+            <li>
+              licence renewals to review (opens Customers with <B>🔄 Renewals</B>);
+            </li>
             <li>customers to verify.</li>
           </Bullets>
           <p>Below it:</p>
@@ -411,17 +414,19 @@ export default function UserManual() {
             </li>
             <li>
               After you verify them they can book. An expired licence stops new bookings until they
-              update it. Customers verified before bank details were asked for add them once on
-              their profile; checkout sends them there before their next booking.
+              renew it and you approve the renewal (below). Customers verified before bank details
+              were asked for add them once on their profile; checkout sends them there before their
+              next booking.
             </li>
           </Steps>
           <Sub>Finding customers</Sub>
           <p>
             <B>Customers</B> has a search box (name, email or phone), a role filter and status
             filters: <B>✅ Verified</B>, <B>❌ Not Verified</B> (nothing sent yet) and{' '}
-            <B>⏳ Pending</B> (sent, waiting for you), plus <B>💰 Has Credit</B> for customers
-            holding credit. Click a customer to open their details; each booking in their{' '}
-            <B>Booking History</B> opens that booking, and one with a deposit on hold says so.
+            <B>⏳ Pending</B> (sent, waiting for you), <B>🔄 Renewals</B> (licence renewals waiting
+            for you), plus <B>💰 Has Credit</B> for customers holding credit. Click a customer to
+            open their details; each booking in their <B>Booking History</B> opens that booking, and
+            one with a deposit on hold says so.
           </p>
           <Sub>Checking documents</Sub>
           <Steps>
@@ -439,6 +444,32 @@ export default function UserManual() {
               must send them again.
             </li>
           </Steps>
+          <Sub>Licence renewals</Sub>
+          <p>
+            When a licence expires, the customer can&apos;t book until they renew it: in{' '}
+            <B>Verify Account</B> they enter the new expiry date and upload a photo of the new
+            licence (and a new IC photo if their IC number changed). They can also renew early,
+            before it expires. The customer gets a <B>Renewal</B> tag, and{' '}
+            <B>Needs your attention</B> on the Dashboard lists it.
+          </p>
+          <Steps>
+            <li>
+              Open the customer. <B>Licence renewal to review</B> shows the old and new expiry (and
+              any new IC number or address) and the new photos.
+            </li>
+            <li>
+              Check the new licence photo matches the customer and the expiry date, then press{' '}
+              <B>Approve update</B>: the new details replace the old ones and the customer can book
+              again.
+            </li>
+            <li>
+              Or press <B>Reject</B> and give a reason: nothing changes, and the customer sees the
+              reason and can send it again.
+            </li>
+          </Steps>
+          <p>
+            Both are in the audit log. A licence that has already expired can&apos;t be approved.
+          </p>
           <p>
             <B>Revoke Verification</B> takes verification away from a verified customer. They
             can&apos;t make new bookings; existing bookings stay.

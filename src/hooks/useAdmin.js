@@ -27,6 +27,9 @@ async function expireStaleHoldsQuietly() {
   }
 }
 
+// Matches no row: for .in() with an empty list
+const NO_ID = '00000000-0000-0000-0000-000000000000';
+
 // ─── Data-Fetching Hooks (React Query) ───
 
 export function useAdminStats(fleetId) {
@@ -107,6 +110,11 @@ export function useAdminStats(fleetId) {
       const onHold = (moneyRows || []).filter((b) => b.status === 'RETURNED' && b.deposit_on_hold);
       // Credit customers hold (returned deposits), to refund by transfer or keep.
       // Credit belongs to the customer, not a fleet, like pendingVerifications.
+      // Licence renewals waiting for review (customers aren't fleet-scoped)
+      const { count: renewalsToReview } = await supabase
+        .from('bubatrent_booking_verification_updates')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
       const { data: creditRows, error: creditErr } = await supabase
         .from('bubatrent_booking_profiles')
         .select('deposit_credit')
@@ -124,6 +132,7 @@ export function useAdminStats(fleetId) {
         depositsHeld: sumBy(moneyRows || [], depositHeld),
         chargesCollected: sumBy(moneyRows || [], chargesCollected),
         chargesOwed: sumBy(moneyRows || [], chargesOwed),
+        renewalsToReview: renewalsToReview || 0,
         depositsOnHold: onHold.length,
         depositsOnHoldAmount: sumBy(onHold, (b) => Number(b.deposit_amount) || 0),
         customersWithCredit: (creditRows || []).length,
@@ -246,6 +255,16 @@ export function useAdminCustomers(filters = {}) {
         query = query.eq('is_verified', false).or('ic_number.not.is.null,ic_file_path.not.is.null');
       }
 
+      // Licence renewals / document updates waiting for review (Verify Account)
+      const { data: pendingUpdates } = await supabase
+        .from('bubatrent_booking_verification_updates')
+        .select('user_id')
+        .eq('status', 'pending');
+      const updateWaiting = new Set((pendingUpdates || []).map((u) => u.user_id));
+      if (filters.verification === 'renewal') {
+        query = query.in('id', updateWaiting.size ? [...updateWaiting] : [NO_ID]);
+      }
+
       // Customers holding credit (deposits returned as credit, to refund or keep)
       if (filters.credit) {
         query = query.gt('deposit_credit', 0);
@@ -293,6 +312,7 @@ export function useAdminCustomers(filters = {}) {
       return filtered.map((c) => ({
         ...c,
         booking_count: bookingCounts[c.id] || 0,
+        update_waiting: updateWaiting.has(c.id),
         fleet_credit: filters.fleetId ? creditByUser[c.id] || 0 : Number(c.deposit_credit || 0),
       }));
     },

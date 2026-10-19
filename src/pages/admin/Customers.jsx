@@ -38,6 +38,7 @@ import {
   Loader2,
   UserPlus,
   Landmark,
+  RefreshCw,
   ChevronRight,
 } from 'lucide-react';
 import { useToast } from '../../components/Toast';
@@ -46,6 +47,7 @@ import { uploadFileRobust } from '../../lib/uploadHelper';
 
 import { SignedLink, SignedImage } from '../../components/SignedFile';
 import BankDetailsFields from '../../components/BankDetailsFields';
+import VerificationUpdateReview from '../../components/VerificationUpdateReview';
 import { bankDetailsError, bankForSave, bankFromProfile, hasBankDetails } from '../../utils/banks';
 export default function Customers() {
   const { user, isSuperAdmin } = useAuth();
@@ -56,7 +58,7 @@ export default function Customers() {
   const [searchParams] = useSearchParams();
   // The dashboard links here with ?verification=pending
   const [verificationFilter, setVerificationFilter] = useState(() =>
-    ['verified', 'not_verified', 'pending'].includes(searchParams.get('verification'))
+    ['verified', 'not_verified', 'pending', 'renewal'].includes(searchParams.get('verification'))
       ? searchParams.get('verification')
       : 'ALL'
   );
@@ -210,7 +212,7 @@ export default function Customers() {
             <option value="admin">🛡️ Admin</option>
             <option value="super_admin">🟠 Super Admin</option>
           </select>
-          {['ALL', 'verified', 'not_verified', 'pending'].map((v) => (
+          {['ALL', 'verified', 'not_verified', 'pending', 'renewal'].map((v) => (
             <button
               key={v}
               onClick={() => setVerificationFilter(v)}
@@ -226,7 +228,9 @@ export default function Customers() {
                   ? '✅ Verified'
                   : v === 'not_verified'
                     ? '❌ Not Verified'
-                    : '⏳ Pending'}
+                    : v === 'pending'
+                      ? '⏳ Pending'
+                      : '🔄 Renewals'}
             </button>
           ))}
           <button
@@ -329,6 +333,11 @@ export default function Customers() {
                         <Clock className="w-3 h-3" /> Pending
                       </span>
                     ) : null}
+                    {customer.update_waiting && (
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 flex items-center gap-1">
+                        <RefreshCw className="w-3 h-3" /> Renewal
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
                     <span className="flex items-center gap-1 truncate">
@@ -462,6 +471,9 @@ export default function Customers() {
                         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-4">
                           Verification & Details
                         </h4>
+                        {customer.update_waiting && (
+                          <VerificationUpdateReview customer={customer} onReviewed={refetch} />
+                        )}
                         {customer.ic_number ||
                         customer.licence_number ||
                         customer.ic_file_path ||

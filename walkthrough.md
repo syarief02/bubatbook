@@ -44,7 +44,15 @@ says what to do and what you should see.
 5. Open the customer, check the documents, press **Verify Customer**.
    ✅ The customer card shows the **Bank Account** with "Updated …".
    ✅ The customer can now book. An unverified customer, or one with an expired licence, can't.
-6. **Existing customer without bank details** (optional): clear them with Edit Customer Details,
+6. **Licence renewal** (optional): as the customer, **Verify** → **Renew licence or update IC**
+   (or, with an expired licence, the form opens by itself). Change the expiry date without a new
+   licence photo.
+   ✅ It asks for the new licence photo. With the photo: **Update Under Review**.
+   ✅ Admin: Dashboard → **Needs your attention** lists it; the customer has a **Renewal** tag and
+   **Licence renewal to review** (old → new expiry, new photo).
+   ✅ **Reject** with a reason: the customer's Verify page shows the reason and the form again.
+   ✅ Send it again, **Approve update**: the profile shows the new expiry; the customer can book.
+7. **Existing customer without bank details** (optional): clear them with Edit Customer Details,
    then, as the customer, start a booking.
    ✅ Checkout shows **Add Your Bank Details**; after saving on the profile it goes back to the
    booking.

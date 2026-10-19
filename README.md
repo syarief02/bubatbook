@@ -20,7 +20,8 @@
 - **Mobile number** required for every customer; Google sign-ups add it before using account pages.
 - **Identity verification** with Malaysian IC number and MyKad photo, driving licence photo and
   expiry, a structured address and the bank account deposits are refunded to. An admin approves
-  it before the customer can book; an expired licence stops new bookings.
+  it before the customer can book; an expired licence stops new bookings until the customer
+  sends a renewal (new expiry date and licence photo) and an admin approves it.
 - **Bank details** (bank, account number, holder name) on the profile, editable by the customer;
   online bookings need them. Every change is in the audit log (last 4 digits only).
 - **Browse & book** with a date picker and a server-side availability check, up to 6 months ahead.
@@ -38,7 +39,7 @@
 ### Admin
 
 - **Dashboard**: a "Needs your attention" list (deposit receipts to check, deposits on hold to
-  settle, credit owed to customers, customers to verify), rental revenue, deposits currently held.
+  settle, credit owed to customers, licence renewals to review, customers to verify), rental revenue, deposits currently held.
 - **Bookings**: the full status flow, with rules enforced by the database. Admins verify deposits
   and full payments (receipt or cash), send the agreement link or take the customer's signature in
   person (**Sign at Counter**), edit dates, reactivate expired bookings, cancel or delete.
@@ -55,7 +56,7 @@
 - **Create Customer** for walk-ins: IC, licence and address checked by staff, so the customer is
   verified when created; bank details optional. They need no account to rent; if they sign up later, their record links
   to it.
-- **Customers**: check documents, verify, reject or revoke, edit details (sensitive edits go to
+- **Customers**: check documents, verify, reject or revoke, approve or reject licence renewals, edit details (sensitive edits go to
   the Super Group as change requests), manage roles, add or deduct credit, see booking history.
 - **Sales**: rental revenue, charges, expenses paid and profit, kept separate from refundable
   deposits; per car (with plate), with date filters (rentals by pickup date, expenses by expense
@@ -197,7 +198,7 @@ scripts/
 | `bubatrent_booking_expense_claims`       | Expense claims (per car or general); locked once paid                        |
 | `bubatrent_booking_expense_images`       | Invoice images per claim                                                     |
 | `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                                  |
-| `bubatrent_booking_verification_updates` | Pending document re-submissions                                              |
+| `bubatrent_booking_verification_updates` | Licence renewals / document updates waiting for review (and reviewed)        |
 
 Files (IC, licence, receipts) live in the private `customer-documents` storage bucket.
 
@@ -211,6 +212,7 @@ Anything involving money or status goes through the database, not the browser:
 | `bubatrent_submit_booking_deposit`                      | Needs the signed agreement; records the deposit and receipt, applies credit, starts the 48 h clock |
 | `bubatrent_admin_verify_deposit`                        | Marks the deposit verified (records a cash payment if none)                                        |
 | `bubatrent_sign_rental_agreement`                       | Signs once, terms from the booking; by the customer (from checkout) or staff in person             |
+| `bubatrent_admin_review_verification_update`            | Approve a licence renewal (new details on the profile) or reject it with a reason                  |
 | `bubatrent_admin_create_booking`                        | Book for Customer: checks, prices, applies credit, records the deposit                             |
 | `bubatrent_admin_adjust_credit`                         | Add / deduct credit with a ledger entry, never below zero                                          |
 | `bubatrent_admin_return_booking`                        | Mark returned with charges off the deposit, or hold the deposit                                    |

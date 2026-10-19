@@ -94,6 +94,11 @@ export default function AdminDashboard() {
       detail: 'Refund by transfer, or keep for their next booking',
       to: '/admin/customers?credit=1',
     },
+    stats?.renewalsToReview > 0 && {
+      label: `${plural(stats.renewalsToReview, 'licence renewal')} to review`,
+      detail: 'Customers can book again once you approve',
+      to: '/admin/customers?verification=renewal',
+    },
     stats?.pendingVerifications > 0 && {
       label: `${plural(stats.pendingVerifications, 'customer')} to verify`,
       detail: 'Waiting for you to check their documents',

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -6,6 +6,7 @@ import { uploadFileRobust } from '../lib/uploadHelper';
 import { useToast } from '../components/Toast';
 import { normalizePhone } from '../utils/phoneUtils';
 import { friendlyDbError } from '../utils/dbErrors';
+import { formatDate, formatDateTime } from '../utils/dates';
 import { bankDetailsError, bankForSave, bankFromProfile, hasBankDetails } from '../utils/banks';
 import BankDetailsFields from '../components/BankDetailsFields';
 import {
@@ -32,6 +33,23 @@ export default function VerifyAccount() {
     profile?.licence_expiry &&
     new Date(profile.licence_expiry) < new Date();
   const hasSubmittedDocs = profile?.ic_number && profile?.ic_file_path && !profile?.is_verified;
+  // A verified customer renewing their licence (or updating their IC) sends the
+  // new details for an admin to review; the latest one says where that stands.
+  const [latestUpdate, setLatestUpdate] = useState(null);
+  const [showUpdate, setShowUpdate] = useState(false);
+  const updating = Boolean(profile?.is_verified);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from('bubatrent_booking_verification_updates')
+      .select('status, rejection_reason, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => setLatestUpdate(data || null));
+  }, [user?.id]);
 
   const [icNumber, setIcNumber] = useState(profile?.ic_number || '');
   const [licenceExpiry, setLicenceExpiry] = useState(profile?.licence_expiry || '');
@@ -128,6 +146,23 @@ export default function VerifyAccount() {
 
     // For first-time verification, files are required
     const isUpdate = profile?.is_verified || hasSubmittedDocs;
+    if (updating) {
+      // A new expiry date needs the new licence; a new IC number a new IC photo
+      const newExpiry = licenceExpiry !== (profile.licence_expiry || '');
+      const newIc = icNumber.trim() !== (profile.ic_number || '');
+      if (newExpiry && !licenceFile) {
+        setError('Please upload a photo of your new driving licence.');
+        return;
+      }
+      if (newIc && !icFile) {
+        setError('Please upload a photo of your IC for the new IC number.');
+        return;
+      }
+      if (!newExpiry && !newIc && !icFile && !licenceFile) {
+        setError('Nothing to review: enter your new licence expiry date and upload its photo.');
+        return;
+      }
+    }
     if (!isUpdate) {
       const icErr = validateFile(icFile, 'IC / MyKad');
       if (icErr) {
@@ -174,6 +209,7 @@ export default function VerifyAccount() {
             postcode: postcode.trim(),
           });
         if (insertErr) throw insertErr;
+        setLatestUpdate({ status: 'pending', created_at: new Date().toISOString() });
         // Bank details aren't part of the identity check: saved straight away
         const { error: bankErr } = await supabase
           .from('bubatrent_booking_profiles')
@@ -222,6 +258,48 @@ export default function VerifyAccount() {
     }
   }
 
+  // A renewal sent and waiting for an admin
+  if (updating && latestUpdate?.status === 'pending') {
+    return (
+      <div className="page-container max-w-xl mx-auto">
+        <div className="glass-card text-center animate-fade-in">
+          <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
+            <Clock className="w-8 h-8 text-yellow-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Update Under Review</h1>
+          <p className="text-sm text-slate-400 mb-2">
+            We received your new details on {formatDateTime(latestUpdate.created_at)} and are
+            checking them. This usually takes less than 24 hours.
+          </p>
+          <p className="text-xs text-slate-500 mb-6">
+            {licenceExpired
+              ? "You can book again once it's approved."
+              : 'Your current verification stays valid meanwhile.'}
+          </p>
+          <Link to="/" className="btn-secondary inline-flex items-center gap-2">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Verified customer renewing before the licence expires
+  if (isVerified && !licenceExpired && showUpdate) {
+    return (
+      <div className="page-container max-w-xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-white mb-1">Update Your Licence or IC</h1>
+          <p className="text-sm text-slate-400">
+            Change the expiry date and upload the new licence. We check it, then it replaces the old
+            one.
+          </p>
+        </div>
+        {renderForm()}
+      </div>
+    );
+  }
+
   // Already verified (and licence not expired)
   if (isVerified && !licenceExpired) {
     return (
@@ -231,8 +309,18 @@ export default function VerifyAccount() {
             <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Account Verified</h1>
-          <p className="text-sm text-slate-400 mb-6">
+          <p className="text-sm text-slate-400 mb-2">
             Your identity has been verified. You can now book cars.
+          </p>
+          <p className="text-xs text-slate-500 mb-6">
+            {profile?.licence_expiry &&
+              `Licence valid until ${formatDate(profile.licence_expiry)}. `}
+            <button
+              onClick={() => setShowUpdate(true)}
+              className="text-violet-400 hover:text-violet-300 underline"
+            >
+              Renew licence or update IC
+            </button>
           </p>
           <div className="flex gap-3 justify-center">
             <Link to="/" className="btn-primary inline-flex items-center gap-2">
@@ -327,6 +415,13 @@ export default function VerifyAccount() {
 
         <div className="glass-card">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {updating && latestUpdate?.status === 'rejected' && (
+              <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-300">
+                Your last update wasn&apos;t accepted
+                {latestUpdate.rejection_reason ? `: ${latestUpdate.rejection_reason}` : '.'} Please
+                send it again.
+              </div>
+            )}
             {error && (
               <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -374,7 +469,11 @@ export default function VerifyAccount() {
                   />
                 </div>
                 <div>
-                  <label className="input-label">IC / MyKad Image *</label>
+                  <label className="input-label">
+                    {updating
+                      ? 'New IC / MyKad Photo (only if your IC changed)'
+                      : 'IC / MyKad Image *'}
+                  </label>
                   <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
                     <input
                       type="file"
@@ -395,7 +494,9 @@ export default function VerifyAccount() {
                   </label>
                 </div>
                 <div>
-                  <label className="input-label">Driving Licence Image *</label>
+                  <label className="input-label">
+                    {updating ? 'New Driving Licence Photo *' : 'Driving Licence Image *'}
+                  </label>
                   <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
                     <input
                       type="file"
@@ -532,7 +633,8 @@ export default function VerifyAccount() {
                 </>
               ) : (
                 <>
-                  <Upload className="w-5 h-5" /> Submit for Verification
+                  <Upload className="w-5 h-5" />{' '}
+                  {updating ? 'Send for Review' : 'Submit for Verification'}
                 </>
               )}
             </button>
