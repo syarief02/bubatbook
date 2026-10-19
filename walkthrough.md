@@ -33,12 +33,21 @@ says what to do and what you should see.
 1. On rent2go.my, sign up with **Google** (or email and password).
 2. **Complete Profile** asks for a Malaysian mobile number. Enter it.
 3. Click **Verify** in the top bar → **Verify Account**. Enter the IC number and licence expiry,
-   upload an IC image and a licence image, fill in the address, and submit.
+   upload an IC image and a licence image, fill in the address and the **Bank Account** (bank,
+   account number, holder name), and submit.
+   ✅ Without the bank details it says what's missing; an account number with letters or under 6
+   digits is refused.
    ✅ The page scrolls to the top and shows **Verification Pending**.
+   ✅ **Profile** shows the bank account (spaces and dashes removed) with **Edit**.
 4. As admin, open the **Dashboard**.
    ✅ **Customers to Verify** includes the new customer. Clicking it opens the Pending list.
 5. Open the customer, check the documents, press **Verify Customer**.
+   ✅ The customer card shows the **Bank Account** with "Updated …".
    ✅ The customer can now book. An unverified customer, or one with an expired licence, can't.
+6. **Existing customer without bank details** (optional): clear them with Edit Customer Details,
+   then, as the customer, start a booking.
+   ✅ Checkout shows **Add Your Bank Details**; after saving on the profile it goes back to the
+   booking.
 
 ## Test 2: Booking and deposit (customer)
 
@@ -136,8 +145,9 @@ The agreement was signed at checkout (Test 2). Signing at the counter is in Test
 ## Test 7: Counter (walk-in) customers
 
 1. **Customers → Create Customer** with IC, phone, address, licence expiry and both images (name
-   it "E2E TEST …").
-   ✅ The customer is created already verified.
+   it "E2E TEST …"). Leave the bank account empty.
+   ✅ The customer is created already verified; the card says the bank account is not added.
+   ✅ Filling only the bank name is refused: all three bank fields or none.
 2. **Book for Customer** (Customers → **Book for Customer**):
    - Search an unverified customer.
      ✅ They show **Not verified**, a warning links to Customers, and **Next → Select Car** stays

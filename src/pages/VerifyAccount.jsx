@@ -5,6 +5,9 @@ import { supabase } from '../lib/supabase';
 import { uploadFileRobust } from '../lib/uploadHelper';
 import { useToast } from '../components/Toast';
 import { normalizePhone } from '../utils/phoneUtils';
+import { friendlyDbError } from '../utils/dbErrors';
+import { bankDetailsError, bankForSave, bankFromProfile, hasBankDetails } from '../utils/banks';
+import BankDetailsFields from '../components/BankDetailsFields';
 import {
   FileCheck,
   Shield,
@@ -17,6 +20,7 @@ import {
   CreditCard,
   Clock,
   MapPin,
+  Landmark,
 } from 'lucide-react';
 
 export default function VerifyAccount() {
@@ -38,6 +42,8 @@ export default function VerifyAccount() {
   const [city, setCity] = useState(profile?.city || '');
   const [state, setState] = useState(profile?.state || '');
   const [postcode, setPostcode] = useState(profile?.postcode || '');
+  // Where deposits are refunded; saved on the profile (the customer can change it there)
+  const [bank, setBank] = useState(bankFromProfile(profile));
   const [icFile, setIcFile] = useState(null);
   const [licenceFile, setLicenceFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -114,6 +120,11 @@ export default function VerifyAccount() {
       setError('Postcode is required.');
       return;
     }
+    const bankErr = bankDetailsError(bank);
+    if (bankErr) {
+      setError(bankErr);
+      return;
+    }
 
     // For first-time verification, files are required
     const isUpdate = profile?.is_verified || hasSubmittedDocs;
@@ -163,6 +174,12 @@ export default function VerifyAccount() {
             postcode: postcode.trim(),
           });
         if (insertErr) throw insertErr;
+        // Bank details aren't part of the identity check: saved straight away
+        const { error: bankErr } = await supabase
+          .from('bubatrent_booking_profiles')
+          .update(bankForSave(bank))
+          .eq('id', user.id);
+        if (bankErr) throw bankErr;
       } else {
         // First-time: update or insert profile directly (still needs admin approval)
         const { error: updateErr } = await supabase.from('bubatrent_booking_profiles').upsert(
@@ -183,6 +200,7 @@ export default function VerifyAccount() {
             city: city.trim(),
             state: state.trim(),
             postcode: postcode.trim(),
+            ...bankForSave(bank),
           },
           { onConflict: 'id' }
         );
@@ -197,7 +215,7 @@ export default function VerifyAccount() {
         isUpdate ? 'Verification update submitted!' : 'Documents submitted for verification!'
       );
     } catch (err) {
-      setError(err.message || 'Upload failed. Please try again.');
+      setError(friendlyDbError(err));
     } finally {
       setUploading(false);
       setUploadStatus('');
@@ -265,6 +283,14 @@ export default function VerifyAccount() {
           <p className="text-xs text-slate-500 mb-6">
             This usually takes less than 24 hours. You&apos;ll be able to book once verified.
           </p>
+          {!hasBankDetails(profile) && (
+            <p className="text-xs text-amber-300 mb-6">
+              Please also add your bank details, for deposit refunds:{' '}
+              <Link to="/profile#bank" className="text-violet-400 hover:text-violet-300 underline">
+                Add bank details
+              </Link>
+            </p>
+          )}
           <Link to="/" className="btn-secondary inline-flex items-center gap-2">
             Back to Home
           </Link>
@@ -281,7 +307,7 @@ export default function VerifyAccount() {
         </div>
         <h1 className="text-2xl font-bold text-white mb-1">Verify Your Account</h1>
         <p className="text-sm text-slate-400">
-          Submit your IC and driving licence to start booking
+          Submit your IC, driving licence, address and bank details to start booking
         </p>
       </div>
       {renderForm()}
@@ -480,6 +506,18 @@ export default function VerifyAccount() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Bank Section */}
+            <div className="border-t border-white/5 pt-5">
+              <p className="text-sm font-medium text-white mb-1 flex items-center gap-2">
+                <Landmark className="w-4 h-4 text-violet-400" />
+                Bank Account
+              </p>
+              <p className="text-xs text-slate-500 mb-4">
+                Your deposit is refunded to this account. Only our staff can see it.
+              </p>
+              <BankDetailsFields value={bank} onChange={setBank} disabled={uploading} />
             </div>
 
             <button

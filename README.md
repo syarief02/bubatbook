@@ -19,8 +19,10 @@
   linked by email, or by mobile number plus IC number.
 - **Mobile number** required for every customer; Google sign-ups add it before using account pages.
 - **Identity verification** with Malaysian IC number and MyKad photo, driving licence photo and
-  expiry, and a structured address. An admin approves it before the customer can book; an expired
-  licence stops new bookings.
+  expiry, a structured address and the bank account deposits are refunded to. An admin approves
+  it before the customer can book; an expired licence stops new bookings.
+- **Bank details** (bank, account number, holder name) on the profile, editable by the customer;
+  online bookings need them. Every change is in the audit log (last 4 digits only).
 - **Browse & book** with a date picker and a server-side availability check, up to 6 months ahead.
 - **Checkout** holds the car for 10 minutes: your info, review, the rental agreement, then the
   deposit (30% of the rental, at least RM100), paid by transfer with a receipt upload; existing
@@ -50,7 +52,7 @@
   only, deposit pre-filled from the online rule, optional use of the customer's credit, notes.
   Saved in one server step that prices the booking and records the deposit.
 - **Create Customer** for walk-ins: IC, licence and address checked by staff, so the customer is
-  verified when created. They need no account to rent; if they sign up later, their record links
+  verified when created; bank details optional. They need no account to rent; if they sign up later, their record links
   to it.
 - **Customers**: check documents, verify, reject or revoke, edit details (sensitive edits go to
   the Super Group as change requests), manage roles, add or deduct credit, see booking history.
@@ -174,27 +176,27 @@ scripts/
 
 ### Tables
 
-| Table                                    | Purpose                                                               |
-| ---------------------------------------- | --------------------------------------------------------------------- |
-| `bubatrent_booking_profiles`             | Users: role, verification, IC/licence, address, credit balance        |
-| `bubatrent_booking_cars`                 | Cars per fleet: specs, daily price, availability                      |
-| `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state       |
-| `bubatrent_booking_payments`             | Payment records (deposit / full payment / charge, method, reference)  |
-| `bubatrent_booking_charges`              | Charges after a rental (late return, cleaning, fuel, damage, other)   |
-| `bubatrent_booking_rental_changes`       | Price, extension, early return and car changes to a rental            |
-| `bubatrent_booking_workshop_payments`    | Repairs the customer paid the workshop for us, and where it went      |
-| `bubatrent_booking_rental_agreements`    | Signed agreements (terms from the booking; staff if signed in person) |
-| `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only             |
-| `bubatrent_booking_audit_logs`           | Who did what; written by triggers and functions; undeletable          |
-| `bubatrent_booking_fleet_groups`         | Fleets (rental companies), status, support contacts                   |
-| `bubatrent_booking_fleet_memberships`    | Admin membership and fleet role (Fleet Admin / Staff)                 |
-| `bubatrent_booking_change_requests`      | Sensitive customer edits awaiting Super Group approval                |
-| `bubatrent_booking_link_attempts`        | Walk-in account linking attempts (rate limit)                         |
-| `bubatrent_booking_upload_logs`          | Upload diagnostics from customer and admin devices                    |
-| `bubatrent_booking_expense_claims`       | Expense claims (per car or general); locked once paid                 |
-| `bubatrent_booking_expense_images`       | Invoice images per claim                                              |
-| `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                           |
-| `bubatrent_booking_verification_updates` | Pending document re-submissions                                       |
+| Table                                    | Purpose                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------- |
+| `bubatrent_booking_profiles`             | Users: role, verification, IC/licence, address, bank account, credit balance |
+| `bubatrent_booking_cars`                 | Cars per fleet: specs, daily price, availability                             |
+| `bubatrent_booking_bookings`             | Bookings: status, dates, prices, deposit and full payment state              |
+| `bubatrent_booking_payments`             | Payment records (deposit / full payment / charge, method, reference)         |
+| `bubatrent_booking_charges`              | Charges after a rental (late return, cleaning, fuel, damage, other)          |
+| `bubatrent_booking_rental_changes`       | Price, extension, early return and car changes to a rental                   |
+| `bubatrent_booking_workshop_payments`    | Repairs the customer paid the workshop for us, and where it went             |
+| `bubatrent_booking_rental_agreements`    | Signed agreements (terms from the booking; staff if signed in person)        |
+| `bubatrent_booking_credit_transactions`  | Credit ledger; always adds up to the balance; append-only                    |
+| `bubatrent_booking_audit_logs`           | Who did what; written by triggers and functions; undeletable                 |
+| `bubatrent_booking_fleet_groups`         | Fleets (rental companies), status, support contacts                          |
+| `bubatrent_booking_fleet_memberships`    | Admin membership and fleet role (Fleet Admin / Staff)                        |
+| `bubatrent_booking_change_requests`      | Sensitive customer edits awaiting Super Group approval                       |
+| `bubatrent_booking_link_attempts`        | Walk-in account linking attempts (rate limit)                                |
+| `bubatrent_booking_upload_logs`          | Upload diagnostics from customer and admin devices                           |
+| `bubatrent_booking_expense_claims`       | Expense claims (per car or general); locked once paid                        |
+| `bubatrent_booking_expense_images`       | Invoice images per claim                                                     |
+| `bubatrent_booking_customer_documents`   | Per-booking identity documents (older flow)                                  |
+| `bubatrent_booking_verification_updates` | Pending document re-submissions                                              |
 
 Files (IC, licence, receipts) live in the private `customer-documents` storage bucket.
 
@@ -204,7 +206,7 @@ Anything involving money or status goes through the database, not the browser:
 
 | Function / trigger                                      | What it does                                                                                       |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `bubatrent_create_hold_booking`                         | Checks the customer and dates, prices the booking, holds the car                                   |
+| `bubatrent_create_hold_booking`                         | Checks the customer (verified, bank details) and dates, prices the booking, holds the car          |
 | `bubatrent_submit_booking_deposit`                      | Needs the signed agreement; records the deposit and receipt, applies credit, starts the 48 h clock |
 | `bubatrent_admin_verify_deposit`                        | Marks the deposit verified (records a cash payment if none)                                        |
 | `bubatrent_sign_rental_agreement`                       | Signs once, terms from the booking; by the customer (from checkout) or staff in person             |

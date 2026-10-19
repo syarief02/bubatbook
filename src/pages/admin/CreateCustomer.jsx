@@ -7,6 +7,9 @@ import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
 import { useToast } from '../../components/Toast';
 import { normalizePhone, isValidMYPhone } from '../../utils/phoneUtils';
+import { friendlyDbError } from '../../utils/dbErrors';
+import { EMPTY_BANK, bankDetailsError, bankForSave } from '../../utils/banks';
+import BankDetailsFields from '../../components/BankDetailsFields';
 import {
   User,
   Phone,
@@ -17,6 +20,7 @@ import {
   Loader2,
   ArrowLeft,
   CreditCard,
+  Landmark,
 } from 'lucide-react';
 
 const STATES = [
@@ -64,6 +68,8 @@ export default function CreateCustomer() {
   });
   const [icFile, setIcFile] = useState(null);
   const [licenceFile, setLicenceFile] = useState(null);
+  // Optional at the counter: the customer may not have the details with them
+  const [bank, setBank] = useState(EMPTY_BANK);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -80,6 +86,8 @@ export default function CreateCustomer() {
     if (!icFile) e.ic = 'IC image upload is required';
     if (!licenceFile) e.licence = 'Licence image upload is required';
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email address';
+    const bankErr = bankDetailsError(bank, { optional: true });
+    if (bankErr) e.bank = bankErr;
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -141,6 +149,22 @@ export default function CreateCustomer() {
         throw profileErr;
       }
 
+      // Bank details, if given (the database logs them as BANK_DETAILS_CHANGED)
+      const bankValues = bankForSave(bank);
+      let bankSaved = true;
+      if (bankValues.bank_account_number) {
+        const { error: bankErr } = await supabase
+          .from('bubatrent_booking_profiles')
+          .update(bankValues)
+          .eq('id', profileId);
+        if (bankErr) {
+          bankSaved = false;
+          toast.error(
+            `Customer created, but the bank details weren't saved: ${friendlyDbError(bankErr)}`
+          );
+        }
+      }
+
       // Audit log
       await supabase.from('bubatrent_booking_audit_logs').insert({
         admin_id: user.id,
@@ -150,7 +174,7 @@ export default function CreateCustomer() {
         details: { phone: normalizedPhone, ic: form.ic_number, fleet_group_id: activeFleetId },
       });
 
-      toast.success('Customer created and auto-verified');
+      if (bankSaved) toast.success('Customer created and auto-verified');
       navigate('/admin/customers');
     } catch (err) {
       toast.error(err.message || 'Failed to create customer');
@@ -349,6 +373,19 @@ export default function CreateCustomer() {
               </label>
               {errors.licence && <p className="text-[10px] text-red-400 mt-1">{errors.licence}</p>}
             </div>
+          </div>
+
+          {/* Bank details (optional) */}
+          <div>
+            <p className="input-label flex items-center gap-1.5">
+              <Landmark className="w-3.5 h-3.5 text-violet-400" /> Bank Account (optional)
+            </p>
+            <p className="text-[11px] text-slate-500 mb-3">
+              For deposit refunds. Leave empty if the customer doesn&apos;t have the details with
+              them; add them later from Customers. Online bookings need them.
+            </p>
+            <BankDetailsFields value={bank} onChange={setBank} required={false} disabled={saving} />
+            {errors.bank && <p className="text-[10px] text-red-400 mt-1">{errors.bank}</p>}
           </div>
 
           <button

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { useBookings } from '../hooks/useBookings';
@@ -8,6 +8,9 @@ import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
+import { friendlyDbError } from '../utils/dbErrors';
+import { bankDetailsError, bankForSave, bankFromProfile, hasBankDetails } from '../utils/banks';
+import BankDetailsFields from '../components/BankDetailsFields';
 import {
   User,
   Mail,
@@ -25,6 +28,7 @@ import {
   CalendarDays,
   FileCheck,
   ExternalLink,
+  Landmark,
 } from 'lucide-react';
 
 export default function Profile() {
@@ -40,9 +44,26 @@ export default function Profile() {
   const [city, setCity] = useState(profile?.city || '');
   const [state, setState] = useState(profile?.state || '');
   const [postcode, setPostcode] = useState(profile?.postcode || '');
+  // Bank account for deposit refunds; checkout sends customers here (#bank) to add it
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
+  const [bank, setBank] = useState(bankFromProfile(profile));
+  const [editingBank, setEditingBank] = useState(false);
+  const [savingBank, setSavingBank] = useState(false);
+
+  useEffect(() => {
+    if (location.hash !== '#bank') return;
+    if (!hasBankDetails(profile)) setEditingBank(true);
+    document.getElementById('bank')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Only when arriving with #bank
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.hash]);
 
   useEffect(() => {
     if (profile) {
+      setBank(bankFromProfile(profile));
       setDisplayName(profile.display_name || '');
       setAddressLine1(profile.address_line1 || '');
       setAddressLine2(profile.address_line2 || '');
@@ -74,6 +95,31 @@ export default function Profile() {
       toast.error(err.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSaveBank() {
+    const err = bankDetailsError(bank);
+    if (err) {
+      toast.error(err);
+      return;
+    }
+    setSavingBank(true);
+    try {
+      const { error } = await supabase
+        .from('bubatrent_booking_profiles')
+        .update(bankForSave(bank))
+        .eq('id', user.id);
+      if (error) throw error;
+      await refreshProfile();
+      setEditingBank(false);
+      toast.success('Bank details saved');
+      // Back to the booking that asked for them
+      if (returnTo?.startsWith('/') && !returnTo.startsWith('//')) navigate(returnTo);
+    } catch (err) {
+      toast.error(friendlyDbError(err));
+    } finally {
+      setSavingBank(false);
     }
   }
 
@@ -227,6 +273,67 @@ export default function Profile() {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Bank Account */}
+          <div id="bank" className="glass-card scroll-mt-24">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Landmark className="w-4 h-4" /> Bank Account
+              </h2>
+              {!editingBank ? (
+                <button
+                  onClick={() => setEditingBank(true)}
+                  className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                >
+                  <Edit3 className="w-3.5 h-3.5" /> {hasBankDetails(profile) ? 'Edit' : 'Add'}
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveBank}
+                    disabled={savingBank}
+                    className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300"
+                  >
+                    <Save className="w-3.5 h-3.5" /> {savingBank ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setBank(bankFromProfile(profile));
+                      setEditingBank(false);
+                    }}
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400"
+                  >
+                    <X className="w-3.5 h-3.5" /> Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {editingBank ? (
+              <>
+                <p className="text-xs text-slate-500 mb-4">
+                  Your deposit is refunded to this account. Only our staff can see it.
+                  {returnTo && ' After saving, you go back to your booking.'}
+                </p>
+                <BankDetailsFields value={bank} onChange={setBank} disabled={savingBank} />
+              </>
+            ) : hasBankDetails(profile) ? (
+              <div className="text-sm space-y-1">
+                <p className="text-white">{profile.bank_name}</p>
+                <p className="text-white font-mono tracking-wide">{profile.bank_account_number}</p>
+                <p className="text-slate-400">{profile.bank_account_holder}</p>
+                <p className="text-xs text-slate-500 pt-1">
+                  Deposits are refunded to this account.
+                </p>
+              </div>
+            ) : (
+              <p className="flex items-start gap-2 text-sm text-amber-300">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                Not added yet. Add the account your deposit is refunded to: you need it before
+                booking.
+              </p>
+            )}
           </div>
 
           {/* Verification Status */}

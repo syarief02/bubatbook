@@ -15,6 +15,7 @@ import RentalAgreementForm from '../components/RentalAgreementForm';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR, longRentalLabel } from '../utils/pricing';
 import { formatDate, formatTimeRemaining } from '../utils/dates';
+import { hasBankDetails } from '../utils/banks';
 import {
   ArrowLeft,
   Clock,
@@ -28,6 +29,7 @@ import {
   Loader2,
   Wallet,
   MessageCircle,
+  Landmark,
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
@@ -64,10 +66,13 @@ export default function Checkout() {
   // Deposit credit
   const credit = Number(profile?.deposit_credit || 0);
 
+  // Online bookings need the bank account deposits are refunded to
+  const needsBank = isVerified && !hasBankDetails(profile);
+
   // Create hold on mount
   useEffect(() => {
     if (!car || !user || !pickupDate || !returnDate || booking || holdCreatedRef.current) return;
-    if (isTooFarAdvance) return;
+    if (isTooFarAdvance || needsBank) return;
     holdCreatedRef.current = true;
     async function createHold() {
       try {
@@ -86,7 +91,7 @@ export default function Checkout() {
     createHold();
     // booking and holdCreatedRef guard against duplicate holds; isTooFarAdvance derives from returnDate
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [car, user, pickupDate, returnDate]);
+  }, [car, user, pickupDate, returnDate, needsBank]);
 
   // Timer for hold expiry
   useEffect(() => {
@@ -136,6 +141,31 @@ export default function Checkout() {
           </p>
           <Link to="/verify" className="btn-primary inline-flex items-center gap-2">
             Verify Now
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Verified before bank details were asked for: add them once, then come back
+  if (needsBank) {
+    const back = `/checkout/${carId}?pickup=${pickupDate}&return=${returnDate}`;
+    return (
+      <div className="page-container max-w-lg mx-auto text-center">
+        <div className="glass-card">
+          <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
+            <Landmark className="w-8 h-8 text-violet-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Add Your Bank Details</h2>
+          <p className="text-sm text-slate-400 mb-6">
+            Before you book, add the bank account we refund your deposit to. You only need to do
+            this once, and you come back to this booking after saving.
+          </p>
+          <Link
+            to={`/profile?returnTo=${encodeURIComponent(back)}#bank`}
+            className="btn-primary inline-flex items-center gap-2"
+          >
+            Add Bank Details
           </Link>
         </div>
       </div>

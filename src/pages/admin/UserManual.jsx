@@ -386,12 +386,14 @@ export default function UserManual() {
             </li>
             <li>
               <B>Verify Account</B>: enters their IC number and licence expiry date, uploads photos
-              of their IC (MyKad) and driving licence, and gives their address. They then see
+              of their IC (MyKad) and driving licence, and gives their address and bank account
+              (bank, account number, holder name; deposits are refunded there). They then see
               &quot;Verification Pending&quot;.
             </li>
             <li>
               After you verify them they can book. An expired licence stops new bookings until they
-              update it.
+              update it. Customers verified before bank details were asked for add them once on
+              their profile; checkout sends them there before their next booking.
             </li>
           </Steps>
           <Sub>Finding customers</Sub>
@@ -403,8 +405,8 @@ export default function UserManual() {
           <Sub>Checking documents</Sub>
           <Steps>
             <li>
-              Open the customer. Their IC and licence images, IC number, licence expiry, phone and
-              address are shown. Opening documents is recorded in the audit log.
+              Open the customer. Their IC and licence images, IC number, licence expiry, phone,
+              address and bank account are shown. Opening documents is recorded in the audit log.
             </li>
             <li>
               Check that the IC photo matches the name and IC number, the licence is valid and its
@@ -422,8 +424,9 @@ export default function UserManual() {
           </p>
           <Sub>Editing a customer</Sub>
           <p>
-            <B>Edit Customer Details</B> changes the name and phone straight away. The IC number,
-            address, licence expiry, GDL licence and new IC or licence images are sensitive:
+            <B>Edit Customer Details</B> changes the name, phone and bank account straight away
+            (every bank change is in the audit log, with the last 4 digits). The IC number, address,
+            licence expiry, GDL licence and new IC or licence images are sensitive:
           </p>
           <Bullets>
             <li>
@@ -463,9 +466,11 @@ export default function UserManual() {
           <p>
             For a customer at the counter who has no account, go to <B>Customers</B> →{' '}
             <B>Create Customer</B>. You need their IC number, a Malaysian phone number, address,
-            licence expiry, and photos of the IC and licence. Name, email and licence type are
-            optional, but enter the name: it is printed on the agreement and invoice. The customer
-            is created already verified, without a login they can use yet. Then book a car for them
+            licence expiry, and photos of the IC and licence. Name, email, licence type and bank
+            account are optional, but enter the name: it is printed on the agreement and invoice.
+            Add the bank account when you can (now, or later with Edit Customer Details): it is
+            where you refund the deposit, and the customer needs it to book online. The customer is
+            created already verified, without a login they can use yet. Then book a car for them
             with <B>Book for Customer</B> (section 8).
           </p>
           <Sub>When the customer later signs in</Sub>
@@ -691,10 +696,10 @@ export default function UserManual() {
               give money back instead.
             </li>
             <li>
-              Refund the rest of the deposit as the customer prefers: transfer it and record that
-              with <B>Deduct Credit</B> (&quot;Deposit refunded by transfer&quot;), or leave it as
-              credit for their next booking. The agreement promises the refund within 7 working
-              days.
+              Refund the rest of the deposit as the customer prefers: transfer it to the{' '}
+              <B>Bank Account</B> shown on their customer page and record that with{' '}
+              <B>Deduct Credit</B> (&quot;Deposit refunded by transfer&quot;), or leave it as credit
+              for their next booking. The agreement promises the refund within 7 working days.
             </li>
           </Bullets>
 
