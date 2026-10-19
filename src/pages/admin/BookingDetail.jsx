@@ -541,8 +541,8 @@ export default function AdminBookingDetail() {
         </div>
       </div>
 
-      {/* Rental Agreement Status Card */}
-      {['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
+      {/* Rental Agreement Status Card (online customers sign at checkout) */}
+      {['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
         <div
           className={`glass-card mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 ${agreement ? 'border-green-500/20 bg-green-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}
         >

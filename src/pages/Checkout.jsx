@@ -9,7 +9,9 @@ import {
   submitBookingDeposit,
 } from '../hooks/useBookings';
 import { uploadFileRobust } from '../lib/uploadHelper';
+import { supabase } from '../lib/supabase';
 import BookingForm from '../components/BookingForm';
+import RentalAgreementForm from '../components/RentalAgreementForm';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR, longRentalLabel } from '../utils/pricing';
 import { formatDate, formatTimeRemaining } from '../utils/dates';
@@ -29,7 +31,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
-const STEPS = ['Your Info', 'Review', 'Payment'];
+// The customer signs the rental agreement before paying the deposit
+const STEPS = ['Your Info', 'Review', 'Agreement', 'Payment'];
 
 export default function Checkout() {
   const { carId } = useParams();
@@ -100,6 +103,11 @@ export default function Checkout() {
     timerRef.current = setInterval(tick, 1000);
     return () => clearInterval(timerRef.current);
   }, [booking?.hold_expires_at, booking?.id]);
+
+  // Each step starts at the top (the agreement is long)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
 
   if (carLoading || (loading && !holdError)) return <LoadingSpinner fullScreen />;
 
@@ -190,6 +198,17 @@ export default function Checkout() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleAgreementSigned() {
+    setStep(3);
+    // Signing gives a fresh 10 minutes to pay: show the new time left
+    const { data } = await supabase
+      .from('bubatrent_booking_bookings')
+      .select('hold_expires_at')
+      .eq('id', booking.id)
+      .maybeSingle();
+    if (data?.hold_expires_at) setBooking((b) => ({ ...b, hold_expires_at: data.hold_expires_at }));
   }
 
   async function handleDepositPayment() {
@@ -340,7 +359,7 @@ export default function Checkout() {
                     className="btn-primary flex-1"
                     disabled={isExpired}
                   >
-                    Proceed to Payment
+                    Continue to Agreement
                   </button>
                 </div>
               </div>
@@ -348,6 +367,33 @@ export default function Checkout() {
           )}
 
           {step === 2 && (
+            <div className="animate-fade-in">
+              <div className="glass-card mb-6">
+                <h2 className="text-lg font-semibold text-white mb-2">Rental Agreement</h2>
+                <p className="text-sm text-slate-400">
+                  Perjanjian Sewaan Kenderaan. Read and sign the agreement before paying the
+                  deposit. Once you sign, you get a fresh 10 minutes to pay.
+                </p>
+              </div>
+              <RentalAgreementForm
+                booking={booking}
+                car={car}
+                renter={{
+                  name: profile?.display_name || customerInfo?.name || user?.email,
+                  ic: profile?.ic_number,
+                  phone: profile?.phone || customerInfo?.phone,
+                  email: user?.email,
+                }}
+                disabled={isExpired}
+                onSigned={handleAgreementSigned}
+              />
+              <button onClick={() => setStep(1)} className="btn-secondary w-full mt-3">
+                Back to Review
+              </button>
+            </div>
+          )}
+
+          {step === 3 && (
             <div className="glass-card animate-fade-in">
               <h2 className="text-lg font-semibold text-white mb-2">Deposit Payment</h2>
               <p className="text-sm text-slate-400 mb-6">

@@ -100,7 +100,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
         disabled={loading}
         className="btn-primary w-full flex items-center justify-center gap-2"
       >
-        {loading ? 'Saving...' : 'Continue to Payment'}
+        {loading ? 'Saving...' : 'Continue'}
       </button>
     </form>
   );

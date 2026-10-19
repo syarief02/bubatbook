@@ -422,7 +422,7 @@ export default function BookingConfirmation() {
               </Link>
             )}
 
-            {['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
+            {['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
               <Link
                 to={`/booking/${booking.id}/agreement`}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors group"
@@ -435,7 +435,7 @@ export default function BookingConfirmation() {
                     Rental Agreement
                   </p>
                   <p className="text-xs text-slate-500">
-                    Sign it before pickup, or view your signed copy
+                    View or print your signed copy, or sign it before pickup
                   </p>
                 </div>
                 <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />

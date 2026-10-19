@@ -1,7 +1,7 @@
 # 🚗 Rent2Go — Premium Car Rental Malaysia
 
 > A full-stack car rental platform for the Malaysian market. Customers browse cars, book dates,
-> pay a deposit by bank transfer with a receipt upload, sign the rental agreement on screen and
+> sign the rental agreement on screen, pay a deposit by bank transfer with a receipt upload and
 > pay the rental before pickup. Admins verify customers and payments, take counter and phone
 > bookings, run the booking from pickup to return (with charges for late returns or damage), manage
 > deposits as customer credit, and track rental revenue and expenses, for one or more rental
@@ -22,10 +22,12 @@
   expiry, and a structured address. An admin approves it before the customer can book; an expired
   licence stops new bookings.
 - **Browse & book** with a date picker and a server-side availability check, up to 6 months ahead.
-- **Checkout** holds the car for 10 minutes. The deposit (30% of the rental, at least RM100) is
-  paid by transfer with a receipt upload; existing credit is applied automatically.
-- **Rental agreement** signed on screen once the booking is confirmed (on the customer's phone, or
-  in person on a staff device at the counter), with Print / Save PDF.
+- **Checkout** holds the car for 10 minutes: your info, review, the rental agreement, then the
+  deposit (30% of the rental, at least RM100), paid by transfer with a receipt upload; existing
+  credit is applied automatically.
+- **Rental agreement** signed on screen at checkout, on the customer's own device, before the
+  deposit can be paid (signing restarts the 10 minutes). Counter bookings are signed in person on a
+  staff device, or by the customer in My Bookings. Print / Save PDF.
 - **My Bookings** shows status, the deposit and payment receipts, the full payment upload, the
   agreement, any charges after the rental and the invoice. Customers can cancel while a booking is
   on hold or deposit paid.
@@ -200,36 +202,36 @@ Files (IC, licence, receipts) live in the private `customer-documents` storage b
 
 Anything involving money or status goes through the database, not the browser:
 
-| Function / trigger                                      | What it does                                                           |
-| ------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `bubatrent_create_hold_booking`                         | Checks the customer and dates, prices the booking, holds the car       |
-| `bubatrent_submit_booking_deposit`                      | Records the deposit and receipt, applies credit, starts the 48 h clock |
-| `bubatrent_admin_verify_deposit`                        | Marks the deposit verified (records a cash payment if none)            |
-| `bubatrent_sign_rental_agreement`                       | Signs once, terms from the booking; by the customer or staff in person |
-| `bubatrent_admin_create_booking`                        | Book for Customer: checks, prices, applies credit, records the deposit |
-| `bubatrent_admin_adjust_credit`                         | Add / deduct credit with a ledger entry, never below zero              |
-| `bubatrent_admin_return_booking`                        | Mark returned with charges off the deposit, or hold the deposit        |
-| `bubatrent_admin_settle_deposit`                        | Release a held deposit, less charges                                   |
-| `bubatrent_admin_add_booking_charges`                   | Charges found after settling (owed)                                    |
-| `bubatrent_admin_remove_booking_charge`                 | Undo a mistaken charge before any charge payment                       |
-| `bubatrent_admin_record_charge_payment`                 | Record money collected for what the customer owes                      |
-| `bubatrent_admin_change_rental_price`                   | An agreed price, with a reason; any excess paid goes to credit         |
-| `bubatrent_admin_extend_rental`                         | Later return if the car is free; extra rent at the new length rate     |
-| `bubatrent_admin_end_rental_early`                      | Earlier return; unused days back, less 25% if the customer chose it    |
-| `bubatrent_admin_replace_car`                           | Another car of the fleet from a given day, same price                  |
-| `bubatrent_admin_verify_full_payment`                   | Verify the rental payment; records what's left after workshop payments |
-| `bubatrent_admin_record_workshop_payment`               | Customer paid a workshop for us: off what they owe; repair as expense  |
-| `bubatrent_admin_remove_workshop_payment`               | Undo a mistaken workshop payment and its expense                       |
-| `bubatrent_release_unverified_deposits`                 | The 48-hour release (pg_cron every 10 min, and on site activity)       |
-| `bubatrent_check_availability`                          | Public availability check                                              |
-| `bubatrent_save_mobile`, `bubatrent_link_walk_in_by_ic` | Mobile number and walk-in account linking                              |
-| `admin_create_walk_in_customer`                         | Creates a verified counter customer; never overwrites an account       |
-| `bubatrent_protect_*` triggers                          | Stop customers changing protected fields (role, credit, status…)       |
-| `bubatrent_track_booking` trigger                       | Status rules, `updated_at`, deposit to credit on return/cancel         |
-| `bubatrent_audit_booking` trigger                       | Audit entry for every status and payment change                        |
-| `bubatrent_delete_booking` trigger                      | Gives back held credit and logs before a booking is deleted            |
-| `bubatrent_check_expense_claim` trigger                 | Expense rules (amount, date, fleet); paid claims are locked            |
-| `bubatrent_audit_expense_claim` trigger                 | Audit entry when a claim is submitted, paid, changed or deleted        |
+| Function / trigger                                      | What it does                                                                                       |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `bubatrent_create_hold_booking`                         | Checks the customer and dates, prices the booking, holds the car                                   |
+| `bubatrent_submit_booking_deposit`                      | Needs the signed agreement; records the deposit and receipt, applies credit, starts the 48 h clock |
+| `bubatrent_admin_verify_deposit`                        | Marks the deposit verified (records a cash payment if none)                                        |
+| `bubatrent_sign_rental_agreement`                       | Signs once, terms from the booking; by the customer (from checkout) or staff in person             |
+| `bubatrent_admin_create_booking`                        | Book for Customer: checks, prices, applies credit, records the deposit                             |
+| `bubatrent_admin_adjust_credit`                         | Add / deduct credit with a ledger entry, never below zero                                          |
+| `bubatrent_admin_return_booking`                        | Mark returned with charges off the deposit, or hold the deposit                                    |
+| `bubatrent_admin_settle_deposit`                        | Release a held deposit, less charges                                                               |
+| `bubatrent_admin_add_booking_charges`                   | Charges found after settling (owed)                                                                |
+| `bubatrent_admin_remove_booking_charge`                 | Undo a mistaken charge before any charge payment                                                   |
+| `bubatrent_admin_record_charge_payment`                 | Record money collected for what the customer owes                                                  |
+| `bubatrent_admin_change_rental_price`                   | An agreed price, with a reason; any excess paid goes to credit                                     |
+| `bubatrent_admin_extend_rental`                         | Later return if the car is free; extra rent at the new length rate                                 |
+| `bubatrent_admin_end_rental_early`                      | Earlier return; unused days back, less 25% if the customer chose it                                |
+| `bubatrent_admin_replace_car`                           | Another car of the fleet from a given day, same price                                              |
+| `bubatrent_admin_verify_full_payment`                   | Verify the rental payment; records what's left after workshop payments                             |
+| `bubatrent_admin_record_workshop_payment`               | Customer paid a workshop for us: off what they owe; repair as expense                              |
+| `bubatrent_admin_remove_workshop_payment`               | Undo a mistaken workshop payment and its expense                                                   |
+| `bubatrent_release_unverified_deposits`                 | The 48-hour release (pg_cron every 10 min, and on site activity)                                   |
+| `bubatrent_check_availability`                          | Public availability check                                                                          |
+| `bubatrent_save_mobile`, `bubatrent_link_walk_in_by_ic` | Mobile number and walk-in account linking                                                          |
+| `admin_create_walk_in_customer`                         | Creates a verified counter customer; never overwrites an account                                   |
+| `bubatrent_protect_*` triggers                          | Stop customers changing protected fields (role, credit, status…)                                   |
+| `bubatrent_track_booking` trigger                       | Status rules, `updated_at`, deposit to credit on return/cancel                                     |
+| `bubatrent_audit_booking` trigger                       | Audit entry for every status and payment change                                                    |
+| `bubatrent_delete_booking` trigger                      | Gives back held credit and logs before a booking is deleted                                        |
+| `bubatrent_check_expense_claim` trigger                 | Expense rules (amount, date, fleet); paid claims are locked                                        |
+| `bubatrent_audit_expense_claim` trigger                 | Audit entry when a claim is submitted, paid, changed or deleted                                    |
 
 ### Booking status flow
 
@@ -244,6 +246,7 @@ HOLD ──────► DEPOSIT_PAID ──────► CONFIRMED ──�
 
 Enforced by the database for every website request:
 
+- **DEPOSIT_PAID** (online) only after the customer has signed the rental agreement.
 - **CONFIRMED** only when the deposit is verified.
 - **PICKUP** only when the agreement is signed and the full rental payment is verified (the
   deposit does not count as rent).
@@ -257,23 +260,24 @@ Enforced by the database for every website request:
 1. Customer picks a car and dates (availability checked on the server).
 2. Checkout places a 10-minute hold; the server prices it:
    rental = days × daily rate, deposit = max(RM100, 30% of rental).
-3. Customer uploads the deposit receipt (credit is applied first; if it covers the whole
+3. Customer signs the rental agreement on their own device (the hold restarts at 10 minutes).
+4. Customer uploads the deposit receipt (credit is applied first; if it covers the whole
    deposit, no receipt is needed). The booking becomes DEPOSIT_PAID with a 48-hour deadline.
-4. Admin verifies the deposit, then confirms the booking.
-5. Customer signs the rental agreement and uploads the full rental payment receipt.
-6. Admin verifies the full payment (or records cash), then marks the car picked up.
-7. Admin marks the car returned and enters any charges (late return, cleaning, fuel, damage).
+5. Admin verifies the deposit, then confirms the booking.
+6. Customer uploads the full rental payment receipt.
+7. Admin verifies the full payment (or records cash), then marks the car picked up.
+8. Admin marks the car returned and enters any charges (late return, cleaning, fuel, damage).
    Charges come off the deposit; the rest of the deposit goes to the customer's credit, and
    anything above the deposit is owed until the admin records the payment. For damage that needs
    a quote, the deposit can be held and settled later.
-8. Transfer refunds of the remaining credit are recorded with Deduct Credit.
+9. Transfer refunds of the remaining credit are recorded with Deduct Credit.
 ```
 
-**Counter and phone bookings** start at step 4. Staff choose the customer, car and dates in Book for
+**Counter and phone bookings** start at step 5. Staff choose the customer, car and dates in Book for
 Customer; the server prices it the same way. **Confirmed** means staff already have the deposit;
 **Deposit Paid** leaves it to Verify (receipt) or Mark Deposit Received (cash). Credit can pay part
-or all of the deposit. The customer signs on the staff device (**Sign at Counter**), and staff
-record the full payment as a receipt or cash.
+or all of the deposit. The customer signs on the staff device (**Sign at Counter**), or in My
+Bookings if they have an account, and staff record the full payment as a receipt or cash.
 
 Rental revenue on the Dashboard and Sales pages counts verified rental payments; charges
 collected are shown next to it. Sales also subtracts paid expense claims to show profit.

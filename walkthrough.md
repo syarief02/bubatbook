@@ -45,16 +45,24 @@ says what to do and what you should see.
 1. Signed out, pick dates and a car, then press **Sign in to Book**.
    ✅ After signing in, the dates are still there.
 2. Press **Book Now · Pay RM… Deposit**, fill in the details (add the test note) and press
-   **Continue to Payment**.
+   **Continue**, then **Continue to Agreement**.
+   ✅ The steps are Your Info → Review → Agreement → Payment.
+3. Read the agreement, sign, tick the box → **Tandatangan & Setuju (Sign & Agree)**.
+   ✅ It shows your name, IC and phone, the car and plate, the dates, total and deposit.
+   ✅ The sign button stays off until you sign and tick the box.
+   ✅ The hold timer starts again at about 10:00 and the Payment step opens.
    ✅ Deposit = 30% of the rental, at least RM100. Any credit is applied automatically.
    ✅ For 7 days or more, the car page and checkout show the long-rental discount (10%; 20% for
    30 days or more, as set in Fleet Settings) and the deposit is 30% of the discounted rental.
-3. Upload a receipt and press **Submit Deposit Payment** (or **Confirm Booking** if credit
+4. Upload a receipt and press **Submit Deposit Payment** (or **Confirm Booking** if credit
    covers the deposit).
    ✅ The confirmation page shows **DEPOSIT_PAID** and the 48-hour notice.
    ✅ **Print Receipt** opens a printable receipt.
    ✅ Next Steps doesn't ask a verified customer for ID.
-4. **My Bookings** shows the booking with a **Deposit Receipt** link that opens the image.
+5. **My Bookings** shows the booking with a **Deposit Receipt** link that opens the image, and
+   an **Agreement** link to the signed copy (dates like "16 Oct 2026, 10:30", **Print / Save
+   PDF**).
+   ✅ The admin booking page already shows "Signed by … on …" (without "in person").
 
 ## Test 3: Checking the deposit and confirming (admin)
 
@@ -73,22 +81,19 @@ says what to do and what you should see.
 ✅ **Reactivate → Deposit Paid** (with a reason) brings it back.
 ✅ A counter booking (Test 7) left at Deposit Paid is not released.
 
-## Test 4: Agreement, full payment and pickup
+## Test 4: Full payment and pickup
 
-1. **Customer**: My Bookings → **Agreement** → read, sign, tick the box →
-   **Tandatangan & Setuju (Sign & Agree)**.
-   ✅ The signed view shows dates like "16 Oct 2026, 10:30" and has **Print / Save PDF**.
-   ✅ The admin booking page shows "Signed by … on …" (without "in person"). Signing at the
-   counter is in Test 7.
-2. **Admin**: press **Mark Picked Up**.
+The agreement was signed at checkout (Test 2). Signing at the counter is in Test 7.
+
+1. **Admin**: press **Mark Picked Up**.
    ✅ It is refused: the full rental payment hasn't been verified. The deposit doesn't count as
    rent.
-3. **Customer**: My Bookings → **Upload your rental payment receipt (RM…)** → **Upload**.
+2. **Customer**: My Bookings → **Upload your rental payment receipt (RM…)** → **Upload**.
    ✅ "Full payment receipt submitted — awaiting verification".
    ✅ A **Payment Receipt** link appears.
-4. **Admin**: **View Receipt** → **✓ Verify Full Payment**.
+3. **Admin**: **View Receipt** → **✓ Verify Full Payment**.
    For cash with no receipt, use **✓ Mark Full Payment Received (cash)** instead.
-5. **Admin**: **Mark Picked Up**.
+4. **Admin**: **Mark Picked Up**.
    ✅ The status becomes **PICKUP**.
 
 ## Test 5: Return with charges (admin)

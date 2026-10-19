@@ -325,7 +325,9 @@ export default function MyBookings() {
                         View Details <ExternalLink className="w-3 h-3" />
                       </Link>
 
-                      {['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) && (
+                      {['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP', 'RETURNED'].includes(
+                        booking.status
+                      ) && (
                         <Link
                           to={`/booking/${booking.id}/agreement`}
                           className="text-xs text-cyan-500/70 hover:text-cyan-400 flex items-center gap-1"

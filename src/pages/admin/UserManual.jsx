@@ -106,8 +106,9 @@ const STATUSES = [
   {
     name: 'HOLD',
     color: 'text-yellow-400',
-    meaning: 'The customer is at checkout. The car is held for them for 10 minutes.',
-    next: 'Expires by itself if no deposit is submitted.',
+    meaning:
+      'The customer is at checkout. The car is held for them for 10 minutes, and for a fresh 10 minutes once they sign the rental agreement.',
+    next: 'The customer signs the agreement, then pays the deposit. Expires by itself if no deposit is submitted.',
   },
   {
     name: 'DEPOSIT_PAID',
@@ -120,7 +121,7 @@ const STATUSES = [
     name: 'CONFIRMED',
     color: 'text-green-400',
     meaning: 'Deposit verified. The booking is secured.',
-    next: 'Customer signs the agreement (in My Bookings, or with Sign at Counter) and pays the full rental; you verify it.',
+    next: 'Customer pays the full rental; you verify it. Online customers signed the agreement at checkout; counter customers sign with Sign at Counter.',
   },
   {
     name: 'PICKUP',
@@ -572,14 +573,16 @@ export default function UserManual() {
           <Sub>7.3 The rental agreement</Sub>
           <Bullets>
             <li>
-              Once the booking is confirmed, the customer opens <B>Agreement</B> in My Bookings,
-              reads the terms and signs with their finger or mouse. Names, IC, car, dates and prices
-              come from the booking, not from what the customer types.
+              Online customers sign at checkout, on their own phone or computer, before they can pay
+              the deposit: they read the terms and sign with their finger or mouse. So a booking you
+              review already has its signed agreement. Names, IC, car, dates and prices come from
+              the booking, not from what the customer types.
             </li>
             <li>
-              If they haven&apos;t signed, the booking page shows <B>Rental Agreement Not Signed</B>
-              . Press <B>Copy Agreement Link</B> and send it by WhatsApp, or, with the customer in
-              front of you, press <B>Sign at Counter</B>.
+              Counter bookings start unsigned: the booking page shows{' '}
+              <B>Rental Agreement Not Signed</B>. Press <B>Copy Agreement Link</B> and send it by
+              WhatsApp (a customer with an account signs it in My Bookings), or, with the customer
+              in front of you, press <B>Sign at Counter</B>.
             </li>
             <li>
               <B>Sign at Counter</B> opens the agreement with the customer&apos;s name, IC and phone
@@ -728,7 +731,8 @@ export default function UserManual() {
           <Note tone="warn">
             Edit Dates moves a booking and does not recalculate the price. To make a rental longer
             or shorter, use <B>Extend</B> or <B>End early</B> under <B>Change Rental</B> (7.14):
-            they price the change and settle the money.
+            they price the change and settle the money. A signed agreement keeps the dates the
+            customer signed for.
           </Note>
 
           <Sub>7.10 Deleting a booking</Sub>
@@ -743,7 +747,7 @@ export default function UserManual() {
           <Sub>7.11 What the booking page shows</Sub>
           <Bullets>
             <li>
-              <B>Rental Agreement</B> card (from CONFIRMED): if not signed,{' '}
+              <B>Rental Agreement</B> card (from DEPOSIT_PAID): if not signed,{' '}
               <B>Copy Agreement Link</B> and <B>Sign at Counter</B>; once signed, the signature, who
               signed and when (with &quot;in person at the counter&quot; if it was signed on your
               device) and <B>View Full Agreement</B>.
