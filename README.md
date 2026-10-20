@@ -470,8 +470,9 @@ Car images live in `public/cars/`.
 - **Owner's photos** (best): a folder per vehicle, e.g. `public/cars/vqb5567/`, listed by plate
   number in `CAR_GALLERIES` in `src/utils/carPhotos.js`. The car page shows them as a gallery;
   the first one is also the car's main picture (`image_url`). Strip location data (EXIF/GPS)
-  from phone photos and resize them (about 1280 px wide) before adding them.
-- **Photos of similar vehicles** from Wikimedia Commons (Alza, Vanette), used under CC BY-SA
+  from phone photos and resize them (about 1280 px wide) before adding them. The owner keeps
+  the originals in the Drive folder "gambar kenderaan", one subfolder per plate.
+- **Photos of similar vehicles** from Wikimedia Commons (Vanette), used under CC BY-SA
   licences: the car page shows the author, licence and changes for each, from `PHOTO_CREDITS`
   in the same file.
 - **Studio renders** for the rest.

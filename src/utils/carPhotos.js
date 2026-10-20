@@ -3,13 +3,6 @@
 // page does that for any image_url listed here. The edited files are shared
 // under the same licence.
 export const PHOTO_CREDITS = {
-  '/cars/perodua-alza-black.jpg': {
-    author: 'Aaront1059',
-    license: 'CC BY-SA 4.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
-    source: 'https://commons.wikimedia.org/wiki/File:Perodua_Alza_1.5_X_(Elegant_Black).jpg',
-    changes: 'cropped, number plate blurred',
-  },
   '/cars/nissan-vanette.jpg': {
     author: 'Two hundred percent',
     license: 'CC BY-SA 3.0',
@@ -24,6 +17,30 @@ export const PHOTO_CREDITS = {
 // the car page. The first one is also the car's main picture (image_url).
 // Location data (GPS) is removed from phone photos before they are added.
 export const CAR_GALLERIES = {
+  'PRE 4166': [
+    '/cars/pre4166/1.jpg',
+    '/cars/pre4166/2.jpg',
+    '/cars/pre4166/3.jpg',
+    '/cars/pre4166/4.jpg',
+    '/cars/pre4166/5.jpg',
+    '/cars/pre4166/6.jpg',
+  ],
+  'VEY 3830': [
+    '/cars/vey3830/1.jpg',
+    '/cars/vey3830/2.jpg',
+    '/cars/vey3830/3.jpg',
+    '/cars/vey3830/4.jpg',
+  ],
+  'W 9490 C': [
+    '/cars/w9490c/1.jpg',
+    '/cars/w9490c/2.jpg',
+    '/cars/w9490c/3.jpg',
+    '/cars/w9490c/4.jpg',
+    '/cars/w9490c/5.jpg',
+    '/cars/w9490c/6.jpg',
+    '/cars/w9490c/7.jpg',
+    '/cars/w9490c/8.jpg',
+  ],
   'VDM 6927': [
     '/cars/vdm6927/1.jpg',
     '/cars/vdm6927/2.jpg',
@@ -42,6 +59,9 @@ export const CAR_GALLERIES = {
     '/cars/vjc5290/6.jpg',
     '/cars/vjc5290/7.jpg',
     '/cars/vjc5290/8.jpg',
+    '/cars/vjc5290/9.jpg',
+    '/cars/vjc5290/10.jpg',
+    '/cars/vjc5290/11.jpg',
   ],
   'VQB 5567': [
     '/cars/vqb5567/1.jpg',
