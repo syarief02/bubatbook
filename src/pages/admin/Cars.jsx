@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { useAdminCars, createCar, updateCar, deleteCar } from '../../hooks/useAdmin';
+import {
+  useAdminCars,
+  useCarDocuments,
+  createCar,
+  updateCar,
+  deleteCar,
+} from '../../hooks/useAdmin';
 import { useFleet } from '../../hooks/useFleet';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import { formatMYR } from '../../utils/pricing';
+import { DOC_LABELS, documentAlerts } from '../../utils/carDocuments';
+import { formatDate } from '../../utils/dates';
+import { friendlyDbError } from '../../utils/dbErrors';
 import { Plus, Pencil, Trash2, X, Save, Car, Loader2, Image as ImageIcon } from 'lucide-react';
 
 const EMPTY_CAR = {
@@ -28,6 +38,8 @@ export default function AdminCars() {
   const toast = useToast();
   const { activeFleetId } = useFleet();
   const { cars, loading, error, refetch } = useAdminCars(activeFleetId);
+  const { documents } = useCarDocuments(activeFleetId);
+  const docAlerts = documentAlerts(cars, documents);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_CAR);
@@ -103,7 +115,7 @@ export default function AdminCars() {
       setDeleteConfirmId(null);
       refetch();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(friendlyDbError(err));
     } finally {
       setDeleting(false);
     }
@@ -367,6 +379,26 @@ export default function AdminCars() {
                 <p className="text-xs text-slate-500">
                   {car.brand} {car.model} · {car.year} · {car.transmission} · {car.seats} seats
                 </p>
+                {docAlerts.some((a) => a.car.id === car.id) && (
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {docAlerts
+                      .filter((a) => a.car.id === car.id)
+                      .map(({ doc, status }) => (
+                        <Link
+                          key={doc.id}
+                          to="/admin/car-documents"
+                          className={`px-2 py-0.5 rounded-full text-[10px] border ${
+                            status === 'expired'
+                              ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                              : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                          }`}
+                        >
+                          {DOC_LABELS[doc.doc_type]} {status === 'expired' ? 'expired' : 'expires'}{' '}
+                          {formatDate(doc.valid_until)}
+                        </Link>
+                      ))}
+                  </div>
+                )}
               </div>
               <div className="text-right shrink-0">
                 <p className="text-sm font-semibold gradient-text">

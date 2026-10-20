@@ -206,6 +206,34 @@ export function useAdminCars(fleetId) {
   return { cars, loading, error: queryError?.message || null, refetch };
 }
 
+// Road tax, insurance, Puspakom and GPS renewals of the fleet's cars, newest
+// expiry first (see utils/carDocuments.js)
+export function useCarDocuments(fleetId) {
+  const {
+    data: documents = [],
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: ['car-documents', fleetId],
+    queryFn: async () => {
+      let query = supabase
+        .from('bubatrent_booking_car_documents')
+        .select('*')
+        .order('valid_until', { ascending: false });
+
+      query = scopeToFleet(query, fleetId);
+
+      const { data, error: fetchError } = await query;
+      if (fetchError) throw fetchError;
+      return data || [];
+    },
+    staleTime: 2 * 60 * 1000, // 2 min cache
+  });
+
+  return { documents, loading, error: queryError?.message || null, refetch };
+}
+
 /**
  * Fetches customer list.
  * - Default (role='ALL'): only shows customers (excludes admin/super_admin)

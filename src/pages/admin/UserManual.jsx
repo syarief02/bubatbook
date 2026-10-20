@@ -27,7 +27,7 @@ const SECTIONS = [
   { id: 'start', title: 'Getting started' },
   { id: 'daily', title: 'Your daily routine' },
   { id: 'dashboard', title: 'Dashboard' },
-  { id: 'cars', title: 'Cars' },
+  { id: 'cars', title: 'Cars & car documents' },
   { id: 'customers', title: 'Customers & verification' },
   { id: 'walk-in', title: 'Walk-in (counter) customers' },
   { id: 'bookings', title: 'Bookings: from hold to return' },
@@ -294,6 +294,10 @@ export default function UserManual() {
           <Bullets>
             <li>deposit receipts to check (released after 48 hours if you don&apos;t);</li>
             <li>
+              car documents (road tax, insurance, Puspakom, GPS) that have expired or expire within
+              30 days, with the plate numbers (opens <B>Car Documents</B>, section 4);
+            </li>
+            <li>
               deposits on hold to settle: returned cars whose deposit you held until the damage cost
               is known (opens Bookings with <B>Deposit on hold</B>);
             </li>
@@ -340,7 +344,13 @@ export default function UserManual() {
         </Section>
 
         {/* 4. Cars */}
-        <Section id="cars" number={4} icon={Car} iconClass="text-blue-400" title="Cars">
+        <Section
+          id="cars"
+          number={4}
+          icon={Car}
+          iconClass="text-blue-400"
+          title="Cars & car documents"
+        >
           <Sub>Adding or editing a car</Sub>
           <p>
             In <B>Cars</B>, click <B>Add Car</B> (or the edit button on a car) and fill in:
@@ -387,8 +397,46 @@ export default function UserManual() {
             </li>
             <li>Customers can book from today up to 6 months ahead.</li>
           </Bullets>
+          <Sub>Road tax, insurance, Puspakom &amp; GPS</Sub>
+          <p>
+            <B>Car Documents</B> shows, for each car, the date its road tax, insurance, Puspakom and
+            GPS subscription are valid until. Green is valid, amber expires within 30 days, red has
+            expired. Each renewal is kept, so <B>History</B> lists every one with its receipt.
+          </p>
+          <Steps>
+            <li>
+              After renewing, click <B>Record renewal</B> under that document (or{' '}
+              <B>Add document</B> for a car with nothing on record yet).
+            </li>
+            <li>
+              Enter <B>Valid until</B> (required). <B>Valid from</B> is filled in as the day after
+              the last one ended; change it if needed. <B>Cost (RM)</B>, <B>Paid to</B> and the{' '}
+              <B>Receipt or policy number</B> are optional.
+            </li>
+            <li>
+              Add the receipt or certificate (photos or a PDF). This is required: it is the record
+              that the car was covered.
+            </li>
+            <li>
+              Press <B>Record Renewal</B>. The newest expiry date of each document is the one that
+              counts.
+            </li>
+          </Steps>
+          <p>
+            The Dashboard&apos;s <B>Needs your attention</B> lists documents that have expired or
+            expire within 30 days, and the car shows a red or amber label in <B>Cars</B>. A car
+            whose document has expired but is still on the website is marked{' '}
+            <B>Still on the website</B>; <B>Hide from website</B> sets its <B>Available</B> to No.
+            Only documents you have recorded are checked: a car that doesn&apos;t need Puspakom is
+            never flagged for it.
+          </p>
+          <p>
+            Entered one by mistake? Open <B>History</B>, click <B>Remove</B> on it and give a
+            reason. The audit log keeps what it said.
+          </p>
           <Note tone="warn" title="Deleting a car">
-            A car that has bookings cannot be deleted. Set <B>Available</B> to No instead.
+            A car that has bookings or documents on record cannot be deleted. Set <B>Available</B>{' '}
+            to No instead.
           </Note>
         </Section>
 

@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { useAdminStats } from '../../hooks/useAdmin';
+import { useAdminCars, useAdminStats, useCarDocuments } from '../../hooks/useAdmin';
 import { useFleet } from '../../hooks/useFleet';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { formatMYR } from '../../utils/pricing';
+import { DUE_SOON_DAYS, documentAlerts } from '../../utils/carDocuments';
 import {
   CalendarDays,
   Car,
@@ -37,6 +38,8 @@ const textColorMap = {
 export default function AdminDashboard() {
   const { activeFleetId } = useFleet();
   const { stats, loading } = useAdminStats(activeFleetId);
+  const { cars } = useAdminCars(activeFleetId);
+  const { documents } = useCarDocuments(activeFleetId);
 
   if (loading)
     return (
@@ -78,11 +81,27 @@ export default function AdminDashboard() {
 
   // Things waiting for an admin; the panel shows only when something is waiting
   const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  // Road tax, insurance, Puspakom or GPS of a car: expired, or due soon
+  const docAlerts = documentAlerts(cars, documents);
+  const expiredDocs = docAlerts.filter((a) => a.status === 'expired');
+  const dueDocs = docAlerts.filter((a) => a.status === 'due_soon');
+  const plates = (list) =>
+    [...new Set(list.map((a) => a.car.plate_number || a.car.name))].join(', ');
   const todo = [
     stats?.depositsToReview > 0 && {
       label: `${plural(stats.depositsToReview, 'deposit receipt')} to check`,
       detail: 'Online deposits are released after 48 hours',
       to: '/admin/bookings?status=DEPOSIT_PAID',
+    },
+    expiredDocs.length > 0 && {
+      label: `${plural(expiredDocs.length, 'car document')} expired: ${plates(expiredDocs)}`,
+      detail: 'Renew, or keep the car off the road',
+      to: '/admin/car-documents',
+    },
+    dueDocs.length > 0 && {
+      label: `${plural(dueDocs.length, 'car document')} expiring within ${DUE_SOON_DAYS} days: ${plates(dueDocs)}`,
+      detail: 'Road tax, insurance, Puspakom or GPS',
+      to: '/admin/car-documents',
     },
     stats?.depositsOnHold > 0 && {
       label: `${plural(stats.depositsOnHold, 'deposit')} on hold to settle (${formatMYR(stats.depositsOnHoldAmount)})`,
@@ -117,7 +136,7 @@ export default function AdminDashboard() {
           <div className="divide-y divide-white/5">
             {todo.map(({ label, detail, to }) => (
               <Link
-                key={to}
+                key={label}
                 to={to}
                 className="flex items-center justify-between gap-3 py-2.5 group"
               >

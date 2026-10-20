@@ -38,6 +38,7 @@ function report(ok, name, detail) {
     'bubatrent_booking_charges',
     'bubatrent_booking_workshop_payments',
     'bubatrent_booking_rental_changes',
+    'bubatrent_booking_car_documents',
   ];
   for (const table of privateTables) {
     const { count, error } = await anon.from(table).select('*', { count: 'exact', head: true });
@@ -103,6 +104,19 @@ function report(ok, name, detail) {
     p_file_paths: [],
   });
   report(!!workshopErr, 'anon cannot record workshop payments', workshopErr ? 'denied' : 'allowed');
+
+  const { error: carDocErr } = await anon.rpc('bubatrent_admin_add_car_document', {
+    p_id: '00000000-0000-0000-0000-000000000000',
+    p_car_id: '00000000-0000-0000-0000-000000000000',
+    p_doc_type: 'road_tax',
+    p_valid_from: null,
+    p_valid_until: '2099-01-01',
+    p_amount: null,
+    p_provider: null,
+    p_reference: null,
+    p_file_paths: ['car-documents/00000000-0000-0000-0000-000000000000/x.pdf'],
+  });
+  report(!!carDocErr, 'anon cannot record car documents', carDocErr ? 'denied' : 'allowed');
 
   for (const [fn, args] of [
     ['bubatrent_admin_extend_rental', { p_new_return: '2099-01-01' }],

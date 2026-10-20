@@ -15,6 +15,7 @@ import {
   Users2,
   BookOpen,
   Upload,
+  FileBadge,
 } from 'lucide-react';
 import FleetSelector from './FleetSelector';
 import ViewAsSelector from './ViewAsSelector';
@@ -24,6 +25,7 @@ import { useAuth } from '../hooks/useAuth';
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/cars', label: 'Cars', icon: Car },
+  { to: '/admin/car-documents', label: 'Car Documents', icon: FileBadge },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
   { to: '/admin/customers', label: 'Customers', icon: Users },
   { to: '/admin/sales', label: 'Sales', icon: DollarSign },
