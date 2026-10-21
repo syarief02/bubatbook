@@ -16,7 +16,17 @@ import { formatMYR } from '../../utils/pricing';
 import { DOC_LABELS, documentAlerts } from '../../utils/carDocuments';
 import { formatDate } from '../../utils/dates';
 import { friendlyDbError } from '../../utils/dbErrors';
-import { Plus, Pencil, Trash2, X, Save, Car, Loader2, Image as ImageIcon } from 'lucide-react';
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  Save,
+  Car,
+  Loader2,
+  History,
+  Image as ImageIcon,
+} from 'lucide-react';
 
 const EMPTY_CAR = {
   name: '',
@@ -406,6 +416,13 @@ export default function AdminCars() {
                 </p>
               </div>
               <div className="flex gap-2 shrink-0">
+                <Link
+                  to={`/admin/cars/${car.id}/history`}
+                  title="History"
+                  className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+                >
+                  <History className="w-4 h-4" />
+                </Link>
                 <button
                   onClick={() => openEdit(car)}
                   className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"

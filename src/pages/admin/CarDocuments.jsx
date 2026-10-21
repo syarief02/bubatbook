@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { addDays, format, parseISO } from 'date-fns';
 import { AlertTriangle, EyeOff, FileBadge, FileImage, History, Plus } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
@@ -466,7 +467,12 @@ export default function AdminCarDocuments() {
           return (
             <div key={car.id} className="glass-card">
               <div className="flex items-center gap-2 mb-3">
-                <h3 className="text-white font-semibold truncate">{car.name}</h3>
+                <Link
+                  to={`/admin/cars/${car.id}/history`}
+                  className="text-white font-semibold truncate hover:text-violet-300"
+                >
+                  {car.name}
+                </Link>
                 {car.plate_number && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20 shrink-0">
                     {car.plate_number}

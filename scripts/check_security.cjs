@@ -39,6 +39,7 @@ function report(ok, name, detail) {
     'bubatrent_booking_workshop_payments',
     'bubatrent_booking_rental_changes',
     'bubatrent_booking_car_documents',
+    'bubatrent_booking_records',
   ];
   for (const table of privateTables) {
     const { count, error } = await anon.from(table).select('*', { count: 'exact', head: true });

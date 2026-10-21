@@ -26,6 +26,7 @@ const MyBookings = lazy(() => import('./pages/MyBookings'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminCars = lazy(() => import('./pages/admin/Cars'));
 const AdminCarDocuments = lazy(() => import('./pages/admin/CarDocuments'));
+const AdminCarHistory = lazy(() => import('./pages/admin/CarHistory'));
 const AdminBookings = lazy(() => import('./pages/admin/Bookings'));
 const AdminBookingDetail = lazy(() => import('./pages/admin/BookingDetail'));
 const AdminCustomers = lazy(() => import('./pages/admin/Customers'));
@@ -175,6 +176,14 @@ function AppRoutes() {
               element={
                 <AdminRoute>
                   <AdminCars />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/cars/:carId/history"
+              element={
+                <AdminRoute>
+                  <AdminCarHistory />
                 </AdminRoute>
               }
             />

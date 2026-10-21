@@ -39,6 +39,7 @@ import { SignedLink, SignedImage } from '../../components/SignedFile';
 import { ChargesCard, ReturnCarDialog } from '../../components/ReturnCharges';
 import { WorkshopPaymentsCard } from '../../components/WorkshopPayments';
 import { RentalChangesCard } from '../../components/RentalChanges';
+import { BookingRecordsCard } from '../../components/BookingRecords';
 import { WORKSHOP_STATUSES, rentPaidToWorkshop, workshopPayments } from '../../utils/workshop';
 import {
   RENTAL_CHANGES_SELECT,
@@ -1283,11 +1284,24 @@ export default function AdminBookingDetail() {
                         {formatDateTime(payment.created_at)}
                       </span>
                     </div>
+                    {payment.receipt_path && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Receipt</span>
+                        <SignedLink
+                          path={payment.receipt_path}
+                          className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View
+                        </SignedLink>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          <BookingRecordsCard bookingId={booking.id} />
 
           {/* Audit Log */}
           <div className="glass-card">
