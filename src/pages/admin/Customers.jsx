@@ -53,9 +53,10 @@ export default function Customers() {
   const { user, isSuperAdmin } = useAuth();
   const { activeFleetId, isSuperGroup } = useFleet();
   const toast = useToast();
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('ALL');
   const [searchParams] = useSearchParams();
+  // Customer History links here with ?search=<name>
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [roleFilter, setRoleFilter] = useState('ALL');
   // The dashboard links here with ?verification=pending
   const [verificationFilter, setVerificationFilter] = useState(() =>
     ['verified', 'not_verified', 'pending', 'renewal'].includes(searchParams.get('verification'))
@@ -64,7 +65,7 @@ export default function Customers() {
   );
   // ?credit=1 (from the dashboard): customers holding credit, to refund or keep
   const [creditOnly, setCreditOnly] = useState(() => searchParams.get('credit') === '1');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || '');
   const [expandedId, setExpandedId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);

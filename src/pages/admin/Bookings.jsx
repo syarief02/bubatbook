@@ -37,14 +37,16 @@ export default function AdminBookings() {
     fleetId: activeFleetId,
   });
 
-  // Client-side filter by customer name/email
+  // Client-side filter by customer name/email/phone
   const filteredBookings = bookings.filter((b) => {
     if (heldOnly && !(b.status === 'RETURNED' && b.deposit_on_hold)) return false;
     if (!customerSearch) return true;
     const q = customerSearch.toLowerCase();
+    const digits = q.replace(/\D/g, '');
     return (
       (b.customer_name || '').toLowerCase().includes(q) ||
       (b.customer_email || '').toLowerCase().includes(q) ||
+      (digits.length >= 3 && (b.customer_phone || '').replace(/\D/g, '').includes(digits)) ||
       b.id.toLowerCase().startsWith(q)
     );
   });
@@ -68,7 +70,7 @@ export default function AdminBookings() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
-            placeholder="Search customer name, email, or booking ID..."
+            placeholder="Search customer name, phone, email, or booking ID..."
             value={customerSearch}
             onChange={(e) => setCustomerSearch(e.target.value)}
             className="input-field !pl-10 !py-2 text-sm"

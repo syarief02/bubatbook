@@ -461,6 +461,16 @@ export default function UserManual() {
           iconClass="text-indigo-400"
           title="Customers & verification"
         >
+          <Sub>Customer History</Sub>
+          <p>
+            <B>Customer History</B> lists everyone who has rented, including people with no account
+            on the website (rentals arranged on WhatsApp). Rentals with the same phone number count
+            as one customer, so someone&apos;s earlier WhatsApp rentals join their later online
+            ones. Each customer shows their rentals, days, total rent, what they still owe and the
+            cars they used; click one to see every booking and open it. Search by name, phone or
+            plate, and sort by latest rental, most rentals, most rent or most owed. <B>Bookings</B>{' '}
+            can also be searched by phone number.
+          </p>
           <Sub>What a customer does before they can book</Sub>
           <Steps>
             <li>Signs up with Google or email and password.</li>

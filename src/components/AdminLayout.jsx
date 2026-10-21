@@ -16,6 +16,7 @@ import {
   BookOpen,
   Upload,
   FileBadge,
+  UserSearch,
 } from 'lucide-react';
 import FleetSelector from './FleetSelector';
 import ViewAsSelector from './ViewAsSelector';
@@ -28,6 +29,7 @@ const navItems = [
   { to: '/admin/car-documents', label: 'Car Documents', icon: FileBadge },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
   { to: '/admin/customers', label: 'Customers', icon: Users },
+  { to: '/admin/customer-history', label: 'Customer History', icon: UserSearch },
   { to: '/admin/sales', label: 'Sales', icon: DollarSign },
   { to: '/admin/expenses', label: 'Expenses', icon: Receipt },
   { to: '/admin/fleet', label: 'Fleet Settings', icon: Building2 },
