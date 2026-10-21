@@ -434,6 +434,19 @@ export default function UserManual() {
             Entered one by mistake? Open <B>History</B>, click <B>Remove</B> on it and give a
             reason. The audit log keeps what it said.
           </p>
+          <Sub>Vehicle history</Sub>
+          <p>
+            Click the history button on a car in <B>Cars</B> (or the car&apos;s name in{' '}
+            <B>Car Documents</B>) to see everything about it for a year, month by month: each rental
+            with the customer, days, rent and whether it is paid (click one to open the booking),
+            each expense with its receipt, and each document renewal. The top shows the year&apos;s
+            rentals and days, rent received, rent still due, expenses and profit, counted the same
+            way as <B>Sales</B> (rentals in the month they start, expenses by their date).
+          </p>
+          <p>
+            Expenses include the car loan instalments, running costs and repairs entered in{' '}
+            <B>Expenses</B>, so the profit is what the car made for the business.
+          </p>
           <Note tone="warn" title="Deleting a car">
             A car that has bookings or documents on record cannot be deleted. Set <B>Available</B>{' '}
             to No instead.
@@ -1185,7 +1198,14 @@ export default function UserManual() {
               <B>View Receipt</B>) and from the customer&apos;s My Bookings (<B>Deposit Receipt</B>,{' '}
               <B>Payment Receipt</B>). The customer can also open receipts you uploaded for their
               booking. Nobody else can. Links work for an hour; reload the page if one stops
-              working.
+              working. Each payment in <B>Payment Records</B> also has its own receipt link.
+            </li>
+            <li>
+              <B>Records</B> on the booking page keep any other proof: the WhatsApp chat that
+              arranged a rental, a paper agreement, extra receipts, deposit refund slips. Click{' '}
+              <B>Add a record</B>, choose the kind, add an optional note and the photos or PDF. Only
+              admins see them; adding or removing one shows in the audit log. Rentals from before
+              the website were recorded this way, with the chat as proof.
             </li>
             <li>
               <B>Rental agreement</B>: <B>View Full Agreement</B> on the booking page, or{' '}
