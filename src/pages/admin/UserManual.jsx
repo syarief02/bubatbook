@@ -478,6 +478,12 @@ export default function UserManual() {
             plate, and sort by latest rental, most rentals, most rent or most owed. <B>Bookings</B>{' '}
             can also be searched by phone number.
           </p>
+          <p>
+            Customers are shared between fleets, so the list also shows their rentals with other
+            fleets (marked <B>Rented with …</B>): the dates, car, whether it was returned and any
+            charges (late return, damage…), but no amounts. Amounts, payments and expenses are only
+            ever your own fleet&apos;s.
+          </p>
           <Sub>What a customer does before they can book</Sub>
           <Steps>
             <li>Signs up with Google or email and password.</li>
@@ -1379,6 +1385,18 @@ export default function UserManual() {
             (search by name or email), choose <B>Fleet Admin</B> or <B>Staff</B>, change roles and
             remove members.
           </p>
+          <Sub>What fleets share</Sub>
+          <Bullets>
+            <li>
+              <B>Shared</B> with every fleet&apos;s admins: customers (details, IC and licence,
+              verification) and their rental history (dates, car, return, charges; no amounts).
+            </li>
+            <li>
+              <B>Your fleet only</B>: bookings and their amounts, payments and receipts, sales,
+              expenses and claims, car documents, booking records, and the audit log entries about
+              them. Super admins see every fleet.
+            </li>
+          </Bullets>
         </Section>
 
         {/* 14. Governance */}

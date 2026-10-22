@@ -6,6 +6,7 @@ import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
+import { chargeLabel } from '../../utils/charges';
 import { formatDate, getDaysDifference } from '../../utils/dates';
 import { normalizePhone } from '../../utils/phoneUtils';
 import { formatMYR } from '../../utils/pricing';
@@ -14,7 +15,15 @@ import { BOOKED_STATUSES, sumBy } from '../../utils/revenue';
 // Every customer who has rented, with or without an account on the website.
 // Bookings are grouped by phone number (so someone's WhatsApp rentals from
 // before the website join their later online ones), then by account, then by
-// name.
+// name. Customers are shared between fleets, so their rentals with other
+// fleets are listed too, without amounts (bubatrent_admin_other_fleet_rentals).
+
+const OTHER_STATUS = {
+  RETURNED: 'returned',
+  PICKUP: 'on rent',
+  CONFIRMED: 'booked',
+  DEPOSIT_PAID: 'booked',
+};
 
 function useAllRentals(fleetId) {
   return useQuery({
@@ -28,8 +37,22 @@ function useAllRentals(fleetId) {
         .in('status', BOOKED_STATUSES)
         .order('pickup_date', { ascending: false });
       if (fleetId) query = query.eq('fleet_group_id', fleetId);
-      const { data: bookings, error } = await query;
+      const { data: own, error } = await query;
       if (error) throw error;
+
+      const { data: elsewhere, error: oErr } = await supabase.rpc(
+        'bubatrent_admin_other_fleet_rentals',
+        { p_fleet_group_id: fleetId || null }
+      );
+      if (oErr) throw oErr;
+      const bookings = [
+        ...own,
+        ...(elsewhere || []).map((r) => ({
+          ...r,
+          other: true,
+          bubatrent_booking_cars: { name: r.car_name, plate_number: r.plate_number },
+        })),
+      ].sort((a, b) => b.pickup_date.localeCompare(a.pickup_date));
 
       const userIds = [...new Set(bookings.map((b) => b.user_id).filter(Boolean))];
       let profiles = [];
@@ -74,6 +97,7 @@ function groupCustomers(bookings, profiles) {
     if (b.user_id) g.userId = b.user_id;
   }
   return [...groups.values()].map((g) => {
+    // Amounts are only ever this fleet's: other fleets' rentals come without them
     const rent = sumBy(g.bookings, (b) => Number(b.total_price || 0));
     const paid = sumBy(g.bookings, (b) => Number(b.rent_paid || 0));
     return {
@@ -81,6 +105,8 @@ function groupCustomers(bookings, profiles) {
       // Bookings are newest first, so the first name is the latest one used
       name: g.names[0] || null,
       rentals: g.bookings.length,
+      ownRentals: g.bookings.filter((b) => !b.other).length,
+      otherFleets: [...new Set(g.bookings.filter((b) => b.other).map((b) => b.fleet_name))],
       days: sumBy(g.bookings, (b) => getDaysDifference(b.pickup_date, b.return_date)),
       rent,
       paid,
@@ -133,7 +159,8 @@ export default function AdminCustomerHistory() {
     <AdminLayout title="Customer History">
       <p className="text-sm text-slate-400 mb-6">
         Everyone who has rented, with or without an account: their rentals, what they paid and what
-        they still owe. Rentals with the same phone number are counted as one customer.
+        they still owe. Rentals with the same phone number are counted as one customer. Rentals with
+        other fleets are listed too, without amounts.
       </p>
 
       {isLoading ? (
@@ -211,6 +238,14 @@ export default function AdminCustomerHistory() {
                             No account
                           </span>
                         )}
+                        {c.otherFleets.map((f) => (
+                          <span
+                            key={f}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20"
+                          >
+                            Rented with {f}
+                          </span>
+                        ))}
                       </p>
                       <p className="text-xs text-slate-500">
                         {[
@@ -225,7 +260,11 @@ export default function AdminCustomerHistory() {
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-medium text-white">{formatMYR(c.rent)}</p>
+                      {c.ownRentals > 0 ? (
+                        <p className="text-sm font-medium text-white">{formatMYR(c.rent)}</p>
+                      ) : (
+                        <p className="text-[11px] text-slate-500">Other fleet only</p>
+                      )}
                       {c.due > 0 && (
                         <p className="text-[11px] text-amber-300">{formatMYR(c.due)} owed</p>
                       )}
@@ -243,6 +282,31 @@ export default function AdminCustomerHistory() {
                         </Link>
                       )}
                       {c.bookings.map((b) => {
+                        if (b.other) {
+                          return (
+                            <div
+                              key={b.id}
+                              className="flex justify-between gap-3 text-xs rounded-lg bg-sky-500/[0.04] border border-sky-500/10 px-3 py-2"
+                            >
+                              <span className="text-slate-300">
+                                {formatDate(b.pickup_date)} – {formatDate(b.return_date)}
+                                <span className="text-slate-500">
+                                  {' '}
+                                  · {b.plate_number || b.car_name}
+                                  {b.customer_name && b.customer_name !== c.name
+                                    ? ` · ${b.customer_name}`
+                                    : ''}
+                                  {' · '}
+                                  {OTHER_STATUS[b.status] || b.status.toLowerCase()}
+                                  {b.charge_kinds?.length
+                                    ? ` · charged: ${b.charge_kinds.map(chargeLabel).join(', ').toLowerCase()}`
+                                    : ''}
+                                </span>
+                              </span>
+                              <span className="shrink-0 text-sky-300">{b.fleet_name}</span>
+                            </div>
+                          );
+                        }
                         const owed = Math.max(
                           Number(b.total_price || 0) - Number(b.rent_paid || 0),
                           0

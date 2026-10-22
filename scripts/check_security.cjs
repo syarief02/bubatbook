@@ -130,6 +130,11 @@ function report(ok, name, detail) {
   });
   report(!!contactsErr, 'anon cannot list fleet contacts', contactsErr ? 'denied' : 'allowed');
 
+  const { error: otherErr } = await anon.rpc('bubatrent_admin_other_fleet_rentals', {
+    p_fleet_group_id: null,
+  });
+  report(!!otherErr, 'anon cannot list rentals', otherErr ? 'denied' : 'allowed');
+
   for (const [fn, args] of [
     ['bubatrent_admin_extend_rental', { p_new_return: '2099-01-01' }],
     ['bubatrent_admin_end_rental_early', { p_new_return: '2099-01-01', p_reason: 'customer' }],
