@@ -133,7 +133,7 @@ const STATUSES = [
     name: 'RETURNED',
     color: 'text-slate-300',
     meaning:
-      "Rental finished. The deposit has gone to the customer's credit less any charges, or is on hold.",
+      "Rental finished. The deposit has gone to the customer's credit less any charges, or is on hold. Without a customer account it is refunded by hand (Counter → Deposit refunded).",
     next: 'Settle a held deposit; collect anything the customer owes (section 7.6).',
   },
   {
@@ -209,19 +209,31 @@ export default function UserManual() {
               fleet(s).
             </li>
             <li>
-              <B>Super Admin</B>: everything an admin does, plus changing people&apos;s roles. A
-              super admin in the Super Group also approves new fleets and change requests, and can
-              use <B>View As...</B>.
+              <B>Super Admin</B>: everything an admin does, in every fleet, plus changing
+              people&apos;s roles. A super admin in the Super Group also approves new fleets and
+              change requests, and can use <B>View As...</B>.
             </li>
           </Bullets>
           <Sub>Fleets</Sub>
           <p>
             Every car, booking, payment and expense belongs to a fleet (a rental company). If you
             belong to more than one fleet, pick one with the selector at the top of the sidebar; the
-            pages then show that fleet&apos;s data. New cars and counter bookings go into the
-            selected fleet. Customer profiles and their documents are shared: every admin can see
-            every customer.
+            pages then show that fleet&apos;s data. Super admins see every fleet in the selector.
+            New cars and counter bookings go into the selected fleet.
           </p>
+          <Bullets>
+            <li>
+              <B>Shared</B> between fleets: customers (details, IC and licence, verification) and
+              their rental history with other fleets (dates, car, return, charges; no amounts), in
+              Customer History.
+            </li>
+            <li>
+              <B>Your fleet only</B>: its bookings and amounts, payments and receipts, sales,
+              expenses, car documents, booking records, and the audit log entries about them. What a
+              customer owes your fleet, or your fleet owes them (deposits, credit), is yours alone:
+              another fleet can&apos;t see it, use it or settle it (section 9).
+            </li>
+          </Bullets>
           <p>A fleet&apos;s status decides what its admins can do:</p>
           <Bullets>
             <li>
@@ -337,8 +349,9 @@ export default function UserManual() {
               is known (opens Bookings with <B>Deposit on hold</B>);
             </li>
             <li>
-              credit owed to customers: deposits that went back to their credit, to refund by
-              transfer or keep for their next booking (opens Customers with <B>💰 Has Credit</B>);
+              credit your fleet owes customers: deposits that went back to their credit, to refund
+              by transfer or keep for their next booking (opens Customers with <B>💰 Has Credit</B>
+              );
             </li>
             <li>
               licence renewals to review (opens Customers with <B>🔄 Renewals</B>);
@@ -475,6 +488,11 @@ export default function UserManual() {
           <p>
             Entered one by mistake? Open <B>History</B>, click <B>Remove</B> on it and give a
             reason. The audit log keeps what it said.
+          </p>
+          <p>
+            Documents belong to the car&apos;s fleet. When a car moves to another fleet, its
+            documents (and their expiry alerts) go with it; its past bookings, payments and expenses
+            stay with the fleet they belong to.
           </p>
           <Sub>Vehicle history</Sub>
           <p>
@@ -1112,7 +1130,9 @@ export default function UserManual() {
         >
           <p>
             Use this for bookings made at the counter or over the phone: <B>Customers</B> →{' '}
-            <B>Book for Customer</B>.
+            <B>Book for Customer</B>. For a rental that has already started or finished (a deal made
+            on WhatsApp, a past rental already paid), or a customer without an account, use the{' '}
+            <B>Counter</B> instead (section 2).
           </p>
           <Steps>
             <li>
@@ -1135,9 +1155,10 @@ export default function UserManual() {
               you can change it, but not below RM100.
             </li>
             <li>
-              If the customer has credit, <B>Use the customer&apos;s credit</B> is ticked: it pays
-              the deposit first and the page shows what is left <B>to collect</B>. Untick it to keep
-              their credit. If credit covers the whole deposit, it is recorded as received.
+              If the customer has credit with your fleet, <B>Use the customer&apos;s credit</B> is
+              ticked: it pays the deposit first and the page shows what is left <B>to collect</B>.
+              Untick it to keep their credit. If credit covers the whole deposit, it is recorded as
+              received. Credit with another fleet isn&apos;t shown or used.
             </li>
             <li>
               Optionally add <B>Notes</B> (for example, a phone booking). They show on the booking
@@ -1191,10 +1212,20 @@ export default function UserManual() {
           title="Deposits & customer credit"
         >
           <p>
-            A customer&apos;s <B>credit balance</B> is money you owe them, mostly deposits from
-            finished rentals. Customers see it next to their name. At checkout it is applied to the
-            next deposit automatically; if it covers the whole deposit, no receipt is needed. In{' '}
-            <B>Book for Customer</B> you choose whether to use it (section 8).
+            A customer&apos;s <B>credit</B> is money a fleet owes them, mostly deposits from
+            finished rentals. It is always with the fleet that gave it: it only pays deposits for
+            that fleet&apos;s cars, and only that fleet refunds or deducts it. Admins see a
+            customer&apos;s credit with their own fleet; customers see their total next to their
+            name, and on My Profile how much is with each rental company. At checkout the credit
+            with that car&apos;s fleet is applied to the deposit automatically; if it covers the
+            whole deposit, no receipt is needed. In <B>Book for Customer</B> you choose whether to
+            use it (section 8).
+          </p>
+          <p>
+            A customer without an account (a walk-in recorded at the Counter with a name and phone)
+            has no credit. Refund their deposit by hand when the car comes back, then press{' '}
+            <B>Deposit refunded</B> on the Counter (tap the car, or the <B>Deposits to refund</B>{' '}
+            chip).
           </p>
           <Sub>When credit is added automatically</Sub>
           <Bullets>
@@ -1216,6 +1247,10 @@ export default function UserManual() {
             <li>
               A workshop payment larger than what the customer owed on the booking: the rest (7.13).
             </li>
+            <li>
+              A past rental recorded at the Counter with the deposit <B>Kept as credit</B>: the
+              deposit.
+            </li>
           </Bullets>
           <p>
             A deposit goes back once per booking. Every change to a balance appears in the
@@ -1223,8 +1258,8 @@ export default function UserManual() {
           </p>
           <Sub>Adding and deducting credit by hand</Sub>
           <p>
-            Open the customer in <B>Customers</B>; the <B>Deposit Credit</B> section shows the
-            balance (and the part from your fleet).
+            Open the customer in <B>Customers</B>; the <B>Deposit Credit</B> section shows their
+            credit with the fleet selected at the top. Credit is added and deducted for that fleet.
           </p>
           <Bullets>
             <li>
@@ -1235,7 +1270,7 @@ export default function UserManual() {
               <B>Deduct Credit</B>: amount and a reason. Use it to record a deposit you refunded by
               transfer (&quot;Deposit refunded by transfer&quot;) or a cancellation penalty. Charges
               for a returned car belong on the booking instead (section 7.6), so the customer sees
-              them. A deduction larger than the balance is refused.
+              them. A deduction larger than their credit with your fleet is refused.
             </li>
           </Bullets>
           <Note title="Credit history can't be edited">
@@ -1483,14 +1518,22 @@ export default function UserManual() {
             Change price, Extend, End early); car replaced; deposit added to credit, put on hold or
             settled; charges added or removed; payments received for charges; workshop payments
             recorded or removed; deleted; released after 48 hours; and opening the customer&apos;s
-            documents. Steps by the system itself show as <B>System</B>. Expense claims are recorded
-            the same way (submitted, paid, changed, deleted, with the amount and who did it), though
-            there is no page that lists them yet; ask the developer if you need that history.
+            documents. Rentals recorded at the Counter, rent payments added there and deposits
+            marked refunded are logged too. Steps by the system itself show as <B>System</B>.
+            Expense claims are recorded the same way (submitted, paid, changed, deleted, with the
+            amount and who did it), though there is no page that lists them yet; ask the developer
+            if you need that history.
+          </p>
+          <p>
+            You see the log entries about your own fleet&apos;s bookings, cars, expenses and fleet,
+            entries about customers (shared), and anything you did yourself. Super admins see all of
+            it.
           </p>
           <p>
             <B>Upload Logs</B> lists file uploads from customers&apos; and admins&apos; devices (IC,
             licence, receipts), with errors, to help when someone says an upload isn&apos;t working.
-            Filter by errors or successes, and clear entries older than 7 days.
+            You see uploads for your fleet&apos;s bookings and uploads not tied to a booking. Filter
+            by errors or successes, and clear entries older than 7 days.
           </p>
         </Section>
 
@@ -1518,7 +1561,19 @@ export default function UserManual() {
               ],
               [
                 'Book for Customer: Next → Select Car stays grey',
-                'The customer is not verified or their licence has expired. Verify them or update the licence expiry on Customers first (section 5).',
+                'The customer is not verified or their licence has expired. Verify them or update the licence expiry on Customers first (section 5). To record a rental that has already started or finished, use the Counter: it needs only a name and phone.',
+              ],
+              [
+                'Counter: "… is already rented to … Check the dates"',
+                'Another rental of that car covers some of those days, perhaps one already recorded. Open Bookings or the car’s History to check before recording it again.',
+              ],
+              [
+                'Counter: "An upcoming booking needs a verified customer"',
+                'A booking that starts later follows the online rule. Choose their verified account, or verify them in Customers first. Rentals on rent now or already back need only a name and phone.',
+              ],
+              [
+                'Counter: "Credit needs a customer account"',
+                'A customer without an account can’t hold credit. Choose their account, or record the deposit as Refunded.',
               ],
               [
                 'A walk-in customer can’t sign in',
@@ -1546,7 +1601,7 @@ export default function UserManual() {
               ],
               [
                 '"Deduct Credit" is refused',
-                'The deduction is larger than the customer’s balance.',
+                'The deduction is larger than the customer’s credit with your fleet. Credit with another fleet is theirs to refund.',
               ],
               [
                 'The charges are more than the deposit',
