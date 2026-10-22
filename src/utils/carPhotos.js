@@ -64,6 +64,7 @@ export const CAR_GALLERIES = {
     '/cars/vjc5290/11.jpg',
     '/cars/vjc5290/12.jpg',
     '/cars/vjc5290/13.jpg',
+    '/cars/vjc5290/14.jpg',
   ],
   'VQB 5567': [
     '/cars/vqb5567/1.jpg',
