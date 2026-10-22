@@ -234,6 +234,57 @@ export function useCarDocuments(fleetId) {
   return { documents, loading, error: queryError?.message || null, refetch };
 }
 
+/** The fleet's admins and staff with their WhatsApp numbers, to pick a car's contact. */
+export function useFleetContacts(fleetId) {
+  const { data: contacts = [], refetch } = useQuery({
+    queryKey: ['fleet-contacts', fleetId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('bubatrent_fleet_contacts', {
+        p_fleet_group_id: fleetId,
+      });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!fleetId,
+    staleTime: 2 * 60 * 1000, // 2 min cache
+  });
+
+  return { contacts, refetch };
+}
+
+/** The signed-in admin's own WhatsApp number (digits, e.g. 60123456789), or null. */
+export function useMyWhatsapp(userId) {
+  const {
+    data: whatsapp = null,
+    isLoading: loading,
+    refetch,
+  } = useQuery({
+    queryKey: ['my-whatsapp', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bubatrent_booking_admin_contacts')
+        .select('whatsapp')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.whatsapp || null;
+    },
+    enabled: !!userId,
+  });
+
+  return { whatsapp, loading, refetch };
+}
+
+// The database adds the country code to a local number (012… → 6012…) and
+// writes the audit log entry. An empty number clears it.
+export async function setMyWhatsapp(number) {
+  const { data, error } = await supabase.rpc('bubatrent_admin_set_my_whatsapp', {
+    p_whatsapp: number,
+  });
+  if (error) throw error;
+  return data;
+}
+
 /**
  * Fetches customer list.
  * - Default (role='ALL'): only shows customers (excludes admin/super_admin)

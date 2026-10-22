@@ -40,6 +40,7 @@ function report(ok, name, detail) {
     'bubatrent_booking_rental_changes',
     'bubatrent_booking_car_documents',
     'bubatrent_booking_records',
+    'bubatrent_booking_admin_contacts',
   ];
   for (const table of privateTables) {
     const { count, error } = await anon.from(table).select('*', { count: 'exact', head: true });
@@ -119,6 +120,16 @@ function report(ok, name, detail) {
   });
   report(!!carDocErr, 'anon cannot record car documents', carDocErr ? 'denied' : 'allowed');
 
+  const { error: waErr } = await anon.rpc('bubatrent_admin_set_my_whatsapp', {
+    p_whatsapp: '60123456789',
+  });
+  report(!!waErr, 'anon cannot save a WhatsApp number', waErr ? 'denied' : 'allowed');
+
+  const { error: contactsErr } = await anon.rpc('bubatrent_fleet_contacts', {
+    p_fleet_group_id: '00000000-0000-0000-0000-000000000000',
+  });
+  report(!!contactsErr, 'anon cannot list fleet contacts', contactsErr ? 'denied' : 'allowed');
+
   for (const [fn, args] of [
     ['bubatrent_admin_extend_rental', { p_new_return: '2099-01-01' }],
     ['bubatrent_admin_end_rental_early', { p_new_return: '2099-01-01', p_reason: 'customer' }],
@@ -141,6 +152,15 @@ function report(ok, name, detail) {
     !availErr && typeof available === 'boolean',
     'availability check works for visitors',
     availErr ? `error: ${availErr.message}` : `returned ${available}`
+  );
+
+  const { error: carContactErr } = await anon.rpc('bubatrent_car_contact', {
+    p_car_id: '00000000-0000-0000-0000-000000000000',
+  });
+  report(
+    !carContactErr,
+    'car WhatsApp contact works for visitors',
+    carContactErr ? `error: ${carContactErr.message}` : 'ok'
   );
 
   console.log(failed ? `\n${failed} check(s) failed` : '\nAll checks passed');

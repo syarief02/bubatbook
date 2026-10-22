@@ -1,54 +1,22 @@
-import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { useCar, useCarContact } from '../hooks/useCars';
 
 const DEFAULT_PHONE = '60194961568'; // Default fallback
 const DEFAULT_MSG = 'Hi, I want to inquire about car rental at Rent2Go!';
 
 export default function WhatsAppButton() {
   const location = useLocation();
-  const [phoneNumber, setPhoneNumber] = useState(DEFAULT_PHONE);
-  const [message, setMessage] = useState(DEFAULT_MSG);
+  // On /cars/:id or /checkout/:id, chat with whoever looks after that car
+  const carId = location.pathname.match(/\/(?:cars|checkout)\/([a-zA-Z0-9-]+)/)?.[1];
+  const { car } = useCar(carId);
+  const contact = useCarContact(carId);
 
-  useEffect(() => {
-    async function fetchFleetNumber() {
-      try {
-        // Extract carId from /cars/:id or /checkout/:id
-        const match = location.pathname.match(/\/(?:cars|checkout)\/([a-zA-Z0-9-]+)/);
-        if (!match) {
-          setPhoneNumber(DEFAULT_PHONE);
-          setMessage(DEFAULT_MSG);
-          return;
-        }
-        const carId = match[1];
-
-        const { data, error } = await supabase
-          .from('bubatrent_booking_cars')
-          .select('brand, model, bubatrent_booking_fleet_groups(support_whatsapp, name)')
-          .eq('id', carId)
-          .single();
-
-        if (error || !data) throw new Error('Car not found');
-
-        const fleetNumber = data.bubatrent_booking_fleet_groups?.support_whatsapp;
-        if (fleetNumber) {
-          setPhoneNumber(fleetNumber.replace(/\D/g, ''));
-          setMessage(
-            `Hi ${data.bubatrent_booking_fleet_groups.name || 'Admin'}, I want to inquire about the ${data.brand} ${data.model} on Rent2Go!`
-          );
-        } else {
-          setPhoneNumber(DEFAULT_PHONE);
-          setMessage(DEFAULT_MSG);
-        }
-      } catch {
-        setPhoneNumber(DEFAULT_PHONE);
-        setMessage(DEFAULT_MSG);
-      }
-    }
-
-    fetchFleetNumber();
-  }, [location.pathname]);
+  const phoneNumber = (carId && contact?.whatsapp) || DEFAULT_PHONE;
+  const message =
+    carId && contact?.whatsapp && car
+      ? `Hi ${contact.name || 'Admin'}, I want to inquire about the ${car.brand} ${car.model} on Rent2Go!`
+      : DEFAULT_MSG;
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 

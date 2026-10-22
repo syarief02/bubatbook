@@ -375,6 +375,13 @@ export default function UserManual() {
               <B>Plate Number</B>: printed on the rental agreement and invoice.
             </li>
             <li>
+              <B>WhatsApp contact</B>: the admin or staff member customers WhatsApp about this car,
+              from the car page, checkout and their booking page. A car you add is yours unless you
+              pick someone else. Each person saves their own number in Fleet Settings; until they
+              do, or if you choose <B>Fleet number</B>, customers get the fleet&apos;s WhatsApp
+              number. The car list shows each car&apos;s contact.
+            </li>
+            <li>
               <B>Features</B>: separated by commas, e.g. &quot;Bluetooth, Rear Camera&quot;.
             </li>
           </Bullets>
@@ -1341,14 +1348,21 @@ export default function UserManual() {
           <Sub>Fleet Settings</Sub>
           <Bullets>
             <li>
+              <B>Your WhatsApp number</B> (top of the page, for every admin): customers WhatsApp it
+              about the cars you are the contact for (section 4). Type it the local way (012-345
+              6789) or with the country code; it is saved as 60123456789. Only you can change it.
+              Save it empty to remove it.
+            </li>
+            <li>
               <B>Fleet Name</B>, <B>Support Email</B>, <B>Support Phone</B> and{' '}
-              <B>WhatsApp Number</B>. Customers see the WhatsApp button at checkout and on their
-              booking page; the phone number is printed on invoices.
+              <B>WhatsApp Number</B>. The fleet&apos;s WhatsApp number is for cars with no contact,
+              or whose contact has no number saved; the phone number is printed on invoices.
             </li>
             <li>
               <B>Long-rental discounts</B>: the percentage off for rentals of 7 days or more and of
-              30 days or more (10% and 20% to start). Online and counter bookings use them; the car
-              page shows the discount. 0 turns it off. Bookings already made keep their price.
+              30 days or more (BuBat Resources: 10% and 40%). Online and counter bookings use them;
+              the car page shows the discount. 0 turns it off. Bookings already made keep their
+              price.
             </li>
             <li>
               Only a Fleet Admin or a super admin can change Fleet Settings; Staff get a message

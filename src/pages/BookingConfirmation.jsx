@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBooking, cancelBooking } from '../hooks/useBookings';
+import { useCarContact } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
 import { useToast } from '../components/Toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
@@ -31,7 +31,8 @@ export default function BookingConfirmation() {
   const [copied, setCopied] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [fleetGroup, setFleetGroup] = useState(null);
+  // WhatsApp button: whoever looks after the car
+  const contact = useCarContact(booking?.car_id);
 
   useEffect(() => {
     async function fetchBooking() {
@@ -46,17 +47,6 @@ export default function BookingConfirmation() {
     }
     fetchBooking();
   }, [id]);
-
-  // Fetch fleet group for WhatsApp button
-  useEffect(() => {
-    if (!booking?.fleet_group_id) return;
-    supabase
-      .from('bubatrent_booking_fleet_groups')
-      .select('name, support_whatsapp, support_phone')
-      .eq('id', booking.fleet_group_id)
-      .single()
-      .then(({ data }) => setFleetGroup(data));
-  }, [booking?.fleet_group_id]);
 
   async function handleCancel() {
     try {
@@ -317,9 +307,9 @@ export default function BookingConfirmation() {
         )}
 
         {/* WhatsApp Payment Button */}
-        {fleetGroup?.support_whatsapp && !isCancelled && !isExpired && (
+        {contact?.whatsapp && !isCancelled && !isExpired && (
           <a
-            href={`https://wa.me/${fleetGroup.support_whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
+            href={`https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(
               `Hi, I'd like to make payment for my booking:\n\n` +
                 `📋 Booking ID: ${booking.id.slice(0, 8).toUpperCase()}\n` +
                 `👤 Name: ${booking.customer_name || 'N/A'}\n` +
@@ -333,7 +323,7 @@ export default function BookingConfirmation() {
             className="flex items-center justify-center gap-2 w-full mt-4 px-4 py-3 rounded-xl text-sm font-medium bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/20 transition-all"
           >
             <MessageCircle className="w-4 h-4" />
-            Contact {fleetGroup.name} for Payment (WhatsApp)
+            Contact {contact.name} for Payment (WhatsApp)
           </a>
         )}
 

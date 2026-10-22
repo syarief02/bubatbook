@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { useCar } from '../hooks/useCars';
+import { useCar, useCarContact } from '../hooks/useCars';
 import { useAuth } from '../hooks/useAuth';
 import {
   createHoldBooking,
@@ -43,6 +43,7 @@ export default function Checkout() {
   const { user, profile, isVerified, refreshProfile } = useAuth();
   const toast = useToast();
   const { car, loading: carLoading } = useCar(carId);
+  const contact = useCarContact(carId);
 
   const pickupDate = searchParams.get('pickup');
   const returnDate = searchParams.get('return');
@@ -484,11 +485,8 @@ export default function Checkout() {
               {/* Receipt upload (if payment needed) */}
               {amountDue > 0 ? (
                 (() => {
-                  const contactPhone =
-                    car?.bubatrent_booking_fleet_groups?.support_whatsapp?.replace(/\D/g, '') ||
-                    '60194961568';
-                  const contactName =
-                    car?.bubatrent_booking_fleet_groups?.name || 'Rent2Go Support';
+                  const contactPhone = contact?.whatsapp || '60194961568';
+                  const contactName = contact?.name || 'Rent2Go Support';
                   const whatsappUrl = `https://wa.me/${contactPhone}?text=${encodeURIComponent(`Hi ${contactName}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car?.brand} ${car?.model}. Please provide the bank account details.`)}`;
 
                   return (

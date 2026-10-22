@@ -2,6 +2,7 @@ import { useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
+import { useMyWhatsapp, setMyWhatsapp } from '../../hooks/useAdmin';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/Toast';
 import {
@@ -143,6 +144,8 @@ export default function FleetSettings() {
 
   return (
     <AdminLayout title="Fleet Settings">
+      <MyWhatsAppCard userId={user?.id} />
+
       {/* Current Fleet Info */}
       {activeFleet && (
         <div className="glass-card mb-6">
@@ -411,5 +414,91 @@ export default function FleetSettings() {
         </div>
       )}
     </AdminLayout>
+  );
+}
+
+/** The signed-in admin's own WhatsApp number, used for the cars they look after. */
+function MyWhatsAppCard({ userId }) {
+  const toast = useToast();
+  const { whatsapp, loading, refetch } = useMyWhatsapp(userId);
+  const [editing, setEditing] = useState(false);
+  const [number, setNumber] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const saved = await setMyWhatsapp(number.trim());
+      toast.success(saved ? `WhatsApp number saved: +${saved}` : 'WhatsApp number removed');
+      setEditing(false);
+      refetch();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="glass-card mb-6">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+            <MessageCircle className="w-5 h-5 text-green-400" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-white">Your WhatsApp number</h2>
+            <p className="text-xs text-slate-500">
+              {loading ? 'Loading…' : whatsapp ? `+${whatsapp}` : 'Not set'}
+            </p>
+          </div>
+        </div>
+        {!editing && (
+          <button
+            onClick={() => {
+              setNumber(whatsapp || '');
+              setEditing(true);
+            }}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            <Pencil className="w-3.5 h-3.5" /> {whatsapp ? 'Change' : 'Add'}
+          </button>
+        )}
+      </div>
+      <p className="text-xs text-slate-500">
+        Customers WhatsApp this number about the cars you look after (Manage Cars → Edit → WhatsApp
+        contact). Cars with no contact number use the fleet&apos;s WhatsApp number below.
+      </p>
+
+      {editing && (
+        <form onSubmit={handleSave} className="flex flex-col sm:flex-row gap-3 mt-4">
+          <input
+            value={number}
+            onChange={(e) => setNumber(e.target.value)}
+            className="input-field flex-1"
+            placeholder="012-345 6789 or 60123456789"
+            inputMode="tel"
+            autoFocus
+          />
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setEditing(false)} className="btn-secondary">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn-primary flex items-center justify-center gap-2"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </form>
+      )}
+      {editing && (
+        <p className="text-[11px] text-slate-500 mt-2">Leave it empty and save to remove it.</p>
+      )}
+    </div>
   );
 }

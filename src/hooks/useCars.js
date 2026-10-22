@@ -65,6 +65,35 @@ export function useLongRentalRates(fleetGroupId) {
   return data;
 }
 
+/**
+ * Who customers WhatsApp about a car: {name, whatsapp} of the admin who
+ * looks after it, else the fleet's number. Null when neither has one.
+ */
+async function fetchCarContact(carId) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bubatrent_car_contact`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ p_car_id: carId }),
+  });
+  // Callers fall back to the Rent2Go number
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export function useCarContact(carId) {
+  const { data = null } = useQuery({
+    queryKey: ['car-contact', carId],
+    queryFn: () => fetchCarContact(carId),
+    enabled: !!carId,
+    staleTime: 1000 * 60 * 5,
+  });
+  return data;
+}
+
 export function useCar(id) {
   const {
     data: car = null,
@@ -73,7 +102,7 @@ export function useCar(id) {
   } = useQuery({
     queryKey: ['car', id],
     queryFn: async () => {
-      const url = `${SUPABASE_URL}/rest/v1/bubatrent_booking_cars?id=eq.${id}&select=*,bubatrent_booking_fleet_groups(support_whatsapp)`;
+      const url = `${SUPABASE_URL}/rest/v1/bubatrent_booking_cars?id=eq.${id}&select=*`;
       const res = await fetch(url, {
         headers: {
           apikey: SUPABASE_KEY,

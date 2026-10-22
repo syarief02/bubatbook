@@ -4,10 +4,12 @@ import AdminLayout from '../../components/AdminLayout';
 import {
   useAdminCars,
   useCarDocuments,
+  useFleetContacts,
   createCar,
   updateCar,
   deleteCar,
 } from '../../hooks/useAdmin';
+import { useAuth } from '../../hooks/useAuth';
 import { useFleet } from '../../hooks/useFleet';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -26,6 +28,7 @@ import {
   Loader2,
   History,
   Image as ImageIcon,
+  MessageCircle,
 } from 'lucide-react';
 
 const EMPTY_CAR = {
@@ -42,13 +45,16 @@ const EMPTY_CAR = {
   plate_number: '',
   features: [],
   is_available: true,
+  contact_admin_id: null,
 };
 
 export default function AdminCars() {
   const toast = useToast();
-  const { activeFleetId } = useFleet();
+  const { user } = useAuth();
+  const { activeFleetId, activeFleet } = useFleet();
   const { cars, loading, error, refetch } = useAdminCars(activeFleetId);
   const { documents } = useCarDocuments(activeFleetId);
+  const { contacts } = useFleetContacts(activeFleetId);
   const docAlerts = documentAlerts(cars, documents);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -70,7 +76,9 @@ export default function AdminCars() {
 
   function openNew() {
     setEditing(null);
-    setForm(EMPTY_CAR);
+    // A car you add is yours to answer on WhatsApp unless you pick someone else
+    const mine = contacts.some((c) => c.user_id === user?.id);
+    setForm({ ...EMPTY_CAR, contact_admin_id: mine ? user.id : null });
     setFeaturesInput('');
     setShowForm(true);
   }
@@ -96,6 +104,7 @@ export default function AdminCars() {
         seats: Number(form.seats),
         price_per_day: Number(form.price_per_day),
         deposit_amount: Number(form.deposit_amount || 0),
+        contact_admin_id: form.contact_admin_id || null,
       };
       delete data.id;
       delete data.created_at;
@@ -303,6 +312,39 @@ export default function AdminCars() {
               </div>
 
               <div>
+                <label className="input-label flex items-center gap-1">
+                  <MessageCircle className="w-3 h-3" /> WhatsApp contact
+                </label>
+                <select
+                  value={form.contact_admin_id || ''}
+                  onChange={(e) => setForm({ ...form, contact_admin_id: e.target.value || null })}
+                  className="input-field"
+                >
+                  <option value="">
+                    Fleet number
+                    {activeFleet?.support_whatsapp
+                      ? ` (+${activeFleet.support_whatsapp.replace(/\D/g, '')})`
+                      : ''}
+                  </option>
+                  {contacts.map((c) => (
+                    <option key={c.user_id} value={c.user_id}>
+                      {c.display_name} · {c.whatsapp ? `+${c.whatsapp}` : 'no WhatsApp number yet'}
+                    </option>
+                  ))}
+                  {form.contact_admin_id &&
+                    !contacts.some((c) => c.user_id === form.contact_admin_id) && (
+                      <option value={form.contact_admin_id}>
+                        Someone no longer in this fleet (the fleet number is used)
+                      </option>
+                    )}
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Customers who pick this car WhatsApp this person. Each admin saves their own
+                  number in Fleet Settings; until they do, the fleet number is used.
+                </p>
+              </div>
+
+              <div>
                 <label className="input-label">Features (comma separated)</label>
                 <input
                   value={featuresInput}
@@ -389,6 +431,10 @@ export default function AdminCars() {
                 <p className="text-xs text-slate-500">
                   {car.brand} {car.model} · {car.year} · {car.transmission} · {car.seats} seats
                 </p>
+                <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                  <MessageCircle className="w-3 h-3 text-green-500/70" />
+                  {contactLabel(car.contact_admin_id, contacts)}
+                </p>
                 {docAlerts.some((a) => a.car.id === car.id) && (
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {docAlerts
@@ -460,4 +506,13 @@ export default function AdminCars() {
       )}
     </AdminLayout>
   );
+}
+
+/** Who customers WhatsApp about a car, as the car list shows it. */
+function contactLabel(contactId, contacts) {
+  const contact = contacts.find((c) => c.user_id === contactId);
+  if (!contact) return 'Fleet WhatsApp number';
+  return contact.whatsapp
+    ? `${contact.display_name} (+${contact.whatsapp})`
+    : `${contact.display_name} · no number yet, fleet number used`;
 }
