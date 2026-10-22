@@ -162,13 +162,21 @@ export default function AdminCounter() {
   }, [bookings, today]);
 
   const q = search.trim().toLowerCase().replace(/\s/g, '');
-  const shownCars = cars.filter(
-    (c) =>
-      !q ||
-      (c.plate_number || '').toLowerCase().replace(/\s/g, '').includes(q) ||
-      (c.name || '').toLowerCase().replace(/\s/g, '').includes(q) ||
-      (byCar[c.id]?.out?.customer_name || '').toLowerCase().replace(/\s/g, '').includes(q)
-  );
+  // Cars that are out first, then booked, available, and hidden last
+  const rank = (c) =>
+    byCar[c.id]?.out ? 0 : byCar[c.id]?.next?.length ? 1 : c.is_available ? 2 : 3;
+  const shownCars = cars
+    .filter(
+      (c) =>
+        !q ||
+        (c.plate_number || '').toLowerCase().replace(/\s/g, '').includes(q) ||
+        (c.name || '').toLowerCase().replace(/\s/g, '').includes(q) ||
+        (byCar[c.id]?.out?.customer_name || '').toLowerCase().replace(/\s/g, '').includes(q)
+    )
+    .sort(
+      (a, b) =>
+        rank(a) - rank(b) || (a.plate_number || a.name).localeCompare(b.plate_number || b.name)
+    );
   const openBooking = bookings.find((b) => b.id === openBookingId) || null;
 
   return (
