@@ -29,6 +29,7 @@ const AdminCarDocuments = lazy(() => import('./pages/admin/CarDocuments'));
 const AdminCarHistory = lazy(() => import('./pages/admin/CarHistory'));
 const AdminCustomerHistory = lazy(() => import('./pages/admin/CustomerHistory'));
 const AdminCounter = lazy(() => import('./pages/admin/Counter'));
+const AdminWhatsNew = lazy(() => import('./pages/admin/WhatsNew'));
 const AdminBookings = lazy(() => import('./pages/admin/Bookings'));
 const AdminBookingDetail = lazy(() => import('./pages/admin/BookingDetail'));
 const AdminCustomers = lazy(() => import('./pages/admin/Customers'));
@@ -178,6 +179,14 @@ function AppRoutes() {
               element={
                 <AdminRoute>
                   <AdminCars />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/whats-new"
+              element={
+                <AdminRoute>
+                  <AdminWhatsNew />
                 </AdminRoute>
               }
             />

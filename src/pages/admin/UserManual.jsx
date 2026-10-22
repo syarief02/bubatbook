@@ -198,6 +198,15 @@ export default function UserManual() {
             Sign in on rent2go.my with your admin account and click <B>Admin</B> in the top bar.{' '}
             <B>Back to site</B> (top left) returns to the customer website.
           </p>
+          <Sub>What&apos;s New</Sub>
+          <p>
+            <B>What&apos;s New</B> (bottom of the menu) lists every update to the website, newest
+            first: new pages and buttons, changed rules, new prices and photos. Each entry says what
+            changed, and most open the page they are about. A dot next to <B>What&apos;s New</B> in
+            the menu means there is something you haven&apos;t seen yet; it goes once you open the
+            page (it is remembered per browser, so a new phone shows it again). This manual explains
+            how things work; What&apos;s New tells you what changed.
+          </p>
           <Sub>Who can do what</Sub>
           <Bullets>
             <li>
@@ -298,6 +307,10 @@ export default function UserManual() {
           </p>
           <Sub>Every day</Sub>
           <Steps>
+            <li>
+              If <B>What&apos;s New</B> in the menu has a dot, open it to see what changed since you
+              last looked.
+            </li>
             <li>
               Open the <B>Dashboard</B> and work through <B>Needs your attention</B>. Verify or
               reject each deposit receipt (section 7.1). <strong>Do this within 48 hours</strong>:

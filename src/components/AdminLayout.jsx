@@ -18,11 +18,13 @@ import {
   FileBadge,
   UserSearch,
   Store,
+  Sparkles,
 } from 'lucide-react';
 import FleetSelector from './FleetSelector';
 import ViewAsSelector from './ViewAsSelector';
 import { useFleet } from '../hooks/useFleet';
 import { useAuth } from '../hooks/useAuth';
+import { hasUnseenChanges } from '../utils/changelogSeen';
 
 const navItems = [
   { to: '/admin/counter', label: 'Counter', icon: Store },
@@ -38,6 +40,7 @@ const navItems = [
   { to: '/admin/fleet/members', label: 'Members', icon: Users2 },
   { to: '/admin/upload-logs', label: 'Upload Logs', icon: Upload },
   { to: '/admin/manual', label: 'User Manual', icon: BookOpen },
+  { to: '/admin/whats-new', label: "What's New", icon: Sparkles },
 ];
 
 // Governance nav items — only visible to Super Group admins
@@ -91,6 +94,10 @@ export default function AdminLayout({ children, title }) {
                     >
                       <Icon className="w-4 h-4" />
                       {label}
+                      {/* Something new since this browser last opened What's New */}
+                      {to === '/admin/whats-new' && !active && hasUnseenChanges() && (
+                        <span className="ml-auto w-2 h-2 rounded-full bg-violet-400" />
+                      )}
                     </Link>
                   );
                 })}
