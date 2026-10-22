@@ -30,6 +30,33 @@ async function expireStaleHoldsQuietly() {
 // Matches no row: for .in() with an empty list
 const NO_ID = '00000000-0000-0000-0000-000000000000';
 
+/**
+ * Customers' credit by fleet: credit is money a fleet owes the customer, so it
+ * is only ever with one fleet (see bubatrent_fleet_credit). Sums the credit
+ * ledger, which admins see for their own fleets only. Returns
+ * { "<user_id>:<fleet_group_id>": balance }.
+ */
+export async function fetchFleetCredits(fleetId, userIds = null) {
+  let query = supabase
+    .from('bubatrent_booking_credit_transactions')
+    .select('user_id, fleet_group_id, amount');
+  query = scopeToFleet(query, fleetId);
+  if (userIds) query = query.in('user_id', userIds.length ? userIds : [NO_ID]);
+  const { data, error } = await query;
+  if (error) throw error;
+  const balances = {};
+  for (const t of data || []) {
+    const key = `${t.user_id}:${t.fleet_group_id}`;
+    balances[key] = (balances[key] || 0) + Number(t.amount || 0);
+  }
+  return balances;
+}
+
+/** A customer's credit with one fleet, from fetchFleetCredits' result. */
+export function creditWith(balances, userId, fleetId) {
+  return Math.max(0, Math.round((balances[`${userId}:${fleetId}`] || 0) * 100) / 100);
+}
+
 // ─── Data-Fetching Hooks (React Query) ───
 
 export function useAdminStats(fleetId) {
@@ -108,18 +135,16 @@ export function useAdminStats(fleetId) {
 
       // Returned cars whose deposit is on hold until the damage cost is known
       const onHold = (moneyRows || []).filter((b) => b.status === 'RETURNED' && b.deposit_on_hold);
-      // Credit customers hold (returned deposits), to refund by transfer or keep.
-      // Credit belongs to the customer, not a fleet, like pendingVerifications.
       // Licence renewals waiting for review (customers aren't fleet-scoped)
       const { count: renewalsToReview } = await supabase
         .from('bubatrent_booking_verification_updates')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
-      const { data: creditRows, error: creditErr } = await supabase
-        .from('bubatrent_booking_profiles')
-        .select('deposit_credit')
-        .gt('deposit_credit', 0);
-      if (creditErr) throw creditErr;
+      // Credit customers hold with this fleet (returned deposits), to refund by
+      // transfer or keep. Another fleet's credit is that fleet's to settle.
+      const creditOwedRows = Object.entries(await fetchFleetCredits(fleetId)).filter(
+        ([, balance]) => balance > 0
+      );
 
       return {
         totalBookings: totalBookings || 0,
@@ -135,8 +160,8 @@ export function useAdminStats(fleetId) {
         renewalsToReview: renewalsToReview || 0,
         depositsOnHold: onHold.length,
         depositsOnHoldAmount: sumBy(onHold, (b) => Number(b.deposit_amount) || 0),
-        customersWithCredit: (creditRows || []).length,
-        creditOwed: sumBy(creditRows || [], (p) => Number(p.deposit_credit) || 0),
+        customersWithCredit: new Set(creditOwedRows.map(([key]) => key.split(':')[0])).size,
+        creditOwed: sumBy(creditOwedRows, ([, balance]) => balance),
         totalCustomers: totalCustomers || 0,
       };
     },
@@ -375,25 +400,22 @@ export function useAdminCustomers(filters = {}) {
         });
       }
 
-      // Get fleet-scoped credit for each customer
-      let creditByUser = {};
-      if (customerIds.length > 0 && filters.fleetId) {
-        const { data: txns } = await supabase
-          .from('bubatrent_booking_credit_transactions')
-          .select('user_id, amount')
-          .in('user_id', customerIds)
-          .eq('fleet_group_id', filters.fleetId);
-        (txns || []).forEach((t) => {
-          creditByUser[t.user_id] = (creditByUser[t.user_id] || 0) + Number(t.amount);
-        });
-      }
+      // Each customer's credit with this fleet (credit is always with one fleet)
+      const credits =
+        customerIds.length > 0 && filters.fleetId
+          ? await fetchFleetCredits(filters.fleetId, customerIds)
+          : {};
 
-      return filtered.map((c) => ({
+      const rows = filtered.map((c) => ({
         ...c,
         booking_count: bookingCounts[c.id] || 0,
         update_waiting: updateWaiting.has(c.id),
-        fleet_credit: filters.fleetId ? creditByUser[c.id] || 0 : Number(c.deposit_credit || 0),
+        fleet_credit: filters.fleetId
+          ? creditWith(credits, c.id, filters.fleetId)
+          : Number(c.deposit_credit || 0),
       }));
+      // "Has credit": with this fleet
+      return filters.credit && filters.fleetId ? rows.filter((c) => c.fleet_credit > 0) : rows;
     },
     staleTime: 60 * 1000, // 1 min cache
   });

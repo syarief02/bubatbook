@@ -7,6 +7,7 @@ import {
   updateBookingCustomerInfo,
   cancelBooking,
   submitBookingDeposit,
+  useMyFleetCredits,
 } from '../hooks/useBookings';
 import { uploadFileRobust } from '../lib/uploadHelper';
 import { supabase } from '../lib/supabase';
@@ -64,8 +65,12 @@ export default function Checkout() {
   sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
   const isTooFarAdvance = returnDate && new Date(returnDate) > sixMonthsFromNow;
 
-  // Deposit credit
-  const credit = Number(profile?.deposit_credit || 0);
+  // Deposit credit: only what the customer has with this car's fleet
+  const { credits: myCredits } = useMyFleetCredits(user?.id);
+  const credit = Math.max(
+    0,
+    Number(myCredits.find((c) => c.fleet_group_id === car?.fleet_group_id)?.balance || 0)
+  );
 
   // Online bookings need the bank account deposits are refunded to
   const needsBank = isVerified && !hasBankDetails(profile);

@@ -35,6 +35,23 @@ export function useBookings(userId) {
  * Mark abandoned checkouts (HOLD past hold_expires_at) as EXPIRED for all users,
  * so they stop blocking the dates. Call before admin-created bookings or date edits.
  */
+/**
+ * The signed-in customer's deposit credit by fleet: [{fleet_group_id, fleet_name, balance}].
+ * Credit is owed by the fleet that gave it and only pays deposits with that fleet.
+ */
+export function useMyFleetCredits(userId) {
+  const { data: credits = [], refetch } = useQuery({
+    queryKey: ['my-fleet-credits', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('bubatrent_my_fleet_credits');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userId,
+  });
+  return { credits, refetch };
+}
+
 export async function expireStaleHolds() {
   const { error } = await supabase.rpc('bubatrent_expire_stale_holds');
   if (error) throw error;

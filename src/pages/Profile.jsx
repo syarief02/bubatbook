@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { useBookings } from '../hooks/useBookings';
+import { useBookings, useMyFleetCredits } from '../hooks/useBookings';
 import { useToast } from '../components/Toast';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -125,6 +125,8 @@ export default function Profile() {
 
   const licenceExpired = profile?.licence_expiry && new Date(profile.licence_expiry) < new Date();
   const credit = Number(profile?.deposit_credit || 0);
+  // Credit is with the rental company that gave it and pays deposits with them
+  const { credits: creditByFleet } = useMyFleetCredits(user?.id);
 
   return (
     <div className="page-container max-w-4xl mx-auto">
@@ -394,8 +396,19 @@ export default function Profile() {
                 <p className="text-2xl font-bold text-white">{formatMYR(credit)}</p>
               </div>
             </div>
+            {creditByFleet.length > 1 && (
+              <ul className="text-xs text-slate-400 mb-2 space-y-0.5">
+                {creditByFleet.map((c) => (
+                  <li key={c.fleet_group_id} className="flex justify-between">
+                    <span>{c.fleet_name}</span>
+                    <span>{formatMYR(c.balance)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
             <p className="text-xs text-slate-500">
-              Applied automatically to your next booking deposit.
+              Applied automatically to your next booking deposit with the same rental company
+              {creditByFleet.length === 1 ? ` (${creditByFleet[0].fleet_name})` : ''}.
             </p>
           </div>
 

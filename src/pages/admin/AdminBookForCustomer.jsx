@@ -8,6 +8,7 @@ import { friendlyDbError } from '../../utils/dbErrors';
 import { ilikeAny } from '../../utils/search';
 import { calculatePrice, formatMYR, longRentalLabel } from '../../utils/pricing';
 import { useLongRentalRates } from '../../hooks/useCars';
+import { fetchFleetCredits, creditWith } from '../../hooks/useAdmin';
 import { getTodayString } from '../../utils/dates';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -40,6 +41,8 @@ export default function AdminBookForCustomer() {
   // Step 1: Customer
   const [custSearch, setCustSearch] = useState('');
   const [custResults, setCustResults] = useState([]);
+  // Their credit with this fleet: credit from another fleet can't pay here
+  const [custCredits, setCustCredits] = useState({});
   const [selectedCust, setSelectedCust] = useState(null);
   const [searching, setSearching] = useState(false);
 
@@ -75,13 +78,24 @@ export default function AdminBookForCustomer() {
     setSearching(true);
     const { data, error } = await supabase
       .from('bubatrent_booking_profiles')
-      .select(
-        'id, display_name, username, email, phone, ic_number, is_verified, licence_expiry, deposit_credit'
-      )
+      .select('id, display_name, username, email, phone, ic_number, is_verified, licence_expiry')
       .or(ilikeAny(['display_name', 'phone', 'ic_number', 'username'], q))
       .limit(10);
     if (error) console.error('[BookForCustomer] Search error:', error);
     setCustResults(data || []);
+    try {
+      setCustCredits(
+        activeFleetId && data?.length
+          ? await fetchFleetCredits(
+              activeFleetId,
+              data.map((c) => c.id)
+            )
+          : {}
+      );
+    } catch (err) {
+      console.error('[BookForCustomer] Credit lookup error:', err);
+      setCustCredits({});
+    }
     setSearching(false);
   }
 
@@ -175,7 +189,7 @@ export default function AdminBookForCustomer() {
   // The deposit follows the online rule for the chosen dates until staff change it
   const depositAmount = depositTouched ? depositInput : depositRule;
 
-  const credit = Math.max(0, Number(selectedCust?.deposit_credit || 0));
+  const credit = selectedCust ? creditWith(custCredits, selectedCust.id, activeFleetId) : 0;
   const creditApplied = useCredit ? Math.min(credit, Number(depositAmount) || 0) : 0;
   const toCollect = Math.max(0, (Number(depositAmount) || 0) - creditApplied);
 
@@ -328,10 +342,10 @@ export default function AdminBookForCustomer() {
                         ) : (
                           <span className="text-green-400">✓ Verified</span>
                         )}
-                        {Number(c.deposit_credit) > 0 && (
+                        {creditWith(custCredits, c.id, activeFleetId) > 0 && (
                           <span className="text-emerald-400">
                             {' '}
-                            • {formatMYR(c.deposit_credit)} credit
+                            • {formatMYR(creditWith(custCredits, c.id, activeFleetId))} credit
                           </span>
                         )}
                       </p>

@@ -580,8 +580,11 @@ export default function UserManual() {
               <B>Booking History</B>: the customer&apos;s bookings in your fleet.
             </li>
             <li>
-              <B>Deposit Credit</B>: their balance, with <B>Add Credit</B> and <B>Deduct Credit</B>{' '}
-              (section 9).
+              <B>Deposit Credit</B>: their balance with your fleet, with <B>Add Credit</B> and{' '}
+              <B>Deduct Credit</B> (section 9). Credit is money a fleet owes the customer, so it
+              stays with the fleet that gave it: it only pays deposits for that fleet&apos;s cars,
+              and only that fleet can refund or deduct it. Another fleet&apos;s credit isn&apos;t
+              shown and isn&apos;t yours to settle; the same goes for what a customer owes.
             </li>
             <li>
               Roles (super admins only): <B>Make Admin</B>, <B>Make Super Admin</B>,{' '}

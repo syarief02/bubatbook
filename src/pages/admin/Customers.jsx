@@ -1171,13 +1171,11 @@ export default function Customers() {
                       <div className="flex items-center gap-2 mb-2">
                         <Wallet className="w-4 h-4 text-green-400" />
                         <span className="text-sm text-white font-semibold">
-                          {formatMYR(customer.deposit_credit || 0)}
+                          {formatMYR(customer.fleet_credit || 0)}
                         </span>
-                        {activeFleetId && (
-                          <span className="text-xs text-slate-400">
-                            (Fleet: {formatMYR(customer.fleet_credit || 0)})
-                          </span>
-                        )}
+                        <span className="text-xs text-slate-400">
+                          {activeFleetId ? 'with this fleet' : 'with all fleets'}
+                        </span>
                       </div>
                       <div className="space-y-2">
                         {/* Add Credit */}
