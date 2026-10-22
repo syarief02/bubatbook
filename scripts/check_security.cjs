@@ -130,6 +130,27 @@ function report(ok, name, detail) {
   });
   report(!!contactsErr, 'anon cannot list fleet contacts', contactsErr ? 'denied' : 'allowed');
 
+  for (const [fn, args] of [
+    [
+      'bubatrent_admin_record_rental',
+      {
+        p_id: '00000000-0000-0000-0000-000000000000',
+        p_car_id: '00000000-0000-0000-0000-000000000000',
+        p_status: 'RETURNED',
+        p_pickup: '2025-01-01',
+        p_return: '2025-01-02',
+      },
+    ],
+    [
+      'bubatrent_admin_record_rent_payment',
+      { p_booking_id: '00000000-0000-0000-0000-000000000000', p_amount: 1 },
+    ],
+    ['bubatrent_admin_deposit_refunded', { p_booking_id: '00000000-0000-0000-0000-000000000000' }],
+  ]) {
+    const { error } = await anon.rpc(fn, args);
+    report(!!error, `anon cannot call ${fn}`, error ? 'denied' : 'allowed');
+  }
+
   const { error: otherErr } = await anon.rpc('bubatrent_admin_other_fleet_rentals', {
     p_fleet_group_id: null,
   });

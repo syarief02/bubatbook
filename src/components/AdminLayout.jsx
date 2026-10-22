@@ -17,6 +17,7 @@ import {
   Upload,
   FileBadge,
   UserSearch,
+  Store,
 } from 'lucide-react';
 import FleetSelector from './FleetSelector';
 import ViewAsSelector from './ViewAsSelector';
@@ -24,6 +25,7 @@ import { useFleet } from '../hooks/useFleet';
 import { useAuth } from '../hooks/useAuth';
 
 const navItems = [
+  { to: '/admin/counter', label: 'Counter', icon: Store },
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/cars', label: 'Cars', icon: Car },
   { to: '/admin/car-documents', label: 'Car Documents', icon: FileBadge },

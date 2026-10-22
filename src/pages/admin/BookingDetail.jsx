@@ -915,11 +915,16 @@ export default function AdminBookingDetail() {
                 )}
                 {booking.deposit_status === 'verified' && (
                   <p className="text-xs text-slate-400 mt-2">
+                    {/* Without a customer account there is no credit: staff refund it by hand (Counter) */}
                     {booking.deposit_credited_at
-                      ? `Added to the customer's credit on ${formatDateTime(booking.deposit_credited_at)}${Number(booking.charges_total) > 0 ? ', less charges (see Return & Charges)' : ''}.`
+                      ? booking.user_id
+                        ? `Added to the customer's credit on ${formatDateTime(booking.deposit_credited_at)}${Number(booking.charges_total) > 0 ? ', less charges (see Return & Charges)' : ''}.`
+                        : `Settled on ${formatDateTime(booking.deposit_credited_at)} (refunded to the customer).`
                       : booking.deposit_on_hold
                         ? 'On hold after the return. Settle it under Return & Charges.'
-                        : "Held until the car is returned, then added to the customer's credit less any charges."}
+                        : booking.user_id
+                          ? "Held until the car is returned, then added to the customer's credit less any charges."
+                          : 'Held until the car is returned, then refunded by hand (Counter → Deposit refunded).'}
                   </p>
                 )}
               </div>

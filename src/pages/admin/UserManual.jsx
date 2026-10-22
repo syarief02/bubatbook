@@ -250,6 +250,41 @@ export default function UserManual() {
           iconClass="text-green-400"
           title="Your daily routine"
         >
+          <Sub>The Counter (quickest way to record a rental)</Sub>
+          <p>
+            <B>Counter</B> (top of the menu, or <B>Open the Counter</B> on the Dashboard) shows
+            every car as a tile: available, on rent (with who has it and until when), booked, or
+            hidden. Tap a car and choose what is happening:
+          </p>
+          <Bullets>
+            <li>
+              <B>New booking</B>: starts later. Needs a verified customer account, like an online
+              booking.
+            </li>
+            <li>
+              <B>On rent now</B>: the customer already has the car, e.g. a deal agreed on WhatsApp.
+            </li>
+            <li>
+              <B>Past rental</B>: already back. Say what was paid and what happened to the deposit
+              (refunded, kept as credit, or still held).
+            </li>
+          </Bullets>
+          <p>
+            Then the customer (search, or <B>New</B> with just a name and phone: no account needed),
+            the dates (or tap 1 day, 3 days, 1 week…), the rent (the car&apos;s price, or what you
+            agreed), and the money received: rent (all, part or not yet), deposit, cash or transfer,
+            and a receipt if you have one. WhatsApp chat screenshots can go with it as proof.{' '}
+            <B>Save</B> records the booking and its payments, so it shows in Bookings, Sales and
+            Customer History. Dates that clash with another rental of the car are refused.
+          </p>
+          <p>
+            Tap a car that is out for its rental: <B>Add payment</B> when more rent comes in,{' '}
+            <B>Mark returned</B> when it comes back, and extend, end early or change the price. For
+            a customer without an account, press <B>Deposit refunded</B> once you have paid the
+            deposit back. The chips at the top list what needs settling: overdue returns, rent owed,
+            deposits to refund and deposits on hold.
+          </p>
+          <Sub>Every day</Sub>
           <Steps>
             <li>
               Open the <B>Dashboard</B> and work through <B>Needs your attention</B>. Verify or

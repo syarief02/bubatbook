@@ -127,6 +127,20 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout title="Dashboard">
+      {/* The quickest way to record a rental */}
+      <Link
+        to="/admin/counter"
+        className="glass-card mb-6 flex items-center justify-between gap-3 border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/15 transition-colors"
+      >
+        <span>
+          <span className="block text-base font-semibold text-white">Open the Counter</span>
+          <span className="block text-xs text-slate-400">
+            Record a new booking, a car on rent now, or a past rental in a few taps.
+          </span>
+        </span>
+        <ChevronRight className="w-5 h-5 text-violet-300 shrink-0" />
+      </Link>
+
       {/* Needs your attention */}
       {todo.length > 0 && (
         <div className="glass-card mb-8 border-amber-500/20 bg-amber-500/5">
