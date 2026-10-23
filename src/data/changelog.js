@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-10-24',
+    items: [
+      {
+        kind: 'data',
+        title: 'VEY 3516 history since January 2025',
+        text: 'Every VEY 3516 rental since January 2025 (one booking per monthly renewal), its repairs, renewals and loan instalments are now on the car’s History, each with its receipts and payment slips and a link to the Telegram post. Its older road tax, insurance and Puspakom are in Car Documents → History. The other cars follow one by one.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-10-23',
     items: [
       {
