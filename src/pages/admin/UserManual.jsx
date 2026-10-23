@@ -524,8 +524,10 @@ export default function UserManual() {
             Rentals and expenses from before the website, back to January 2025, are being added from
             the van sewa workbook and the Telegram group, one car at a time. Each one&apos;s note says
             where it came from and links to the Telegram post, with its receipts, payment slips and
-            chat proof attached. A monthly renewal is one booking per month. A renter whose name was
-            never written down shows as &quot;&lt;plate&gt; monthly renter (name not recorded)&quot;.
+            chat proof attached. A monthly renewal is one booking per month, and a van exchange is a
+            car change on the booking. A renter whose name was never written down shows as
+            &quot;&lt;plate&gt; renter … (name not recorded)&quot;. A deposit from before May 2026 with no
+            refund in Telegram is shown as returned, with a note saying so.
           </p>
           <Note tone="warn" title="Deleting a car">
             A car that has bookings or documents on record cannot be deleted. Set <B>Available</B>{' '}
