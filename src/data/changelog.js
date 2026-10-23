@@ -19,6 +19,12 @@ export const CHANGELOG = [
         text: 'This page. Every update to the website is listed here, newest first. The menu shows a dot when there is something you haven’t seen.',
       },
       {
+        kind: 'data',
+        title: 'Cars moved between fleets',
+        text: 'W 9490 C and VEY 3516 are back in BuBat Resources, and the Ford Ranger VDM 6927 is now in Bocah Trading. Their car documents moved with them; their WhatsApp contact is unchanged.',
+        link: '/admin/cars',
+      },
+      {
         kind: 'improved',
         title: 'User Manual up to date',
         text: 'The manual now covers what fleets share, credit per fleet and the Counter in every section, including Troubleshooting.',
@@ -62,7 +68,7 @@ export const CHANGELOG = [
       {
         kind: 'data',
         title: 'A second fleet: Bocah Trading',
-        text: 'Bocah Trading (Iqbal) joined, and VEY 3516 and W 9490 C moved to it.',
+        text: 'Bocah Trading (Iqbal) joined.',
       },
       {
         kind: 'data',
