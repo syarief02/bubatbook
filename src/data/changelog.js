@@ -15,8 +15,8 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
-        title: 'Car history since January 2025: VEY 3516 and VEY 3830',
-        text: 'Every rental of VEY 3516 and VEY 3830 since January 2025 is now on the car’s History and in Customer History: the renter’s name where the receipts show it, each payment checked against the bank statement, deposits and refunds, and van exchanges. Their repairs, renewals and loan instalments are there too, each with its receipts, payment slip and a link to the Telegram post. Older road tax, insurance and Puspakom are in Car Documents → History. The other cars follow one by one.',
+        title: 'Car history since January 2025: VEY 3516, VEY 3830 and W 9490 C',
+        text: 'Every rental of VEY 3516, VEY 3830 and W 9490 C since January 2025 is now on the car’s History and in Customer History: the renter’s name where the receipts show it, each payment checked against the bank statement, deposits and refunds, and van exchanges. Their repairs, renewals and loan instalments are there too, each with its receipts, payment slip and a link to the Telegram post. Older road tax, insurance and Puspakom are in Car Documents → History. The other cars follow one by one.',
         link: '/admin/cars',
       },
     ],
