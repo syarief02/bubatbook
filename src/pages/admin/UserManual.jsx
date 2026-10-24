@@ -536,6 +536,13 @@ export default function UserManual() {
             as a charge. Receipts that print an IC number or a home address are uploaded with that
             part blanked out.
           </p>
+          <p>
+            A rent settled against the partner&apos;s share is a payment with the method{' '}
+            <B>settlement</B>, and the booking&apos;s note says which month&apos;s settlement
+            covered it. An expense whose title starts with <B>DUPLICATE – delete</B> was recorded
+            twice by the import: its note names the original, and it should be deleted in{' '}
+            <B>Expenses</B>.
+          </p>
           <Note tone="warn" title="Deleting a car">
             A car that has bookings or documents on record cannot be deleted. Set <B>Available</B>{' '}
             to No instead.

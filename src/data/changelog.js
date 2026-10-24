@@ -20,6 +20,12 @@ export const CHANGELOG = [
         text: 'Every rental of VEY 3516, VEY 3830, W 9490 C, WA 5202 F, WB 4690 R and the Vellfire VJC 5290 since January 2025 is now on the car’s History and in Customer History: the renter’s name where the receipts show it, each payment checked against the bank statement, deposits and refunds, and van exchanges. Runners, Grab and repairs a renter paid for are charges on the booking, matched by the car’s expense. Their repairs, renewals and loan instalments are there too, each with its receipts, payment slip and a link to the Telegram post. Older road tax, insurance, Puspakom and GPS are in Car Documents → History. The other cars follow one by one.',
         link: '/admin/cars',
       },
+      {
+        kind: 'fixed',
+        title: 'Corrections from the latest Telegram messages (BuBat Resources)',
+        text: 'A monthly rental settled with the partner is now marked paid, with a note; claims that were paid twice and taken back by contra say so on the expense. Two expenses the import recorded twice are titled “DUPLICATE – delete” so they can be removed in Expenses. The Vellfire’s insurer is now on its Car Documents record.',
+        link: '/admin/expenses',
+      },
     ],
   },
   {
