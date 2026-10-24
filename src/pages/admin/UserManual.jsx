@@ -529,6 +529,13 @@ export default function UserManual() {
             &quot;&lt;plate&gt; renter … (name not recorded)&quot;. A deposit from before May 2026 with no
             refund in Telegram is shown as returned, with a note saying so.
           </p>
+          <p>
+            A runner, Grab or repair that the renter paid for is a charge on the booking and the
+            same amount as the car&apos;s expense, so the two cancel out in the profit. A booking that
+            was cancelled with its deposit kept shows as a rental with RM0 rent and the deposit as a
+            charge. Receipts that print an IC number or a home address are uploaded with that part
+            blanked out.
+          </p>
           <Note tone="warn" title="Deleting a car">
             A car that has bookings or documents on record cannot be deleted. Set <B>Available</B>{' '}
             to No instead.
