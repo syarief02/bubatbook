@@ -15,7 +15,8 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
-        title: 'Car history since January 2025: VEY 3516, VEY 3830, W 9490 C, WA 5202 F, WB 4690 R and the Vellfire VJC 5290',
+        title:
+          'Car history since January 2025: VEY 3516, VEY 3830, W 9490 C, WA 5202 F, WB 4690 R and the Vellfire VJC 5290',
         text: 'Every rental of VEY 3516, VEY 3830, W 9490 C, WA 5202 F, WB 4690 R and the Vellfire VJC 5290 since January 2025 is now on the car’s History and in Customer History: the renter’s name where the receipts show it, each payment checked against the bank statement, deposits and refunds, and van exchanges. Runners, Grab and repairs a renter paid for are charges on the booking, matched by the car’s expense. Their repairs, renewals and loan instalments are there too, each with its receipts, payment slip and a link to the Telegram post. Older road tax, insurance, Puspakom and GPS are in Car Documents → History. The other cars follow one by one.',
         link: '/admin/cars',
       },
