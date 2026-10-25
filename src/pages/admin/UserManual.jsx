@@ -1620,6 +1620,10 @@ export default function UserManual() {
                 'There is no receipt to check. Press ✓ Mark Deposit Received once you have the cash (7.1).',
               ],
               [
+                '"Failed to load invoice" (or agreement) messages piling up on a page left open',
+                'Those pages kept reloading themselves until 25 Oct 2026; reload any invoice or agreement tab opened before then. A single message on its own usually means the connection dropped: reload the page.',
+              ],
+              [
                 '"Those dates overlap with another booking"',
                 'Another booking holds the car then. An unpaid online checkout (Hold) frees up within 24 hours; press Cancel on it in Bookings to free the car sooner.',
               ],

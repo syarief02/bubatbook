@@ -11,6 +11,16 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-10-25',
+    items: [
+      {
+        kind: 'fixed',
+        title: 'Invoice and agreement pages no longer reload themselves',
+        text: 'An open invoice or rental agreement kept loading itself again and again, which slowed the website down and, when a load failed, piled up “Failed to load invoice” messages. They now load once. Reload any invoice or agreement tab that was already open.',
+      },
+    ],
+  },
+  {
     date: '2026-10-24',
     items: [
       {

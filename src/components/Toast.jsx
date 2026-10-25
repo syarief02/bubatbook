@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(undefined);
@@ -39,13 +39,21 @@ export function ToastProvider({ children }) {
 
 export function useToast() {
   const addToast = useContext(ToastContext);
-  if (!addToast) throw new Error('useToast must be used within ToastProvider');
-  return {
-    success: (msg, duration) => addToast(msg, 'success', duration),
-    error: (msg, duration) => addToast(msg, 'error', duration),
-    info: (msg, duration) => addToast(msg, 'info', duration),
-    warn: (msg, duration) => addToast(msg, 'info', duration), // map warn → info style
-  };
+  // The same object on every render: pages list `toast` in effect dependencies, and a new
+  // object each render re-ran those effects after every render (the invoice and agreement
+  // pages reloaded in a loop, piling up error toasts whenever a request failed).
+  const toast = useMemo(
+    () =>
+      addToast && {
+        success: (msg, duration) => addToast(msg, 'success', duration),
+        error: (msg, duration) => addToast(msg, 'error', duration),
+        info: (msg, duration) => addToast(msg, 'info', duration),
+        warn: (msg, duration) => addToast(msg, 'info', duration), // map warn → info style
+      },
+    [addToast]
+  );
+  if (!toast) throw new Error('useToast must be used within ToastProvider');
+  return toast;
 }
 
 const iconMap = {
