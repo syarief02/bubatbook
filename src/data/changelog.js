@@ -15,6 +15,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
+        title: 'The Vellfire VJC 5290 is now in Bocah Trading',
+        text: 'From October 2026 the Vellfire belongs to Bocah Trading, starting fresh: its October expenses and the GPS renewal of 12 Oct moved with it. Its earlier rentals, expenses and documents stay with BuBat Resources. Its WhatsApp contact is unchanged.',
+        link: '/admin/cars',
+      },
+      {
+        kind: 'data',
         title: 'Owner’s photos of WA 5202 F',
         text: 'The NV200 WA 5202 F now has a gallery of the owner’s photos (front, rear, cabin and cargo area) instead of the stock picture.',
         link: '/admin/cars',

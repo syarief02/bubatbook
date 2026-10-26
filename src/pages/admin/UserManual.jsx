@@ -505,7 +505,9 @@ export default function UserManual() {
           <p>
             Documents belong to the car&apos;s fleet. When a car moves to another fleet, its
             documents (and their expiry alerts) go with it; its past bookings, payments and expenses
-            stay with the fleet they belong to.
+            stay with the fleet they belong to. A move can also start fresh from a date: then
+            documents and expenses from before that date stay with the old fleet too, and the
+            car&apos;s History shows each fleet only its own part.
           </p>
           <Sub>Vehicle history</Sub>
           <p>
