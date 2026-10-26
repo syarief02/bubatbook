@@ -8,9 +8,10 @@ const DEFAULT_MSG = 'Hi, I want to inquire about car rental at Rent2Go!';
 export default function WhatsAppButton() {
   const location = useLocation();
   // On /cars/:id or /checkout/:id, chat with whoever looks after that car
+  // (the car page's address is the plate, e.g. /cars/vjc5290, or an older id link)
   const carId = location.pathname.match(/\/(?:cars|checkout)\/([a-zA-Z0-9-]+)/)?.[1];
   const { car } = useCar(carId);
-  const contact = useCarContact(carId);
+  const contact = useCarContact(car?.id);
 
   const phoneNumber = (carId && contact?.whatsapp) || DEFAULT_PHONE;
   const message =

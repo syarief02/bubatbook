@@ -433,7 +433,9 @@ export default function UserManual() {
               <B>Image URL</B>: a link to the car&apos;s photo.
             </li>
             <li>
-              <B>Plate Number</B>: printed on the rental agreement and invoice.
+              <B>Plate Number</B>: printed on the rental agreement and invoice. It is also the car
+              page&apos;s address, without spaces: VJC 5290 is rent2go.my/cars/vjc5290, the link to
+              share with customers. Older links with a long code still open the page.
             </li>
             <li>
               <B>WhatsApp contact</B>: the admin or staff member customers WhatsApp about this car,

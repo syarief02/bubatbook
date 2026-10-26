@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { carSlug, isCarId } from '../utils/carLinks';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -94,6 +95,7 @@ export function useCarContact(carId) {
   return data;
 }
 
+/** A car by its id or by its page address (the plate without spaces, e.g. "vjc5290"). */
 export function useCar(id) {
   const {
     data: car = null,
@@ -102,7 +104,13 @@ export function useCar(id) {
   } = useQuery({
     queryKey: ['car', id],
     queryFn: async () => {
-      const url = `${SUPABASE_URL}/rest/v1/bubatrent_booking_cars?id=eq.${id}&select=*`;
+      if (!isCarId(id) && !/^[a-z0-9]+$/i.test(id)) throw new Error('Car not found');
+      // Plates are stored with spaces ("VJC 5290"): ask for any plate with these characters
+      // in order, then keep the one that matches exactly
+      const filter = isCarId(id)
+        ? `id=eq.${id}`
+        : `plate_number=ilike.${encodeURIComponent(id.split('').join('*'))}`;
+      const url = `${SUPABASE_URL}/rest/v1/bubatrent_booking_cars?${filter}&select=*`;
       const res = await fetch(url, {
         headers: {
           apikey: SUPABASE_KEY,
@@ -110,7 +118,7 @@ export function useCar(id) {
         },
       });
       if (!res.ok) throw new Error(`Failed to fetch car: ${res.status}`);
-      const data = await res.json();
+      const data = (await res.json()).filter((c) => isCarId(id) || carSlug(c) === id.toLowerCase());
       if (!data || data.length === 0) throw new Error('Car not found');
       const rates = await fetchLongRentalRates(data[0].fleet_group_id);
       return { ...data[0], long_rental_rates: rates };

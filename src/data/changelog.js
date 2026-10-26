@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-10-26',
     items: [
       {
+        kind: 'improved',
+        title: 'Car links show the plate',
+        text: 'A car’s page is now rent2go.my/cars/ plus its plate without spaces, e.g. rent2go.my/cars/vjc5290 for the Vellfire, so links are easy to read and share. Older links with a long code still work and switch to the new address.',
+        link: '/admin/cars',
+      },
+      {
         kind: 'data',
         title: 'The Vellfire VJC 5290 is now in Bocah Trading',
         text: 'From October 2026 the Vellfire belongs to Bocah Trading, starting fresh: its October expenses and the GPS renewal of 12 Oct moved with it. Its earlier rentals, expenses and documents stay with BuBat Resources. Its WhatsApp contact is unchanged.',

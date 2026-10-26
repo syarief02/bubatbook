@@ -33,6 +33,7 @@ import {
   Landmark,
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
+import { carPath } from '../utils/carLinks';
 
 // The customer signs the rental agreement before paying the deposit
 const STEPS = ['Your Info', 'Review', 'Agreement', 'Payment'];
@@ -44,7 +45,9 @@ export default function Checkout() {
   const { user, profile, isVerified, refreshProfile } = useAuth();
   const toast = useToast();
   const { car, loading: carLoading } = useCar(carId);
-  const contact = useCarContact(carId);
+  const contact = useCarContact(car?.id);
+  // The car's page, by its plate (e.g. /cars/vjc5290)
+  const carPage = car ? carPath(car) : `/cars/${carId}`;
 
   const pickupDate = searchParams.get('pickup');
   const returnDate = searchParams.get('return');
@@ -205,7 +208,7 @@ export default function Checkout() {
           <p className="text-sm text-slate-400 mb-6">
             You can only book up to 6 months in advance.
           </p>
-          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">
+          <Link to={carPage} className="btn-primary inline-flex items-center gap-2">
             Change Dates
           </Link>
         </div>
@@ -222,7 +225,7 @@ export default function Checkout() {
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Booking Unavailable</h2>
           <p className="text-sm text-slate-400 mb-6">{holdError}</p>
-          <Link to={`/cars/${carId}`} className="btn-primary inline-flex items-center gap-2">
+          <Link to={carPage} className="btn-primary inline-flex items-center gap-2">
             Try Different Dates
           </Link>
         </div>
@@ -304,7 +307,7 @@ export default function Checkout() {
   return (
     <div className="page-container max-w-4xl mx-auto">
       <Link
-        to={`/cars/${carId}`}
+        to={carPage}
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -327,10 +330,7 @@ export default function Checkout() {
       {isExpired && (
         <div className="glass-card !p-4 mb-6 border-red-500/20 text-center">
           <p className="text-red-400 font-medium">Your hold has expired. Please start over.</p>
-          <Link
-            to={`/cars/${carId}`}
-            className="text-violet-400 hover:underline text-sm mt-2 inline-block"
-          >
+          <Link to={carPage} className="text-violet-400 hover:underline text-sm mt-2 inline-block">
             Go back
           </Link>
         </div>

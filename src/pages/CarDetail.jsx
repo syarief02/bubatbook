@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { useCar, checkAvailability } from '../hooks/useCars';
+import { carPath, carSlug } from '../utils/carLinks';
 import { useAuth } from '../hooks/useAuth';
 import { AlertTriangle } from 'lucide-react';
 import DateRangePicker from '../components/DateRangePicker';
@@ -25,9 +26,12 @@ import {
 export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user, isVerified } = useAuth();
+  // `id` is the page address: the plate (e.g. vjc5290), or the car's id on older links
   const { car, loading, error } = useCar(id);
+  const carId = car?.id;
   const [pickupDate, setPickupDate] = useState(searchParams.get('pickup') || '');
   const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
   const [isAvailable, setIsAvailable] = useState(null);
@@ -37,9 +41,16 @@ export default function CarDetail() {
   const photoIndex = photo.carId === id ? photo.index : 0;
   const setPhotoIndex = (index) => setPhoto({ carId: id, index });
 
+  // An older link with the car's id: show the plate address instead
+  useEffect(() => {
+    if (car && id !== carSlug(car)) {
+      navigate(`${carPath(car)}${location.search}`, { replace: true });
+    }
+  }, [car, id, navigate, location.search]);
+
   // Check availability when dates change
   useEffect(() => {
-    if (!pickupDate || !returnDate || !id) {
+    if (!pickupDate || !returnDate || !carId) {
       setIsAvailable(null);
       return;
     }
@@ -47,7 +58,7 @@ export default function CarDetail() {
     async function doCheck() {
       try {
         setCheckingAvailability(true);
-        const available = await checkAvailability(id, pickupDate, returnDate);
+        const available = await checkAvailability(carId, pickupDate, returnDate);
         if (!cancelled) setIsAvailable(available);
       } catch (err) {
         console.error('Availability check failed:', err);
@@ -60,7 +71,7 @@ export default function CarDetail() {
     return () => {
       cancelled = true;
     };
-  }, [id, pickupDate, returnDate]);
+  }, [carId, pickupDate, returnDate]);
 
   if (loading) return <LoadingSpinner fullScreen />;
   if (error || !car) {
