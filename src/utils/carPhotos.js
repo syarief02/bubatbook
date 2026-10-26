@@ -75,4 +75,14 @@ export const CAR_GALLERIES = {
     '/cars/vqb5567/6.jpg',
     '/cars/vqb5567/7.jpg',
   ],
+  'WA 5202 F': [
+    '/cars/wa5202f/1.jpg',
+    '/cars/wa5202f/2.jpg',
+    '/cars/wa5202f/3.jpg',
+    '/cars/wa5202f/4.jpg',
+    '/cars/wa5202f/5.jpg',
+    '/cars/wa5202f/6.jpg',
+    '/cars/wa5202f/7.jpg',
+    '/cars/wa5202f/8.jpg',
+  ],
 };

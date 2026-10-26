@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-10-26',
+    items: [
+      {
+        kind: 'data',
+        title: 'Owner’s photos of WA 5202 F',
+        text: 'The NV200 WA 5202 F now has a gallery of the owner’s photos (front, rear, cabin and cargo area) instead of the stock picture.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-10-25',
     items: [
       {
