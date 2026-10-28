@@ -85,4 +85,15 @@ export const CAR_GALLERIES = {
     '/cars/wa5202f/7.jpg',
     '/cars/wa5202f/8.jpg',
   ],
+  'WB 4690 R': [
+    '/cars/wb4690r/1.jpg',
+    '/cars/wb4690r/2.jpg',
+    '/cars/wb4690r/3.jpg',
+    '/cars/wb4690r/4.jpg',
+    '/cars/wb4690r/5.jpg',
+    '/cars/wb4690r/6.jpg',
+    '/cars/wb4690r/7.jpg',
+    '/cars/wb4690r/8.jpg',
+    '/cars/wb4690r/9.jpg',
+  ],
 };

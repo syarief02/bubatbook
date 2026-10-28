@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-10-28',
+    items: [
+      {
+        kind: 'data',
+        title: 'Owner’s photos of WB 4690 R',
+        text: 'The Gran Max WB 4690 R now has a gallery of the owner’s photos (front, rear, side, cabin and cargo area) instead of the stock picture.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-10-26',
     items: [
       {
