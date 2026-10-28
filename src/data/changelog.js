@@ -19,6 +19,12 @@ export const CHANGELOG = [
         text: 'The Gran Max WB 4690 R now has a gallery of the owner’s photos (front, rear, side, cabin and cargo area) instead of the stock picture.',
         link: '/admin/cars',
       },
+      {
+        kind: 'fixed',
+        title: 'Company address hidden on the van photos',
+        text: 'The door sticker with the company address is now blurred on the photos of WB 4690 R, W 9490 C and WA 5202 F.',
+        link: '/admin/cars',
+      },
     ],
   },
   {
