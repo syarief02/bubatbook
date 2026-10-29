@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-10-29',
+    items: [
+      {
+        kind: 'data',
+        title: 'WA 5202 F road tax renewed',
+        text: 'The NV200 WA 5202 F has a new road tax, valid 28 Oct 2026 to 15 Mar 2027, with the agent’s receipt and the road tax disc in Car Documents, so its expired road tax alert is gone. Its 29 Oct bills (new battery and the road tax) are in Expenses and on the car’s history.',
+        link: '/admin/car-documents',
+      },
+    ],
+  },
+  {
     date: '2026-10-28',
     items: [
       {
