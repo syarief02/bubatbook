@@ -19,6 +19,18 @@ export const CHANGELOG = [
         text: 'The NV200 WA 5202 F has a new road tax, valid 28 Oct 2026 to 15 Mar 2027, with the agent’s receipt and the road tax disc in Car Documents, so its expired road tax alert is gone. Its 29 Oct bills (new battery and the road tax) are in Expenses and on the car’s history.',
         link: '/admin/car-documents',
       },
+      {
+        kind: 'data',
+        title: 'WA 5202 F can be booked again',
+        text: 'With its road tax renewed, the NV200 WA 5202 F has valid road tax, insurance, Puspakom and GPS, so it is back on the website for customers to book.',
+        link: '/admin/cars',
+      },
+      {
+        kind: 'data',
+        title: 'The Gran Max VEY 3830 is now in Bocah Trading',
+        text: 'From October 2026 VEY 3830 belongs to Bocah Trading, the same way as the Vellfire: its October expenses moved with it. Its earlier rentals (including the 3-van rental that ended 13 Oct), expenses and documents stay with BuBat Resources. Its WhatsApp contact is unchanged.',
+        link: '/admin/cars',
+      },
     ],
   },
   {
