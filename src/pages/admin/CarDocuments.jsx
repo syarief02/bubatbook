@@ -28,7 +28,7 @@ import { formatMYR } from '../../utils/pricing';
 // Road tax, insurance, Puspakom and GPS of each car. A renewal is recorded
 // with its receipt or certificate by bubatrent_admin_add_car_document; every
 // renewal is kept as the car's history. Documents another fleet recorded for
-// the car before it moved here are shown too, without cost or receipts.
+// the car before it moved here are shown too, with their files but not the cost.
 
 const BUCKET = 'customer-documents';
 
@@ -297,8 +297,7 @@ function HistoryList({ docs, onChanged }) {
               </p>
               {d.shared && (
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Recorded while the car was with {d.fleet_name}; its cost and receipt stay with
-                  them.
+                  Recorded while the car was with {d.fleet_name}; its cost stays with them.
                 </p>
               )}
               <div className="flex flex-wrap gap-3 mt-1">

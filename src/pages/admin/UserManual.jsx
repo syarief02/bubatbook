@@ -235,7 +235,7 @@ export default function UserManual() {
               <B>Shared</B> between fleets: customers (details, IC and licence, verification) and
               their rental history with other fleets (dates, car, return, charges; no amounts), in
               Customer History. For a car that moved to your fleet, the documents its old fleet
-              recorded (type, dates and issuer; no cost, receipt or notes), in Car Documents.
+              recorded (type, dates, issuer and the files; not the cost or notes), in Car Documents.
             </li>
             <li>
               <B>Your fleet only</B>: its bookings and amounts, payments and receipts, sales,
@@ -516,8 +516,9 @@ export default function UserManual() {
           <p>
             The new fleet still sees those documents in <B>Car Documents</B> and on the car&apos;s
             vehicle history, so it knows whether the car is covered before renting it out, and gets
-            their expiry alerts. In <B>History</B> they say <B>recorded by</B> the old fleet; their
-            cost and receipt stay with that fleet, and only it can remove them.
+            their expiry alerts. In <B>History</B> they say <B>recorded by</B> the old fleet, with
+            their files (receipt, certificate, cover note or road tax disc) to open; their cost
+            stays with that fleet, and only it can remove them.
           </p>
           <Sub>Vehicle history</Sub>
           <p>

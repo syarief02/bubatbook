@@ -234,7 +234,8 @@ export function useAdminCars(fleetId) {
 // Road tax, insurance, Puspakom and GPS renewals of the fleet's cars, newest
 // expiry first (see utils/carDocuments.js). A car that moved from another
 // fleet keeps the documents that fleet paid for; they are listed too, marked
-// `shared`, with their dates and issuer only (bubatrent_admin_shared_car_documents).
+// `shared`, with their dates, issuer and files but not the cost
+// (bubatrent_admin_shared_car_documents).
 export function useCarDocuments(fleetId) {
   const {
     data: documents = [],
@@ -262,7 +263,7 @@ export function useCarDocuments(fleetId) {
 
       return [
         ...(data || []),
-        ...(shared || []).map((d) => ({ ...d, shared: true, amount: null, file_paths: [] })),
+        ...(shared || []).map((d) => ({ ...d, shared: true, amount: null })),
       ].sort((a, b) => b.valid_until.localeCompare(a.valid_until));
     },
     staleTime: 2 * 60 * 1000, // 2 min cache

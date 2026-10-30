@@ -16,7 +16,13 @@ export const CHANGELOG = [
       {
         kind: 'fixed',
         title: 'A car’s documents show in its new fleet',
-        text: 'When a car moves to another fleet, the documents its old fleet recorded now show in the new fleet’s Car Documents and on the car’s vehicle history too: road tax, insurance, Puspakom and GPS with their dates, so the new fleet knows the car is covered before renting it out, and gets the expiry alerts. Their cost and receipt stay with the old fleet. VEY 3830 and the Vellfire VJC 5290 in Bocah Trading show theirs again. If a page still shows no documents, reload it.',
+        text: 'When a car moves to another fleet, the documents its old fleet recorded now show in the new fleet’s Car Documents and on the car’s vehicle history too: road tax, insurance, Puspakom and GPS with their dates, so the new fleet knows the car is covered before renting it out, and gets the expiry alerts. Their cost stays with the old fleet. VEY 3830 and the Vellfire VJC 5290 in Bocah Trading show theirs again. If a page still shows no documents, reload it.',
+        link: '/admin/car-documents',
+      },
+      {
+        kind: 'improved',
+        title: 'Open the files of a car’s earlier documents',
+        text: 'For a car that moved to your fleet, History in Car Documents now has the files of the documents its old fleet recorded (receipt, certificate, cover note or road tax disc), so you can show them when needed, e.g. after an accident. Only the fleet that recorded a document can remove it.',
         link: '/admin/car-documents',
       },
     ],
