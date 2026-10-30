@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-10-30',
     items: [
       {
+        kind: 'improved',
+        title: 'View a car’s current documents in one click',
+        text: 'In Car Documents, each road tax, insurance, Puspakom and GPS date now has a View file button (File 1, File 2… when there are several) that opens its receipt or certificate, so you don’t need to open History.',
+        link: '/admin/car-documents',
+      },
+      {
         kind: 'fixed',
         title: 'A car’s documents show in its new fleet',
         text: 'When a car moves to another fleet, the documents its old fleet recorded now show in the new fleet’s Car Documents and on the car’s vehicle history too: road tax, insurance, Puspakom and GPS with their dates, so the new fleet knows the car is covered before renting it out, and gets the expiry alerts. Their cost stays with the old fleet. VEY 3830 and the Vellfire VJC 5290 in Bocah Trading show theirs again. If a page still shows no documents, reload it.',

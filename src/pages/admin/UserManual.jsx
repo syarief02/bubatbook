@@ -473,7 +473,9 @@ export default function UserManual() {
           <p>
             <B>Car Documents</B> shows, for each car, the date its road tax, insurance, Puspakom and
             GPS subscription are valid until. Green is valid, amber expires within 30 days, red has
-            expired. Each renewal is kept, so <B>History</B> lists every one with its receipt.
+            expired. <B>View file</B> under a date opens that document&apos;s receipt or certificate
+            (<B>File 1</B>, <B>File 2</B>… when it has several). Each renewal is kept, so{' '}
+            <B>History</B> lists every one with its receipt.
           </p>
           <Steps>
             <li>

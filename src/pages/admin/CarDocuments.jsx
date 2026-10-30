@@ -9,6 +9,7 @@ import { SignedLink } from '../../components/SignedFile';
 import { useToast } from '../../components/Toast';
 import { useAdminCars, useCarDocuments, updateCar } from '../../hooks/useAdmin';
 import { useFleet } from '../../hooks/useFleet';
+import { getSignedDocumentUrl } from '../../lib/storage';
 import { supabase } from '../../lib/supabase';
 import { uploadFileRobust } from '../../lib/uploadHelper';
 import {
@@ -222,8 +223,40 @@ function RenewalDialog({ car, docType, previous, onClose, onDone }) {
   );
 }
 
+// Opens a document file in a new tab. The URL is signed on click rather than
+// for every tile when the page loads; the tab is opened first so the browser
+// doesn't block it as a pop-up.
+function FileButton({ path, children }) {
+  const toast = useToast();
+  async function open() {
+    const tab = window.open('', '_blank');
+    try {
+      const url = await getSignedDocumentUrl(path);
+      if (!url) throw new Error('File not found.');
+      if (tab) {
+        tab.opener = null;
+        tab.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    } catch (err) {
+      tab?.close();
+      toast.error(friendlyDbError(err));
+    }
+  }
+  return (
+    <button
+      onClick={open}
+      className="text-[11px] text-sky-400 hover:text-sky-300 flex items-center gap-1"
+    >
+      <FileImage className="w-3 h-3" /> {children}
+    </button>
+  );
+}
+
 function DocTile({ type, doc, onRenew }) {
   const status = doc ? documentStatus(doc.valid_until) : null;
+  const files = doc?.file_paths || [];
   return (
     <div className="bg-white/[0.03] rounded-xl p-3 flex flex-col gap-1">
       <p className="text-xs text-slate-500">{DOC_LABELS[type]}</p>
@@ -241,12 +274,23 @@ function DocTile({ type, doc, onRenew }) {
       ) : (
         <p className="text-sm text-slate-500">Not on record</p>
       )}
-      <button
-        onClick={onRenew}
-        className="text-[11px] text-violet-400 hover:text-violet-300 text-left mt-auto pt-1"
-      >
-        {doc ? 'Record renewal' : '+ Add'}
-      </button>
+      <div className="mt-auto pt-1 flex flex-col gap-1">
+        {files.length > 0 && (
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {files.map((p, i) => (
+              <FileButton key={p} path={p}>
+                {files.length === 1 ? 'View file' : `File ${i + 1}`}
+              </FileButton>
+            ))}
+          </div>
+        )}
+        <button
+          onClick={onRenew}
+          className="text-[11px] text-violet-400 hover:text-violet-300 text-left"
+        >
+          {doc ? 'Record renewal' : '+ Add'}
+        </button>
+      </div>
     </div>
   );
 }
