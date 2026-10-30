@@ -235,8 +235,7 @@ export default function UserManual() {
               <B>Shared</B> between fleets: customers (details, IC and licence, verification) and
               their rental history with other fleets (dates, car, return, charges; no amounts), in
               Customer History. For a car that moved to your fleet, the documents its old fleet
-              recorded (type, dates, issuer, receipt or policy number; no cost or receipt), in Car
-              Documents.
+              recorded (type, dates and issuer; no cost, receipt or notes), in Car Documents.
             </li>
             <li>
               <B>Your fleet only</B>: its bookings and amounts, payments and receipts, sales,
