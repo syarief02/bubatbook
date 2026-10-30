@@ -514,10 +514,10 @@ export default function UserManual() {
             car&apos;s History shows each fleet only its own part.
           </p>
           <p>
-            The new fleet still sees those documents in <B>Car Documents</B>, so it knows whether
-            the car is covered before renting it out, and gets their expiry alerts. In{' '}
-            <B>History</B> they say <B>recorded by</B> the old fleet; their cost and receipt stay
-            with that fleet, and only it can remove them.
+            The new fleet still sees those documents in <B>Car Documents</B> and on the car&apos;s
+            vehicle history, so it knows whether the car is covered before renting it out, and gets
+            their expiry alerts. In <B>History</B> they say <B>recorded by</B> the old fleet; their
+            cost and receipt stay with that fleet, and only it can remove them.
           </p>
           <Sub>Vehicle history</Sub>
           <p>

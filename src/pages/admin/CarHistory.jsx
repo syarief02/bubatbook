@@ -20,13 +20,14 @@ import {
 
 // One car's history: its rentals (with customer and payment), expenses and
 // document renewals in date order, with the year's totals on top. The totals
-// follow the Sales page: rent received + charges - paid expenses.
+// follow the Sales page: rent received + charges - paid expenses. Renewals
+// another fleet recorded before the car moved are listed without their cost.
 
 function useCarHistory(carId) {
   return useQuery({
     queryKey: ['car-history', carId],
     queryFn: async () => {
-      const [car, bookings, claims, docs] = await Promise.all([
+      const [car, bookings, claims, docs, shared] = await Promise.all([
         supabase.from('bubatrent_booking_cars').select('*').eq('id', carId).maybeSingle(),
         supabase
           .from('bubatrent_booking_bookings')
@@ -45,9 +46,21 @@ function useCarHistory(carId) {
           .from('bubatrent_booking_car_documents')
           .select('id, doc_type, valid_from, valid_until, amount, created_at')
           .eq('car_id', carId),
+        // Documents a fleet you aren't in recorded before the car moved to yours
+        supabase.rpc('bubatrent_admin_shared_car_documents', { p_fleet_group_id: null }),
       ]);
-      for (const r of [car, bookings, claims, docs]) if (r.error) throw r.error;
-      return { car: car.data, bookings: bookings.data, claims: claims.data, docs: docs.data };
+      for (const r of [car, bookings, claims, docs, shared]) if (r.error) throw r.error;
+      return {
+        car: car.data,
+        bookings: bookings.data,
+        claims: claims.data,
+        docs: [
+          ...docs.data,
+          ...(shared.data || [])
+            .filter((d) => d.car_id === carId)
+            .map((d) => ({ ...d, shared: true, amount: null })),
+        ],
+      };
     },
   });
 }
@@ -295,6 +308,7 @@ function TimelineItem({ item }) {
         <p className="text-sm text-white">
           {DOC_LABELS[d.doc_type]} renewed
           <span className="text-slate-400"> · valid until {formatDate(d.valid_until)}</span>
+          {d.shared && <span className="text-slate-500"> · recorded by {d.fleet_name}</span>}
         </p>
       </div>
       {d.amount != null && (
