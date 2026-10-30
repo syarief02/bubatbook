@@ -27,7 +27,8 @@ import { formatMYR } from '../../utils/pricing';
 
 // Road tax, insurance, Puspakom and GPS of each car. A renewal is recorded
 // with its receipt or certificate by bubatrent_admin_add_car_document; every
-// renewal is kept as the car's history.
+// renewal is kept as the car's history. Documents another fleet recorded for
+// the car before it moved here are shown too, without cost or receipts.
 
 const BUCKET = 'customer-documents';
 
@@ -291,8 +292,15 @@ function HistoryList({ docs, onChanged }) {
               <p className="text-xs text-slate-500">
                 {[d.provider, d.reference].filter(Boolean).join(' · ')}
                 {(d.provider || d.reference) && ' · '}
-                recorded {formatDateTime(d.created_at)}
+                recorded {d.shared && `by ${d.fleet_name} `}
+                {formatDateTime(d.created_at)}
               </p>
+              {d.shared && (
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Recorded while the car was with {d.fleet_name}; its cost and receipt stay with
+                  them.
+                </p>
+              )}
               <div className="flex flex-wrap gap-3 mt-1">
                 {d.file_paths.map((p, i) => (
                   <SignedLink
@@ -307,7 +315,7 @@ function HistoryList({ docs, onChanged }) {
             </div>
             <div className="text-right shrink-0">
               {d.amount != null && <p className="text-white font-medium">{formatMYR(d.amount)}</p>}
-              {removing !== d.id && (
+              {!d.shared && removing !== d.id && (
                 <button
                   onClick={() => {
                     setRemoving(d.id);

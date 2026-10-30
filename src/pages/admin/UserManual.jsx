@@ -234,13 +234,16 @@ export default function UserManual() {
             <li>
               <B>Shared</B> between fleets: customers (details, IC and licence, verification) and
               their rental history with other fleets (dates, car, return, charges; no amounts), in
-              Customer History.
+              Customer History. For a car that moved to your fleet, the documents its old fleet
+              recorded (type, dates, issuer, receipt or policy number; no cost or receipt), in Car
+              Documents.
             </li>
             <li>
               <B>Your fleet only</B>: its bookings and amounts, payments and receipts, sales,
-              expenses, car documents, booking records, and the audit log entries about them. What a
-              customer owes your fleet, or your fleet owes them (deposits, credit), is yours alone:
-              another fleet can&apos;t see it, use it or settle it (section 9).
+              expenses, car documents&apos; cost and receipts, booking records, and the audit log
+              entries about them. What a customer owes your fleet, or your fleet owes them
+              (deposits, credit), is yours alone: another fleet can&apos;t see it, use it or settle
+              it (section 9).
             </li>
           </Bullets>
           <p>A fleet&apos;s status decides what its admins can do:</p>
@@ -510,6 +513,12 @@ export default function UserManual() {
             stay with the fleet they belong to. A move can also start fresh from a date: then
             documents and expenses from before that date stay with the old fleet too, and the
             car&apos;s History shows each fleet only its own part.
+          </p>
+          <p>
+            The new fleet still sees those documents in <B>Car Documents</B>, so it knows whether
+            the car is covered before renting it out, and gets their expiry alerts. In{' '}
+            <B>History</B> they say <B>recorded by</B> the old fleet; their cost and receipt stay
+            with that fleet, and only it can remove them.
           </p>
           <Sub>Vehicle history</Sub>
           <p>
@@ -1502,12 +1511,14 @@ export default function UserManual() {
           <Bullets>
             <li>
               <B>Shared</B> with every fleet&apos;s admins: customers (details, IC and licence,
-              verification) and their rental history (dates, car, return, charges; no amounts).
+              verification) and their rental history (dates, car, return, charges; no amounts). A
+              car&apos;s fleet also sees the dates of documents another fleet recorded for it (no
+              cost or receipt).
             </li>
             <li>
               <B>Your fleet only</B>: bookings and their amounts, payments and receipts, sales,
-              expenses and claims, car documents, booking records, and the audit log entries about
-              them. Super admins see every fleet.
+              expenses and claims, car documents&apos; cost and receipts, booking records, and the
+              audit log entries about them. Super admins see every fleet.
             </li>
           </Bullets>
         </Section>

@@ -156,6 +156,11 @@ function report(ok, name, detail) {
   });
   report(!!otherErr, 'anon cannot list rentals', otherErr ? 'denied' : 'allowed');
 
+  const { error: sharedDocsErr } = await anon.rpc('bubatrent_admin_shared_car_documents', {
+    p_fleet_group_id: null,
+  });
+  report(!!sharedDocsErr, 'anon cannot list car documents', sharedDocsErr ? 'denied' : 'allowed');
+
   for (const [fn, args] of [
     ['bubatrent_admin_extend_rental', { p_new_return: '2099-01-01' }],
     ['bubatrent_admin_end_rental_early', { p_new_return: '2099-01-01', p_reason: 'customer' }],

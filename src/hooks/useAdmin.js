@@ -232,7 +232,9 @@ export function useAdminCars(fleetId) {
 }
 
 // Road tax, insurance, Puspakom and GPS renewals of the fleet's cars, newest
-// expiry first (see utils/carDocuments.js)
+// expiry first (see utils/carDocuments.js). A car that moved from another
+// fleet keeps the documents that fleet paid for; they are listed too, marked
+// `shared`, without the cost or receipts (bubatrent_admin_shared_car_documents).
 export function useCarDocuments(fleetId) {
   const {
     data: documents = [],
@@ -251,7 +253,17 @@ export function useCarDocuments(fleetId) {
 
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
-      return data || [];
+
+      const { data: shared, error: sharedError } = await supabase.rpc(
+        'bubatrent_admin_shared_car_documents',
+        { p_fleet_group_id: fleetId || null }
+      );
+      if (sharedError) throw sharedError;
+
+      return [
+        ...(data || []),
+        ...(shared || []).map((d) => ({ ...d, shared: true, amount: null, file_paths: [] })),
+      ].sort((a, b) => b.valid_until.localeCompare(a.valid_until));
     },
     staleTime: 2 * 60 * 1000, // 2 min cache
   });
