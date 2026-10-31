@@ -28,7 +28,7 @@ export const CHANGELOG = [
       {
         kind: 'fixed',
         title: 'Receipts on more expenses in vehicle history',
-        text: 'Loan instalments, a few older bills and the October GPS renewals now have their receipt or bank screen attached, so Receipt on the car’s history opens it. Receipts that show an IC number or a home address have it blacked out. Only costs with no receipt anywhere (such as a monthly instalment kept in the workbook) still have none.',
+        text: 'Loan instalments, a few older bills and the October GPS renewals now have their receipt or bank screen attached, so Receipt on the car’s history opens it. Only costs with no receipt anywhere (such as a monthly instalment kept in the workbook) still have none.',
         link: '/admin/cars',
       },
     ],
