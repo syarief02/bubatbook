@@ -11,6 +11,23 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-01',
+    items: [
+      {
+        kind: 'data',
+        title: 'Car history since January 2025: the Alza PRE 4166 and the Veloz VQB 5567',
+        text: 'Every 2025 rental of the Alza PRE 4166, and of the Veloz VQB 5567 since it arrived in December 2025, is now on the car’s History and in Customer History: the renter’s name where the receipts show it, each payment checked against the bank statement, and deposits and refunds. Their 2025 repairs, renewals, loan instalments and other costs are there too, with receipts and payment slips, and the Alza’s 2025–26 road tax and insurance are in Car Documents → History. Their 2026 records were already there.',
+        link: '/admin/cars',
+      },
+      {
+        kind: 'fixed',
+        title: 'Receipts on more expenses in vehicle history',
+        text: 'Loan instalments, a few older bills and the October GPS renewals now have their receipt or bank screen attached, so Receipt on the car’s history opens it. Receipts that show an IC number or a home address have it blacked out. Only costs with no receipt anywhere (such as a monthly instalment kept in the workbook) still have none.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-10-30',
     items: [
       {
