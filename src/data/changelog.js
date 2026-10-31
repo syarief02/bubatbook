@@ -20,6 +20,12 @@ export const CHANGELOG = [
         link: '/admin/cars',
       },
       {
+        kind: 'data',
+        title: 'The Ranger’s road tax and insurance are in Bocah Trading’s expenses',
+        text: 'The Ford Ranger VDM 6927’s road tax and insurance renewed on 18 Oct 2026 are now expenses of Bocah Trading, with their receipts, and on the car’s history. They were paid just before the Ranger moved to Bocah.',
+        link: '/admin/expenses',
+      },
+      {
         kind: 'fixed',
         title: 'Receipts on more expenses in vehicle history',
         text: 'Loan instalments, a few older bills and the October GPS renewals now have their receipt or bank screen attached, so Receipt on the car’s history opens it. Receipts that show an IC number or a home address have it blacked out. Only costs with no receipt anywhere (such as a monthly instalment kept in the workbook) still have none.',
