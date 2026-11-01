@@ -176,7 +176,7 @@ export default function AdminBookForCustomer() {
 
   // Same price and deposit rule as an online booking (the server computes the
   // price), unless staff enter a price agreed with the customer
-  const rates = useLongRentalRates(selectedCar?.fleet_group_id);
+  const rates = useLongRentalRates(selectedCar?.id);
   const estimate = selectedCar
     ? calculatePrice(selectedCar.price_per_day || 0, pickupDate, returnDate, rates)
     : calculatePrice(0, null, null);

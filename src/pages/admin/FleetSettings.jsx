@@ -245,7 +245,8 @@ export default function FleetSettings() {
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
                   Taken off the rental for online and counter bookings of that length. 0 turns it
-                  off. Bookings already made keep their price.
+                  off. These are the fleet&apos;s defaults: in Cars, a car can turn long-term
+                  bookings off or have its own discounts. Bookings already made keep their price.
                 </p>
               </div>
               <div className="flex gap-3">
@@ -288,7 +289,8 @@ export default function FleetSettings() {
                 <Percent className="w-4 h-4 text-slate-500" />
                 <span className="text-slate-300">
                   Long-rental discounts: {Number(activeFleet.weekly_discount_pct || 0)}% for 7+
-                  days, {Number(activeFleet.monthly_discount_pct || 0)}% for 30+ days
+                  days, {Number(activeFleet.monthly_discount_pct || 0)}% for 30+ days (unless a car
+                  has its own, in Cars)
                 </span>
               </div>
             </div>

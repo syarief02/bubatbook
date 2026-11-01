@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '../../components/AdminLayout';
 import {
   useAdminCars,
@@ -14,7 +15,7 @@ import { useFleet } from '../../hooks/useFleet';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
-import { formatMYR } from '../../utils/pricing';
+import { carLongRentalRates, formatMYR } from '../../utils/pricing';
 import { DOC_LABELS, documentAlerts } from '../../utils/carDocuments';
 import { formatDate } from '../../utils/dates';
 import { friendlyDbError } from '../../utils/dbErrors';
@@ -46,12 +47,17 @@ const EMPTY_CAR = {
   features: [],
   is_available: true,
   contact_admin_id: null,
+  // Long-term bookings on, with the fleet's discounts (null = the fleet's)
+  long_rental_enabled: true,
+  weekly_discount_pct: null,
+  monthly_discount_pct: null,
 };
 
 export default function AdminCars() {
   const toast = useToast();
   const { user } = useAuth();
-  const { activeFleetId, activeFleet } = useFleet();
+  const queryClient = useQueryClient();
+  const { activeFleetId, activeFleet, fleets } = useFleet();
   const { cars, loading, error, refetch } = useAdminCars(activeFleetId);
   const { documents } = useCarDocuments(activeFleetId);
   const { contacts } = useFleetContacts(activeFleetId);
@@ -63,6 +69,7 @@ export default function AdminCars() {
   const [featuresInput, setFeaturesInput] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const fleetOf = (fleetId) => fleets.find((f) => f.id === fleetId) || null;
 
   // Close modal on Escape key
   useEffect(() => {
@@ -92,6 +99,12 @@ export default function AdminCars() {
 
   async function handleSave(e) {
     e.preventDefault();
+    const weekly = discountValue(form.weekly_discount_pct);
+    const monthly = discountValue(form.monthly_discount_pct);
+    if ([weekly, monthly].some((pct) => pct !== null && !(pct >= 0 && pct <= 90))) {
+      toast.error('Long-term discounts must be between 0% and 90%.');
+      return;
+    }
     setSaving(true);
     try {
       const data = {
@@ -105,6 +118,9 @@ export default function AdminCars() {
         price_per_day: Number(form.price_per_day),
         deposit_amount: Number(form.deposit_amount || 0),
         contact_admin_id: form.contact_admin_id || null,
+        long_rental_enabled: form.long_rental_enabled !== false,
+        weekly_discount_pct: weekly,
+        monthly_discount_pct: monthly,
       };
       delete data.id;
       delete data.created_at;
@@ -119,6 +135,8 @@ export default function AdminCars() {
       setShowForm(false);
       toast.success(editing ? 'Car updated' : 'Car added');
       refetch();
+      // Price estimates on the Counter and booking pages use the new discounts
+      queryClient.invalidateQueries({ queryKey: ['long-rental-rates'] });
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -290,6 +308,12 @@ export default function AdminCars() {
                 </div>
               </div>
 
+              <LongTermBookings
+                form={form}
+                setForm={setForm}
+                fleet={fleetOf(form.fleet_group_id || activeFleetId) || activeFleet}
+              />
+
               <div>
                 <label className="input-label">Image URL</label>
                 <input
@@ -460,6 +484,9 @@ export default function AdminCars() {
                 <p className="text-sm font-semibold gradient-text">
                   {formatMYR(car.price_per_day)}/day
                 </p>
+                <p className="text-[11px] text-slate-500">
+                  {longTermLabel(carLongRentalRates(car, fleetOf(car.fleet_group_id)))}
+                </p>
               </div>
               <div className="flex gap-2 shrink-0">
                 <Link
@@ -505,6 +532,106 @@ export default function AdminCars() {
         </div>
       )}
     </AdminLayout>
+  );
+}
+
+/** A discount box: blank is the fleet's discount (null). */
+function discountValue(value) {
+  return value === null || value === undefined || value === '' ? null : Number(value);
+}
+
+/** A car's long-rental discounts, as the car list shows them. */
+function longTermLabel({ weekly_discount_pct: weekly, monthly_discount_pct: monthly }) {
+  if (!weekly && !monthly) return 'No long-term discount';
+  return `${weekly}% off 7+ days · ${monthly}% off 30+ days`;
+}
+
+const LONG_TERM_TIERS = [
+  { field: 'weekly_discount_pct', label: '7 days or more', days: 7, per: 'week' },
+  { field: 'monthly_discount_pct', label: '30 days or more', days: 30, per: 'month' },
+];
+
+/**
+ * The listing's long-term bookings, as a Trevo host sets them: on or off,
+ * the discount for 7+ and 30+ days (blank = the fleet's) and what the
+ * customer pays at that length.
+ */
+function LongTermBookings({ form, setForm, fleet }) {
+  const on = form.long_rental_enabled !== false;
+  const rates = carLongRentalRates({ ...form, long_rental_enabled: true }, fleet);
+  const rate = Number(form.price_per_day) || 0;
+
+  return (
+    <div className="rounded-xl border border-white/10 p-4 space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-white">Long-term bookings</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            Discounts for customers booking 7 days or more. More chance of longer bookings.
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={on}
+          aria-label="Long-term bookings"
+          onClick={() => setForm({ ...form, long_rental_enabled: !on })}
+          className={`relative w-11 h-6 shrink-0 rounded-full transition-colors ${
+            on ? 'bg-violet-500' : 'bg-slate-600'
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+              on ? 'translate-x-5' : ''
+            }`}
+          />
+        </button>
+      </div>
+
+      {LONG_TERM_TIERS.map(({ field, label, days, per }) => {
+        const base = rate * days;
+        const total = base - Math.round(base * rates[field]) / 100;
+        return (
+          <div
+            key={field}
+            className={`flex items-end justify-between gap-3 transition-opacity ${
+              on ? '' : 'opacity-40'
+            }`}
+          >
+            <div>
+              <label className="text-xs text-slate-300">If customers book {label}</label>
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="number"
+                  value={form[field] ?? ''}
+                  onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+                  className="input-field w-20 py-1.5"
+                  min="0"
+                  max="90"
+                  step="0.5"
+                  placeholder={String(Number(fleet?.[field] || 0))}
+                  disabled={!on}
+                />
+                <span className="text-xs text-slate-400">% off</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-slate-500">Customer pays</p>
+              <p className="text-sm font-semibold text-violet-300">
+                {formatMYR(total)}/{per}
+              </p>
+              <p className="text-[11px] text-slate-500">{formatMYR(total / days)}/day</p>
+            </div>
+          </div>
+        );
+      })}
+
+      <p className="text-[11px] text-slate-500">
+        {on
+          ? `A blank box uses the fleet's discount (${Number(fleet?.weekly_discount_pct || 0)}% and ${Number(fleet?.monthly_discount_pct || 0)}%, Fleet Settings). Bookings already made keep their price.`
+          : 'Off: no discount, however long the rental. Bookings already made keep their price.'}
+      </p>
+    </div>
   );
 }
 

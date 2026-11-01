@@ -145,7 +145,7 @@ function PriceDialog({ booking, onClose, onDone }) {
 function ExtendDialog({ booking, onClose, onDone }) {
   const toast = useToast();
   const car = booking.bubatrent_booking_cars;
-  const rates = useLongRentalRates(booking.fleet_group_id);
+  const rates = useLongRentalRates(booking.car_id);
   const [newReturn, setNewReturn] = useState(addDays(booking.return_date, 1));
   const [agreed, setAgreed] = useState('');
   const [note, setNote] = useState('');

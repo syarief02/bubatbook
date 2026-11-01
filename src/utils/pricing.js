@@ -12,6 +12,23 @@ export function longRentalPct(days, rates) {
 }
 
 /**
+ * A car's long-rental discounts, as bubatrent_car_long_rental_rates works
+ * them out: none with long-term bookings off, else the car's own (a blank
+ * one is its fleet's).
+ */
+export function carLongRentalRates(car, fleet) {
+  const pct = (field) => {
+    if (car.long_rental_enabled === false) return 0;
+    const own = car[field];
+    return Number(own === null || own === undefined || own === '' ? fleet?.[field] || 0 : own);
+  };
+  return {
+    weekly_discount_pct: pct('weekly_discount_pct'),
+    monthly_discount_pct: pct('monthly_discount_pct'),
+  };
+}
+
+/**
  * Price for the dates: days x the daily rate, less the long-rental discount.
  * Same as bubatrent_rental_quote, which prices the booking.
  */

@@ -417,7 +417,7 @@ function defaultDates(mode, today) {
 function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
   const toast = useToast();
   const { user } = useAuth();
-  const rates = useLongRentalRates(car.fleet_group_id);
+  const rates = useLongRentalRates(car.id);
   const today = getTodayString();
   const [mode, setMode] = useState(initialMode);
   const [customer, setCustomer] = useState(null); // { id?, name, phone, verified }

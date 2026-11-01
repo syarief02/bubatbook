@@ -38,17 +38,20 @@ export function useCars() {
   return { cars, loading, error: error?.message, refetch };
 }
 
-/** A fleet's long-rental discounts (weekly from 7 days, monthly from 30). */
-async function fetchLongRentalRates(fleetGroupId) {
-  if (!fleetGroupId) return null;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bubatrent_long_rental_rates`, {
+/**
+ * A car's long-rental discounts (weekly from 7 days, monthly from 30): its
+ * own, else its fleet's; none when the car has long-term bookings off.
+ */
+async function fetchLongRentalRates(carId) {
+  if (!carId) return null;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bubatrent_car_long_rental_rates`, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_fleet_group_id: fleetGroupId }),
+    body: JSON.stringify({ p_car_id: carId }),
   });
   // Without the rates the price shows without a discount; the booking itself
   // is priced by the server
@@ -56,11 +59,11 @@ async function fetchLongRentalRates(fleetGroupId) {
   return res.json();
 }
 
-export function useLongRentalRates(fleetGroupId) {
+export function useLongRentalRates(carId) {
   const { data = null } = useQuery({
-    queryKey: ['long-rental-rates', fleetGroupId],
-    queryFn: () => fetchLongRentalRates(fleetGroupId),
-    enabled: !!fleetGroupId,
+    queryKey: ['long-rental-rates', carId],
+    queryFn: () => fetchLongRentalRates(carId),
+    enabled: !!carId,
     staleTime: 1000 * 60 * 5,
   });
   return data;
@@ -120,7 +123,7 @@ export function useCar(id) {
       if (!res.ok) throw new Error(`Failed to fetch car: ${res.status}`);
       const data = (await res.json()).filter((c) => isCarId(id) || carSlug(c) === id.toLowerCase());
       if (!data || data.length === 0) throw new Error('Car not found');
-      const rates = await fetchLongRentalRates(data[0].fleet_group_id);
+      const rates = await fetchLongRentalRates(data[0].id);
       return { ...data[0], long_rental_rates: rates };
     },
     enabled: !!id,

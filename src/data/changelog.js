@@ -14,9 +14,21 @@ export const CHANGELOG = [
     date: '2026-11-02',
     items: [
       {
+        kind: 'new',
+        title: 'Long-term bookings on each car, as on Trevo',
+        text: 'When you add or edit a car in Cars, the Long-term bookings switch turns its discount for long rentals on or off. When on, set the % off for 7 days or more and for 30 days or more, or leave a box blank to use the fleet’s discount from Fleet Settings. The form shows what the customer pays a week or a month, and a day. The car list shows each car’s discounts under its price. Bookings already made keep their price.',
+        link: '/admin/cars',
+      },
+      {
+        kind: 'data',
+        title: 'Trevo’s long-term discounts: Bocah Trading, Veloz and Alza',
+        text: 'Bocah Trading’s discounts are now 20% off for 7 days or more and 25% off for 30 days or more, as on Trevo, for all its cars (they were 0%). The Veloz VQB 5567 and Alza PRE 4166 have their own 20% and 25%; the other BuBat Resources cars keep 10% and 40%.',
+        link: '/admin/cars',
+      },
+      {
         kind: 'data',
         title: 'Lower daily rates: Vellfire, Veloz and Alza',
-        text: 'Vellfire VJC 5290 is now RM400 a day (was RM700), Veloz VQB 5567 RM200 (was RM260) and Alza PRE 4166 RM180 (was RM230), to compete with Trevo. Each fleet’s weekly and monthly discounts still apply on top. Bookings already made keep their price.',
+        text: 'Vellfire VJC 5290 is now RM400 a day (was RM700), Veloz VQB 5567 RM200 (was RM260) and Alza PRE 4166 RM180 (was RM230), to compete with Trevo. Bookings already made keep their price.',
         link: '/admin/cars',
       },
     ],

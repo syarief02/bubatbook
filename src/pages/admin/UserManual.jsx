@@ -427,6 +427,14 @@ export default function UserManual() {
               <B>Price/Day (MYR)</B> (required): the daily rate customers pay.
             </li>
             <li>
+              <B>Long-term bookings</B>: the switch turns this car&apos;s discount for long rentals
+              on or off, as on Trevo. When on, set the % off for 7 days or more and for 30 days or
+              more; a blank box uses the fleet&apos;s discount (Fleet Settings, section 13). Next to
+              each, the form shows what the customer pays a week or a month, and a day. When off,
+              the car has no discount however long the rental. The car list shows each car&apos;s
+              discounts under its price.
+            </li>
+            <li>
               <B>Available</B>: set to <B>No</B> to hide the car from the website and stop new
               bookings (the car shows as Unavailable in the list). Existing bookings are not
               affected.
@@ -453,10 +461,12 @@ export default function UserManual() {
           <Sub>How prices are worked out</Sub>
           <Bullets>
             <li>
-              Rental total = number of days × Price/Day, less the fleet&apos;s long-rental discount:
-              10% off for 7 days or more, 20% off for 30 days or more (change them in Fleet
-              Settings, section 13). Because of the bigger discount, 30 days can cost less than 29:
-              at RM140/day, 29 days are RM3,654 and 30 days RM3,360.
+              Rental total = number of days × Price/Day, less the car&apos;s long-rental discount
+              for 7 days or more or for 30 days or more: the car&apos;s own (its{' '}
+              <B>Long-term bookings</B>), else its fleet&apos;s (Fleet Settings, section 13; BuBat
+              Resources 10% and 40%, Bocah Trading 20% and 25%). A car with long-term bookings off
+              has no discount. Because of the bigger discount, 30 days can cost less than 29: at
+              RM140/day with 10% and 40%, 29 days are RM3,654 and 30 days RM2,520.
             </li>
             <li>
               Deposit = 30% of the rental total, rounded up to the ringgit, at least RM100. The
@@ -1200,10 +1210,10 @@ export default function UserManual() {
             </li>
             <li>
               Check the price and the <B>Deposit</B>. The price is days × the car&apos;s daily
-              price, less the fleet&apos;s long-rental discount (Fleet Settings). For a price agreed
-              with the customer, enter the <B>Agreed price</B> and the <B>Reason</B>; the invoice
-              shows both. The deposit starts at the online rule (30% of the price, at least RM100);
-              you can change it, but not below RM100.
+              price, less the car&apos;s long-rental discount (section 4). For a price agreed with
+              the customer, enter the <B>Agreed price</B> and the <B>Reason</B>; the invoice shows
+              both. The deposit starts at the online rule (30% of the price, at least RM100); you
+              can change it, but not below RM100.
             </li>
             <li>
               If the customer has credit with your fleet, <B>Use the customer&apos;s credit</B> is
@@ -1490,9 +1500,10 @@ export default function UserManual() {
             </li>
             <li>
               <B>Long-rental discounts</B>: the percentage off for rentals of 7 days or more and of
-              30 days or more (BuBat Resources: 10% and 40%). Online and counter bookings use them;
-              the car page shows the discount. 0 turns it off. Bookings already made keep their
-              price.
+              30 days or more (BuBat Resources: 10% and 40%; Bocah Trading: 20% and 25%, as on
+              Trevo). They are the fleet&apos;s defaults: a car can turn long-term bookings off or
+              have its own discounts (Cars, section 4). Online and counter bookings use them; the
+              car page shows the discount. 0 turns it off. Bookings already made keep their price.
             </li>
             <li>
               Only a Fleet Admin or a super admin can change Fleet Settings; Staff get a message
