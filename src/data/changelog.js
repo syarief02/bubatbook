@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-02',
+    items: [
+      {
+        kind: 'data',
+        title: 'Lower daily rates: Vellfire, Veloz and Alza',
+        text: 'Vellfire VJC 5290 is now RM400 a day (was RM700), Veloz VQB 5567 RM200 (was RM260) and Alza PRE 4166 RM180 (was RM230), to compete with Trevo. Each fleet’s weekly and monthly discounts still apply on top. Bookings already made keep their price.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-11-01',
     items: [
       {
