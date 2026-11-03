@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-04',
+    items: [
+      {
+        kind: 'data',
+        title: 'New photos: VEY 3516, VEY 3830 and the Vellfire',
+        text: 'The NV200 VEY 3516 now has a gallery of the owner’s photos (front, side and rear) instead of the stock picture. The Gran Max VEY 3830 has three new photos (side, sliding door open and cargo area) and a new main picture. The Vellfire VJC 5290 has one more photo of its middle-row seats. The door sticker with the company address is blurred on every van photo, including VEY 3830’s older ones.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-11-03',
     items: [
       {

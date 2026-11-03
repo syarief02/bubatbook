@@ -30,6 +30,14 @@ export const CAR_GALLERIES = {
     '/cars/vey3830/2.jpg',
     '/cars/vey3830/3.jpg',
     '/cars/vey3830/4.jpg',
+    '/cars/vey3830/5.jpg',
+    '/cars/vey3830/6.jpg',
+    '/cars/vey3830/7.jpg',
+  ],
+  'VEY 3516': [
+    '/cars/vey3516/1.jpg',
+    '/cars/vey3516/2.jpg',
+    '/cars/vey3516/3.jpg',
   ],
   'W 9490 C': [
     '/cars/w9490c/1.jpg',
@@ -65,6 +73,7 @@ export const CAR_GALLERIES = {
     '/cars/vjc5290/12.jpg',
     '/cars/vjc5290/13.jpg',
     '/cars/vjc5290/14.jpg',
+    '/cars/vjc5290/15.jpg',
   ],
   'VQB 5567': [
     '/cars/vqb5567/1.jpg',
