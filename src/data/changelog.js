@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-03',
+    items: [
+      {
+        kind: 'data',
+        title: 'The 3-van rental’s last weeks corrected',
+        text: 'The long rental of WA 5202 F, W 9490 C and VEY 3830 now ends on the days the vans were last used: VEY 3830 on 15 Sep, when it went to the workshop, and the other two on 12 Oct. Each booking shows the change, and the unused days are marked as rent to refund by hand. The deposit stays held until it is returned.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-11-02',
     items: [
       {
