@@ -25,6 +25,12 @@ export const CHANGELOG = [
         text: 'The RM548.39 refunded to Azka SW Legacy on 4 Nov is noted on the last bookings of WA 5202 F, W 9490 C and VEY 3830, with the DuitNow reference and a link to the slip in Telegram.',
         link: '/admin/bookings',
       },
+      {
+        kind: 'data',
+        title: 'Insurance policies for the Vellfire and the Veloz',
+        text: 'In Car Documents, the Vellfire VJC 5290’s insurance (Liberty, 6 Aug 2026 – 5 Aug 2027) now has the full policy PDF next to the agent’s quote, with the premium from the policy. The Veloz VQB 5567 now has its insurance on record (Tokio Marine, 27 Nov 2025 – 26 Nov 2026) with the policy PDF, so its renewal on 26 Nov shows in the expiry alerts.',
+        link: '/admin/car-documents',
+      },
     ],
   },
   {
