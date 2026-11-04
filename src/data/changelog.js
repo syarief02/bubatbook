@@ -19,6 +19,12 @@ export const CHANGELOG = [
         text: 'The NV200 VEY 3516 now has a gallery of the owner’s photos (front, side and rear) instead of the stock picture. The Gran Max VEY 3830 has three new photos (side, sliding door open and cargo area) and a new main picture. The Vellfire VJC 5290 has one more photo of its middle-row seats. The door sticker with the company address is blurred on every van photo, including VEY 3830’s older ones.',
         link: '/admin/cars',
       },
+      {
+        kind: 'data',
+        title: 'Refund on the 3-van rental recorded',
+        text: 'The RM548.39 refunded to Azka SW Legacy on 4 Nov is noted on the last bookings of WA 5202 F, W 9490 C and VEY 3830, with the DuitNow reference and a link to the slip in Telegram.',
+        link: '/admin/bookings',
+      },
     ],
   },
   {
