@@ -19,6 +19,12 @@ export const CHANGELOG = [
         text: 'Expenses now has the NV200 W 9490 C’s air-con repair and its 4 new tyres (6 Nov), and the Gran Max VEY 3830’s driver seat cushion recovered (4 Nov, in Bocah Trading’s expenses). Each has its bill, the payment slip and the photos, and shows on the car’s history.',
         link: '/admin/expenses',
       },
+      {
+        kind: 'data',
+        title: 'New inside photos: VEY 3830',
+        text: 'The Gran Max VEY 3830 has 7 more photos, taken on 6 Nov: the dashboard, the newly covered driver seat, the cab, and the cargo area with its partition. Its main picture is unchanged.',
+        link: '/admin/cars',
+      },
     ],
   },
   {
