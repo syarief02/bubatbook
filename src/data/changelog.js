@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-06',
+    items: [
+      {
+        kind: 'data',
+        title: 'New expenses: W 9490 C’s air-con and tyres, VEY 3830’s driver seat',
+        text: 'Expenses now has the NV200 W 9490 C’s air-con repair and its 4 new tyres (6 Nov), and the Gran Max VEY 3830’s driver seat cushion recovered (4 Nov, in Bocah Trading’s expenses). Each has its bill, the payment slip and the photos, and shows on the car’s history.',
+        link: '/admin/expenses',
+      },
+    ],
+  },
+  {
     date: '2026-11-04',
     items: [
       {
