@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-08',
     items: [
       {
+        kind: 'data',
+        title: 'New expenses: W 9490 C’s tailgate absorbers and rear mirror',
+        text: 'Expenses now has the NV200 W 9490 C’s new tailgate absorbers (the pair that holds the rear door up) and its new interior rear-view mirror, both bought online and fitted on 7 Nov. Each has its order and the photos, and shows on the car’s history.',
+        link: '/admin/expenses',
+      },
+      {
         kind: 'new',
         title: 'Customers see where to pay: bank account and DuitNow QR',
         text: 'At checkout (the deposit) and in My Bookings (the rental payment), customers of BuBat Resources’ cars now see its RHB account, 2570 1400 0073 29 (BUBAT RESOURCES), with Copy buttons, the DuitNow QR with a Save button, the amount and the booking code to use as the transfer reference. They no longer need to WhatsApp you for the bank details. Bocah Trading’s cars still ask customers to WhatsApp for the details until Bocah’s account is added.',
