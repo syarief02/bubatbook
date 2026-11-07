@@ -440,6 +440,11 @@ export default function UserManual() {
               affected.
             </li>
             <li>
+              <B>Commercial vehicle (GDL required)</B>: <B>Yes</B> for panel vans and other goods
+              vehicles (they show a GDL tag in the list). Customers then need a GDL valid until the
+              return date to book online (section 5, GDL and commercial vehicles).
+            </li>
+            <li>
               <B>Image URL</B>: a link to the car&apos;s photo.
             </li>
             <li>
@@ -607,8 +612,9 @@ export default function UserManual() {
             <li>
               <B>Verify Account</B>: enters their IC number and licence expiry date, uploads photos
               of their IC (MyKad) and driving licence, and gives their address and bank account
-              (bank, account number, holder name; deposits are refunded there). They then see
-              &quot;Verification Pending&quot;.
+              (bank, account number, holder name; deposits are refunded there). Their GDL (expiry
+              date and photo) is optional: it&apos;s needed only for commercial vehicles (below).
+              They then see &quot;Verification Pending&quot;.
             </li>
             <li>
               After you verify them they can book. An expired licence stops new bookings until they
@@ -629,12 +635,14 @@ export default function UserManual() {
           <Sub>Checking documents</Sub>
           <Steps>
             <li>
-              Open the customer. Their IC and licence images, IC number, licence expiry, phone,
-              address and bank account are shown. Opening documents is recorded in the audit log.
+              Open the customer. Their IC, licence and GDL images, IC number, licence and GDL
+              expiry, phone, address and bank account are shown. Opening documents is recorded in
+              the audit log.
             </li>
             <li>
               Check that the IC photo matches the name and IC number, the licence is valid and its
-              expiry matches, and both photos are clear.
+              expiry matches, and both photos are clear. If they sent a GDL, check its photo and
+              expiry too: verifying the customer accepts it.
             </li>
             <li>
               Press <B>Verify Customer</B>. To refuse, press <B>Reject &amp; Re-submit</B>, give a
@@ -642,21 +650,43 @@ export default function UserManual() {
               must send them again.
             </li>
           </Steps>
-          <Sub>Licence renewals</Sub>
+          <Sub>GDL and commercial vehicles</Sub>
+          <p>
+            A car set to <B>Commercial vehicle (GDL required)</B> in Cars (all the panel vans) can
+            only be booked online by a customer whose GDL (Goods Driving Licence) is valid until the
+            return date. The car page tells customers, and checkout sends a customer without one to
+            add it. The database checks it too. Other cars don&apos;t need a GDL.
+          </p>
+          <Bullets>
+            <li>
+              A verified customer adds or renews their GDL in <B>Verify Account</B>; it comes to you
+              as <B>GDL to review</B> (below), like a licence renewal.
+            </li>
+            <li>
+              You can add it yourself with <B>Edit Customer Details</B>: the GDL expiry and the GDL
+              image.
+            </li>
+            <li>
+              <B>Book for Customer</B> and the <B>Counter</B> don&apos;t block a customer without a
+              GDL. Book for Customer warns you, and the booking page shows their GDL: check it in
+              person before handing over a van.
+            </li>
+          </Bullets>
+          <Sub>Licence and GDL renewals</Sub>
           <p>
             When a licence expires, the customer can&apos;t book until they renew it: in{' '}
             <B>Verify Account</B> they enter the new expiry date and upload a photo of the new
             licence (and a new IC photo if their IC number changed). They can also renew early,
-            before it expires. The customer gets a <B>Renewal</B> tag, and{' '}
-            <B>Needs your attention</B> on the Dashboard lists it.
+            before it expires, or add or renew their GDL the same way. The customer gets a{' '}
+            <B>Renewal</B> tag, and <B>Needs your attention</B> on the Dashboard lists it.
           </p>
           <Steps>
             <li>
-              Open the customer. <B>Licence renewal to review</B> shows the old and new expiry (and
-              any new IC number or address) and the new photos.
+              Open the customer. <B>Licence renewal to review</B> (or <B>GDL to review</B>) shows
+              the old and new expiry (and any new IC number or address) and the new photos.
             </li>
             <li>
-              Check the new licence photo matches the customer and the expiry date, then press{' '}
+              Check the new photo matches the customer and the expiry date, then press{' '}
               <B>Approve update</B>: the new details replace the old ones and the customer can book
               again.
             </li>
@@ -666,7 +696,8 @@ export default function UserManual() {
             </li>
           </Steps>
           <p>
-            Both are in the audit log. A licence that has already expired can&apos;t be approved.
+            Both are in the audit log. A licence or GDL that has already expired can&apos;t be
+            approved.
           </p>
           <p>
             <B>Revoke Verification</B> takes verification away from a verified customer. They
@@ -676,7 +707,7 @@ export default function UserManual() {
           <p>
             <B>Edit Customer Details</B> changes the name, phone and bank account straight away
             (every bank change is in the audit log, with the last 4 digits). The IC number, address,
-            licence expiry, GDL licence and new IC or licence images are sensitive:
+            licence and GDL expiry, and new IC, licence or GDL images are sensitive:
           </p>
           <Bullets>
             <li>
@@ -1657,7 +1688,7 @@ export default function UserManual() {
               ],
               [
                 'A customer says they can’t book',
-                'Check they are verified and their licence hasn’t expired (Customers). Bookings must start today or later and end within 6 months.',
+                'Check they are verified and their licence hasn’t expired (Customers). A panel van (commercial vehicle) also needs a GDL valid until the return date. Bookings must start today or later and end within 6 months.',
               ],
               [
                 'A customer can’t upload their IC, licence or receipt',

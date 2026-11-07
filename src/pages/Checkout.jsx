@@ -31,6 +31,7 @@ import {
   Wallet,
   MessageCircle,
   Landmark,
+  Truck,
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { carPath } from '../utils/carLinks';
@@ -77,11 +78,17 @@ export default function Checkout() {
 
   // Online bookings need the bank account deposits are refunded to
   const needsBank = isVerified && !hasBankDetails(profile);
+  // Commercial vehicles (panel vans) need a GDL valid until the return date;
+  // the database checks it too
+  const needsGdl =
+    isVerified &&
+    Boolean(car?.requires_gdl) &&
+    (!profile?.gdl_expiry || (Boolean(returnDate) && profile.gdl_expiry < returnDate));
 
   // Create hold on mount
   useEffect(() => {
     if (!car || !user || !pickupDate || !returnDate || booking || holdCreatedRef.current) return;
-    if (isTooFarAdvance || needsBank) return;
+    if (isTooFarAdvance || needsBank || needsGdl) return;
     holdCreatedRef.current = true;
     async function createHold() {
       try {
@@ -115,7 +122,7 @@ export default function Checkout() {
     createHold();
     // booking and holdCreatedRef guard against duplicate holds; isTooFarAdvance derives from returnDate
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [car, user, pickupDate, returnDate, needsBank]);
+  }, [car, user, pickupDate, returnDate, needsBank, needsGdl]);
 
   // Timer for hold expiry
   useEffect(() => {
@@ -191,6 +198,37 @@ export default function Checkout() {
           >
             Add Bank Details
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Commercial vehicle without a GDL valid for the whole rental
+  if (needsGdl) {
+    return (
+      <div className="page-container max-w-lg mx-auto text-center">
+        <div className="glass-card">
+          <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
+            <Truck className="w-8 h-8 text-violet-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">GDL Required</h2>
+          <p className="text-sm text-slate-400 mb-2">
+            The {car.name} is a commercial vehicle. To rent it you need a GDL (Goods Driving
+            Licence) that is valid until your return date, {formatDate(returnDate)}.
+          </p>
+          <p className="text-xs text-slate-500 mb-6">
+            {profile?.gdl_expiry
+              ? `The GDL on your account is valid until ${formatDate(profile.gdl_expiry)}. Upload your renewed GDL and we'll check it, usually within 24 hours.`
+              : "Add your GDL to your account and we'll check it, usually within 24 hours. Then come back to book."}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/verify?gdl=1" className="btn-primary inline-flex items-center gap-2">
+              {profile?.gdl_expiry ? 'Renew My GDL' : 'Add My GDL'}
+            </Link>
+            <Link to={carPage} className="btn-secondary inline-flex items-center gap-2">
+              Back to the Car
+            </Link>
+          </div>
         </div>
       </div>
     );

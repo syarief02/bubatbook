@@ -637,6 +637,8 @@ export async function rejectVerification(userId, adminId, reason = '') {
       ic_file_path: null,
       licence_file_path: null,
       licence_expiry: null,
+      gdl_expiry: null,
+      gdl_file_path: null,
       is_verified: false,
       verified_at: null,
       verified_by: null,

@@ -9,7 +9,7 @@ import { ilikeAny } from '../../utils/search';
 import { calculatePrice, formatMYR, longRentalLabel } from '../../utils/pricing';
 import { useLongRentalRates } from '../../hooks/useCars';
 import { fetchFleetCredits, creditWith } from '../../hooks/useAdmin';
-import { getTodayString } from '../../utils/dates';
+import { formatDate, getTodayString } from '../../utils/dates';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
@@ -78,7 +78,9 @@ export default function AdminBookForCustomer() {
     setSearching(true);
     const { data, error } = await supabase
       .from('bubatrent_booking_profiles')
-      .select('id, display_name, username, email, phone, ic_number, is_verified, licence_expiry')
+      .select(
+        'id, display_name, username, email, phone, ic_number, is_verified, licence_expiry, gdl_expiry'
+      )
       .or(ilikeAny(['display_name', 'phone', 'ic_number', 'username'], q))
       .limit(10);
     if (error) console.error('[BookForCustomer] Search error:', error);
@@ -689,6 +691,19 @@ export default function AdminBookForCustomer() {
       {step === 4 && (
         <div className="glass-card max-w-2xl">
           <h3 className="text-sm font-semibold text-white mb-4">Review Booking</h3>
+          {selectedCar?.requires_gdl &&
+            (!selectedCust?.gdl_expiry || selectedCust.gdl_expiry < returnDate) && (
+              <p className="mb-4 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  This is a commercial vehicle and{' '}
+                  {selectedCust?.gdl_expiry
+                    ? `the customer’s GDL expires on ${formatDate(selectedCust.gdl_expiry)}, before the return date`
+                    : 'the customer has no GDL on file'}
+                  . Check their GDL in person before handing over the van, and add it in Customers.
+                </span>
+              </p>
+            )}
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">Customer:</span>

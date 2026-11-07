@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'reac
 import { useCar, checkAvailability } from '../hooks/useCars';
 import { carPath, carSlug } from '../utils/carLinks';
 import { useAuth } from '../hooks/useAuth';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Truck } from 'lucide-react';
 import DateRangePicker from '../components/DateRangePicker';
 import PriceCalculator from '../components/PriceCalculator';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -264,6 +264,20 @@ export default function CarDetail() {
                 onReturnChange={setReturnDate}
                 className="mb-4"
               />
+
+              {car.requires_gdl && (
+                <div className="mb-4 flex items-start gap-2 px-3 py-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-xs text-violet-200">
+                  <Truck className="w-4 h-4 shrink-0 mt-0.5 text-violet-400" />
+                  <span>
+                    Commercial vehicle: you need a GDL (Goods Driving Licence) valid until the
+                    return date. Add it in{' '}
+                    <Link to="/verify?gdl=1" className="underline hover:text-white">
+                      Verify Account
+                    </Link>
+                    .
+                  </span>
+                </div>
+              )}
 
               {/* Availability indicator */}
               {pickupDate && returnDate && days > 0 && (

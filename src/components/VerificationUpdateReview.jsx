@@ -97,12 +97,23 @@ export default function VerificationUpdateReview({ customer, onReviewed }) {
   const newLicence = update.licence_file_path !== customer.licence_file_path;
   const newIc = update.ic_file_path !== customer.ic_file_path;
   const addressChanged = update.address_line1 && addressText(update) !== addressText(customer);
+  // GDL added or renewed (optional; needed for commercial vehicles)
+  const gdlChanged = Boolean(update.gdl_expiry) && update.gdl_expiry !== customer.gdl_expiry;
+  const newGdl = Boolean(update.gdl_file_path) && update.gdl_file_path !== customer.gdl_file_path;
+  const gdlExpired = gdlChanged && update.gdl_expiry < getTodayString();
+  const licenceChanged = update.licence_expiry !== customer.licence_expiry || newLicence;
+  const title =
+    (gdlChanged || newGdl) && !licenceChanged && !newIc
+      ? 'GDL to review'
+      : gdlChanged || newGdl
+        ? 'Licence and GDL to review'
+        : 'Licence renewal to review';
 
   return (
     <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 space-y-3">
       <div>
         <p className="text-sm font-medium text-amber-300 flex items-center gap-1.5">
-          <RefreshCw className="w-4 h-4" /> Licence renewal to review
+          <RefreshCw className="w-4 h-4" /> {title}
         </p>
         <p className="text-[11px] text-slate-500">
           Sent {formatDateTime(update.created_at)}. Nothing changes until you approve.
@@ -110,31 +121,47 @@ export default function VerificationUpdateReview({ customer, onReviewed }) {
       </div>
 
       <div className="space-y-1">
-        <Change
-          label="Licence expiry"
-          from={customer.licence_expiry ? formatDate(customer.licence_expiry) : null}
-          to={formatDate(update.licence_expiry)}
-          warn={expired}
-        />
+        {(update.licence_expiry !== customer.licence_expiry || !(gdlChanged || newGdl)) && (
+          <Change
+            label="Licence expiry"
+            from={customer.licence_expiry ? formatDate(customer.licence_expiry) : null}
+            to={formatDate(update.licence_expiry)}
+            warn={expired}
+          />
+        )}
         {update.ic_number !== customer.ic_number && (
           <Change label="IC number" from={customer.ic_number} to={update.ic_number} />
         )}
         {addressChanged && (
           <Change label="Address" from={addressText(customer)} to={addressText(update)} />
         )}
+        {gdlChanged && (
+          <Change
+            label="GDL expiry"
+            from={customer.gdl_expiry ? formatDate(customer.gdl_expiry) : null}
+            to={formatDate(update.gdl_expiry)}
+            warn={gdlExpired}
+          />
+        )}
         {expired && (
           <p className="text-[11px] text-red-400">
             This licence has already expired: reject it and ask for a valid one.
           </p>
         )}
+        {gdlExpired && (
+          <p className="text-[11px] text-red-400">
+            This GDL has already expired: reject it and ask for a valid one.
+          </p>
+        )}
       </div>
 
-      {(newLicence || newIc) && (
+      {(newLicence || newIc || newGdl) && (
         <div className="grid grid-cols-2 gap-2">
           {newLicence && update.licence_file_path && (
             <NewDocument label="Driving Licence" path={update.licence_file_path} />
           )}
           {newIc && update.ic_file_path && <NewDocument label="IC" path={update.ic_file_path} />}
+          {newGdl && <NewDocument label="GDL" path={update.gdl_file_path} />}
         </div>
       )}
       <p className="text-[11px] text-slate-500">
@@ -177,7 +204,7 @@ export default function VerificationUpdateReview({ customer, onReviewed }) {
         <div className="flex gap-2">
           <button
             onClick={() => review(true)}
-            disabled={busy || expired}
+            disabled={busy || expired || gdlExpired}
             className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30 disabled:opacity-50"
           >
             {busy ? (

@@ -371,6 +371,22 @@ export default function Profile() {
                 </span>
               </p>
             )}
+            <p className="text-xs text-slate-500 mb-3">
+              GDL:{' '}
+              {profile?.gdl_expiry ? (
+                <span
+                  className={
+                    new Date(profile.gdl_expiry) < new Date(new Date().toDateString())
+                      ? 'text-red-400'
+                      : 'text-white'
+                  }
+                >
+                  expires {formatDate(profile.gdl_expiry)}
+                </span>
+              ) : (
+                'none yet (needed only for commercial vehicles)'
+              )}
+            </p>
 
             <Link
               to="/verify"

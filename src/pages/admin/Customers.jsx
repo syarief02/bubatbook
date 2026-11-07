@@ -14,7 +14,7 @@ import AdminLayout from '../../components/AdminLayout';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
-import { formatDate } from '../../utils/dates';
+import { formatDate, getTodayString } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
 import {
   Search,
@@ -82,7 +82,7 @@ export default function Customers() {
   // Edit customer details
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const [editFiles, setEditFiles] = useState({ ic: null, licence: null });
+  const [editFiles, setEditFiles] = useState({ ic: null, licence: null, gdl: null });
   const [savingEdit, setSavingEdit] = useState(false);
 
   // Add credit
@@ -497,12 +497,25 @@ export default function Customers() {
                                   <span className="text-slate-500">Phone:</span> {customer.phone}
                                 </p>
                               )}
-                              {customer.gdl_license && customer.gdl_license !== 'NONE' && (
-                                <p>
-                                  <span className="text-slate-500">GDL:</span>{' '}
-                                  {customer.gdl_license}
-                                </p>
-                              )}
+                              <p>
+                                <span className="text-slate-500">GDL:</span>{' '}
+                                {customer.gdl_expiry ? (
+                                  customer.gdl_expiry < getTodayString() ? (
+                                    <span className="text-red-400">
+                                      expired {formatDate(customer.gdl_expiry)}
+                                    </span>
+                                  ) : (
+                                    `valid until ${formatDate(customer.gdl_expiry)}`
+                                  )
+                                ) : (
+                                  <span className="text-slate-500">
+                                    none (needed for commercial vehicles)
+                                  </span>
+                                )}
+                                {customer.gdl_license && customer.gdl_license !== 'NONE'
+                                  ? ` · ${customer.gdl_license}`
+                                  : ''}
+                              </p>
                               {(customer.address_line1 || customer.city) && (
                                 <p>
                                   <span className="text-slate-500">Address:</span>{' '}
@@ -617,6 +630,37 @@ export default function Customers() {
                                     </p>
                                   )}
                                 </div>
+                                {/* GDL (optional; needed for commercial vehicles) */}
+                                <div
+                                  className={`rounded-xl border p-2 ${customer.gdl_file_path ? 'border-green-500/20 bg-green-500/5' : 'border-white/10 bg-white/5'}`}
+                                >
+                                  <p className="text-[10px] text-slate-500 mb-1">GDL</p>
+                                  {customer.gdl_file_path ? (
+                                    <SignedLink
+                                      path={customer.gdl_file_path}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block"
+                                    >
+                                      {customer.gdl_file_path.toLowerCase().endsWith('.pdf') ? (
+                                        <div className="flex flex-col items-center justify-center gap-1.5 h-20 rounded-lg bg-amber-500/10 text-xs text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer border border-amber-500/20">
+                                          <FileText className="w-6 h-6" />
+                                          <span className="font-semibold text-[11px]">
+                                            View GDL (PDF)
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <SignedImage
+                                          path={customer.gdl_file_path}
+                                          alt="GDL"
+                                          className="w-full h-20 object-cover rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
+                                        />
+                                      )}
+                                    </SignedLink>
+                                  ) : (
+                                    <p className="text-[10px] text-slate-500">None (optional)</p>
+                                  )}
+                                </div>
                               </div>
                               {(!customer.ic_file_path || !customer.licence_file_path) && (
                                 <p className="text-[10px] text-amber-400 mt-1.5 flex items-center gap-1">
@@ -712,7 +756,7 @@ export default function Customers() {
                               <button
                                 onClick={() => {
                                   setEditingCustomer(null);
-                                  setEditFiles({ ic: null, licence: null });
+                                  setEditFiles({ ic: null, licence: null, gdl: null });
                                 }}
                                 className="text-slate-500 hover:text-white"
                               >
@@ -803,17 +847,19 @@ export default function Customers() {
                                 className="input-field !py-1.5 text-xs"
                                 placeholder="Postcode"
                               />
-                              <select
-                                value={editForm.gdl_license || 'NONE'}
-                                onChange={(e) =>
-                                  setEditForm((f) => ({ ...f, gdl_license: e.target.value }))
-                                }
-                                className="input-field !py-1.5 text-xs"
-                              >
-                                <option value="NONE">No GDL License</option>
-                                <option value="VAN">GDL - VAN</option>
-                                <option value="LORRY">GDL - LORRY / TRUCK</option>
-                              </select>
+                              <div>
+                                <label className="text-[10px] text-slate-500 mb-1 block">
+                                  GDL Expiry (optional; needed for commercial vehicles)
+                                </label>
+                                <input
+                                  type="date"
+                                  value={editForm.gdl_expiry || ''}
+                                  onChange={(e) =>
+                                    setEditForm((f) => ({ ...f, gdl_expiry: e.target.value }))
+                                  }
+                                  className="input-field !py-1.5 text-xs"
+                                />
+                              </div>
                             </div>
 
                             {/* Bank account (applied directly; the database logs every change) */}
@@ -870,6 +916,25 @@ export default function Customers() {
                                   </span>
                                 </label>
                               </div>
+                              <div>
+                                <label className="text-[10px] text-slate-500 mb-1 block">
+                                  GDL Image (with its expiry date above)
+                                </label>
+                                <label className="relative flex items-center gap-2 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors overflow-hidden">
+                                  <input
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    onChange={(e) =>
+                                      setEditFiles((f) => ({ ...f, gdl: e.target.files[0] }))
+                                    }
+                                  />
+                                  <FileImage className="w-3.5 h-3.5 text-slate-400" />
+                                  <span className="text-slate-300 truncate">
+                                    {editFiles.gdl?.name || 'Choose GDL image...'}
+                                  </span>
+                                </label>
+                              </div>
                             </div>
 
                             <button
@@ -886,7 +951,7 @@ export default function Customers() {
                                     'state',
                                     'postcode',
                                     'licence_expiry',
-                                    'gdl_license',
+                                    'gdl_expiry',
                                   ];
 
                                   const directUpdates = {};
@@ -912,10 +977,27 @@ export default function Customers() {
                                     ) {
                                       sensitiveChanges[field] = {
                                         old: customer[field] || null,
-                                        new: editForm[field],
+                                        // An emptied date is saved as no date
+                                        new:
+                                          field.endsWith('_expiry') && editForm[field] === ''
+                                            ? null
+                                            : editForm[field],
                                       };
                                     }
                                   });
+                                  // A GDL is its expiry date and its photo together
+                                  if (editFiles.gdl && !editForm.gdl_expiry) {
+                                    throw new Error('Enter the GDL expiry date for the GDL image.');
+                                  }
+                                  if (
+                                    sensitiveChanges.gdl_expiry?.new &&
+                                    !editFiles.gdl &&
+                                    !customer.gdl_file_path
+                                  ) {
+                                    throw new Error(
+                                      'Upload the GDL image too: the customer has none on file.'
+                                    );
+                                  }
                                   console.log(
                                     '[EditSave] Direct updates:',
                                     Object.keys(directUpdates),
@@ -975,6 +1057,28 @@ export default function Customers() {
                                     console.log('[EditSave] Licence uploaded to:', path);
                                     sensitiveChanges.licence_file_path = {
                                       old: customer.licence_file_path || null,
+                                      new: path,
+                                    };
+                                  }
+
+                                  if (editFiles.gdl) {
+                                    if (editFiles.gdl.size > MAX_FILE_SIZE)
+                                      throw new Error(
+                                        `GDL file too large (${(editFiles.gdl.size / 1024 / 1024).toFixed(1)}MB). Max 10MB.`
+                                      );
+                                    const ext =
+                                      editFiles.gdl.name.split('.').pop()?.toLowerCase() || 'jpg';
+                                    const path = `${customer.id}/gdl_admin_${Date.now()}.${ext}`;
+                                    const { error: upErr } = await uploadFileRobust(
+                                      'customer-documents',
+                                      path,
+                                      editFiles.gdl,
+                                      toast
+                                    );
+                                    if (upErr)
+                                      throw new Error(`GDL upload failed: ${upErr.message}`);
+                                    sensitiveChanges.gdl_file_path = {
+                                      old: customer.gdl_file_path || null,
                                       new: path,
                                     };
                                   }
@@ -1086,7 +1190,7 @@ export default function Customers() {
                                   console.log('[EditSave] Done!', messages);
                                   toast.success(messages.join(' • '));
                                   setEditingCustomer(null);
-                                  setEditFiles({ ic: null, licence: null });
+                                  setEditFiles({ ic: null, licence: null, gdl: null });
                                   refetch();
                                 } catch (err) {
                                   console.error('[EditSave] Error caught:', err);
@@ -1121,7 +1225,7 @@ export default function Customers() {
                                 city: customer.city || '',
                                 state: customer.state || '',
                                 postcode: customer.postcode || '',
-                                gdl_license: customer.gdl_license || 'NONE',
+                                gdl_expiry: customer.gdl_expiry || '',
                                 ...bankFromProfile(customer),
                               });
                             }}

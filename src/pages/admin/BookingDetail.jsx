@@ -1155,6 +1155,58 @@ export default function AdminBookingDetail() {
                         </p>
                       )}
                     </div>
+
+                    {/* GDL: shown when they have one, or the van needs one */}
+                    {(customerProfile.gdl_file_path || car?.requires_gdl) && (
+                      <div
+                        className={`rounded-xl border p-3 ${
+                          customerProfile.gdl_expiry &&
+                          customerProfile.gdl_expiry >= booking.return_date
+                            ? 'border-green-500/20 bg-green-500/5'
+                            : car?.requires_gdl
+                              ? 'border-amber-500/30 bg-amber-500/5'
+                              : 'border-white/5 bg-white/[0.02]'
+                        }`}
+                      >
+                        <p className="text-[11px] font-medium text-slate-400 mb-2">
+                          GDL{car?.requires_gdl ? ' (needed for this commercial vehicle)' : ''}
+                        </p>
+                        {customerProfile.gdl_file_path ? (
+                          <SignedLink
+                            path={customerProfile.gdl_file_path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            {customerProfile.gdl_file_path.toLowerCase().endsWith('.pdf') ? (
+                              <div className="flex items-center justify-center gap-2 h-20 rounded-lg bg-amber-500/10 text-xs text-amber-300 hover:bg-amber-500/20 transition-colors border border-amber-500/20 font-semibold">
+                                <FileText className="w-5 h-5" /> View GDL (PDF)
+                              </div>
+                            ) : (
+                              <SignedImage
+                                path={customerProfile.gdl_file_path}
+                                alt="GDL"
+                                className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                              />
+                            )}
+                          </SignedLink>
+                        ) : (
+                          <p className="text-xs text-amber-300">
+                            No GDL on file: check it in person before handing over the van.
+                          </p>
+                        )}
+                        {customerProfile.gdl_expiry && (
+                          <p
+                            className={`text-xs mt-2 ${customerProfile.gdl_expiry < booking.return_date ? 'text-red-400' : 'text-slate-400'}`}
+                          >
+                            <span className="text-slate-500">Expiry:</span>{' '}
+                            {formatDate(customerProfile.gdl_expiry)}
+                            {customerProfile.gdl_expiry < booking.return_date &&
+                              ' (before the return date)'}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

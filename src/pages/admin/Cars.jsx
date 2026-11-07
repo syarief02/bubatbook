@@ -30,6 +30,7 @@ import {
   History,
   Image as ImageIcon,
   MessageCircle,
+  Truck,
 } from 'lucide-react';
 
 const EMPTY_CAR = {
@@ -46,6 +47,8 @@ const EMPTY_CAR = {
   plate_number: '',
   features: [],
   is_available: true,
+  // Commercial vehicle: online bookings need a GDL valid until the return date
+  requires_gdl: false,
   contact_admin_id: null,
   // Long-term bookings on, with the fleet's discounts (null = the fleet's)
   long_rental_enabled: true,
@@ -308,6 +311,25 @@ export default function AdminCars() {
                 </div>
               </div>
 
+              <div>
+                <label className="input-label flex items-center gap-1">
+                  <Truck className="w-3 h-3" /> Commercial vehicle (GDL required)
+                </label>
+                <select
+                  value={form.requires_gdl ? 'true' : 'false'}
+                  onChange={(e) => setForm({ ...form, requires_gdl: e.target.value === 'true' })}
+                  className="input-field"
+                >
+                  <option value="false">No: any verified customer can book</option>
+                  <option value="true">Yes: customers need a valid GDL</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  For panel vans and other goods vehicles. Online bookings need a GDL valid until
+                  the return date. Bookings you make for a customer and Counter rentals aren&apos;t
+                  blocked: check the customer&apos;s GDL in person.
+                </p>
+              </div>
+
               <LongTermBookings
                 form={form}
                 setForm={setForm}
@@ -449,6 +471,14 @@ export default function AdminCars() {
                   {!car.is_available && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] bg-red-500/10 text-red-400 border border-red-500/20">
                       Unavailable
+                    </span>
+                  )}
+                  {car.requires_gdl && (
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 shrink-0"
+                      title="Commercial vehicle: customers need a valid GDL"
+                    >
+                      GDL
                     </span>
                   )}
                 </div>

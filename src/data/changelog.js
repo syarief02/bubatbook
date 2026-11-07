@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-08',
     items: [
       {
+        kind: 'new',
+        title: 'GDL for commercial vehicles',
+        text: 'Customers can add their GDL (Goods Driving Licence) in Verify Account: its expiry date and a photo. It’s optional, but the panel vans are now set to Commercial vehicle (GDL required) in Cars, so customers need a GDL valid until the return date to book one online. The car page says so, and checkout sends customers without one to add it. A GDL sent after verification comes to you as GDL to review in Customers. You can also add one with Edit Customer Details (GDL expiry and image). Book for Customer and the Counter aren’t blocked: Book for Customer warns you, and the booking page shows the customer’s GDL to check at handover.',
+        link: '/admin/customers',
+      },
+      {
         kind: 'fixed',
         title: 'Clearer upload messages instead of “Failed to fetch”',
         text: 'A customer verifying on an Android phone got only “Failed to fetch” when the IC photo or PDF they chose was in Google Drive or Google Photos rather than on the phone. Uploads now check the file first and say what to do: take a photo or screenshot of the document and choose that. If the internet drops during an upload, it tries once more by itself. This covers every upload: IC, licence, receipts and documents. Troubleshooting in the User Manual has the messages.',

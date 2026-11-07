@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { uploadFileRobust } from '../lib/uploadHelper';
@@ -22,11 +22,14 @@ import {
   Clock,
   MapPin,
   Landmark,
+  Truck,
 } from 'lucide-react';
 
 export default function VerifyAccount() {
   const { user, profile, isVerified, refreshProfile } = useAuth();
   const toast = useToast();
+  // /verify?gdl=1 (from a commercial vehicle's checkout) opens the form to add a GDL
+  const [searchParams] = useSearchParams();
 
   const licenceExpired =
     profile?.is_verified &&
@@ -36,7 +39,7 @@ export default function VerifyAccount() {
   // A verified customer renewing their licence (or updating their IC) sends the
   // new details for an admin to review; the latest one says where that stands.
   const [latestUpdate, setLatestUpdate] = useState(null);
-  const [showUpdate, setShowUpdate] = useState(false);
+  const [showUpdate, setShowUpdate] = useState(searchParams.get('gdl') === '1');
   const updating = Boolean(profile?.is_verified);
 
   useEffect(() => {
@@ -64,6 +67,9 @@ export default function VerifyAccount() {
   const [bank, setBank] = useState(bankFromProfile(profile));
   const [icFile, setIcFile] = useState(null);
   const [licenceFile, setLicenceFile] = useState(null);
+  // GDL (Goods Driving Licence): optional, needed only for commercial vehicles
+  const [gdlExpiry, setGdlExpiry] = useState(profile?.gdl_expiry || '');
+  const [gdlFile, setGdlFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [error, setError] = useState('');
@@ -144,6 +150,28 @@ export default function VerifyAccount() {
       return;
     }
 
+    // GDL: optional, but its expiry date and photo go together
+    const newGdl = Boolean(gdlExpiry) && gdlExpiry !== (profile?.gdl_expiry || '');
+    if (gdlFile && !gdlExpiry) {
+      setError('Enter your GDL expiry date.');
+      return;
+    }
+    if (newGdl && new Date(gdlExpiry) < new Date(new Date().toDateString())) {
+      setError('Your GDL has expired. Please enter a valid expiry date.');
+      return;
+    }
+    if (newGdl && !gdlFile) {
+      setError('Please upload a photo of your GDL.');
+      return;
+    }
+    if (gdlFile) {
+      const gdlErr = validateFile(gdlFile, 'GDL');
+      if (gdlErr) {
+        setError(gdlErr);
+        return;
+      }
+    }
+
     // For first-time verification, files are required
     const isUpdate = profile?.is_verified || hasSubmittedDocs;
     if (updating) {
@@ -158,8 +186,10 @@ export default function VerifyAccount() {
         setError('Please upload a photo of your IC for the new IC number.');
         return;
       }
-      if (!newExpiry && !newIc && !icFile && !licenceFile) {
-        setError('Nothing to review: enter your new licence expiry date and upload its photo.');
+      if (!newExpiry && !newIc && !icFile && !licenceFile && !gdlFile) {
+        setError(
+          'Nothing to review: enter your new licence or GDL expiry date and upload its photo.'
+        );
         return;
       }
     }
@@ -180,15 +210,21 @@ export default function VerifyAccount() {
     try {
       let icPath = profile?.ic_file_path || null;
       let licencePath = profile?.licence_file_path || null;
+      let gdlPath = profile?.gdl_file_path || null;
 
-      if (icFile) {
-        setUploadStatus('Uploading IC / MyKad (1/2)...');
-        icPath = await uploadFile(icFile, 'ic');
+      const toUpload = [
+        icFile && ['IC / MyKad', icFile, 'ic'],
+        licenceFile && ['Driving Licence', licenceFile, 'licence'],
+        gdlFile && ['GDL', gdlFile, 'gdl'],
+      ].filter(Boolean);
+      for (const [i, [label, file, folder]] of toUpload.entries()) {
+        setUploadStatus(`Uploading ${label} (${i + 1}/${toUpload.length})...`);
+        const path = await uploadFile(file, folder);
+        if (folder === 'ic') icPath = path;
+        else if (folder === 'licence') licencePath = path;
+        else gdlPath = path;
       }
-      if (licenceFile) {
-        setUploadStatus('Uploading Driving Licence (2/2)...');
-        licencePath = await uploadFile(licenceFile, 'licence');
-      }
+      const gdlFields = { gdl_expiry: gdlExpiry || null, gdl_file_path: gdlPath };
 
       setUploadStatus('Saving profile...');
       if (isUpdate) {
@@ -201,6 +237,7 @@ export default function VerifyAccount() {
             licence_expiry: licenceExpiry,
             ic_file_path: icPath,
             licence_file_path: licencePath,
+            ...gdlFields,
             phone: normalizePhone(phone),
             address_line1: addressLine1.trim(),
             address_line2: addressLine2.trim(),
@@ -230,6 +267,7 @@ export default function VerifyAccount() {
             licence_expiry: licenceExpiry,
             ic_file_path: icPath,
             licence_file_path: licencePath,
+            ...gdlFields,
             phone: normalizePhone(phone),
             address_line1: addressLine1.trim(),
             address_line2: addressLine2.trim(),
@@ -289,10 +327,10 @@ export default function VerifyAccount() {
     return (
       <div className="page-container max-w-xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-1">Update Your Licence or IC</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">Update Your Licence, GDL or IC</h1>
           <p className="text-sm text-slate-400">
-            Change the expiry date and upload the new licence. We check it, then it replaces the old
-            one.
+            Change the expiry date and upload the new licence, or add your GDL. We check it, then it
+            replaces the old one.
           </p>
         </div>
         {renderForm()}
@@ -318,14 +356,19 @@ export default function VerifyAccount() {
               {latestUpdate.rejection_reason ? `: ${latestUpdate.rejection_reason}` : '.'}
             </p>
           )}
-          <p className="text-xs text-slate-500 mb-6">
+          <p className="text-xs text-slate-500 mb-2">
             {profile?.licence_expiry &&
               `Licence valid until ${formatDate(profile.licence_expiry)}. `}
+            {profile?.gdl_expiry
+              ? `GDL ${profile.gdl_expiry < new Date().toISOString().slice(0, 10) ? 'expired on' : 'valid until'} ${formatDate(profile.gdl_expiry)}.`
+              : 'No GDL yet: you need one to rent a commercial vehicle (panel van).'}
+          </p>
+          <p className="text-xs mb-6">
             <button
               onClick={() => setShowUpdate(true)}
               className="text-violet-400 hover:text-violet-300 underline"
             >
-              Renew licence or update IC
+              Renew licence, add GDL or update IC
             </button>
           </p>
           <div className="flex gap-3 justify-center">
@@ -515,6 +558,56 @@ export default function VerifyAccount() {
                     <div>
                       <p className="text-sm text-slate-300">
                         {licenceFile ? licenceFile.name : 'Click or tap to upload licence photo'}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* GDL Section (optional) */}
+            <div className="border-t border-white/5 pt-5">
+              <p className="text-sm font-medium text-white mb-1 flex items-center gap-2">
+                <Truck className="w-4 h-4 text-violet-400" />
+                GDL (Goods Driving Licence)
+                <span className="text-xs font-normal text-slate-500">optional</span>
+              </p>
+              <p className="text-xs text-slate-500 mb-4">
+                Needed only to rent a commercial vehicle (our panel vans). It must be valid until
+                the return date.
+                {profile?.gdl_expiry &&
+                  ` Yours is on file, valid until ${formatDate(profile.gdl_expiry)}.`}
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="input-label">GDL Expiry Date</label>
+                  <input
+                    type="date"
+                    value={gdlExpiry}
+                    onChange={(e) => setGdlExpiry(e.target.value)}
+                    className="input-field"
+                    disabled={uploading}
+                  />
+                </div>
+                <div>
+                  <label className="input-label">
+                    {profile?.gdl_file_path ? 'New GDL Photo (only if renewing)' : 'GDL Image'}
+                  </label>
+                  <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setGdlFile(e.target.files[0])}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      disabled={uploading}
+                    />
+                    <FileImage className="w-6 h-6 text-slate-500" />
+                    <div>
+                      <p className="text-sm text-slate-300">
+                        {gdlFile ? gdlFile.name : 'Click or tap to upload GDL photo'}
                       </p>
                       <p className="text-xs text-slate-500">
                         JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)
