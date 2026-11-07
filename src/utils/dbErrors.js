@@ -17,5 +17,9 @@ export function friendlyDbError(err) {
   if (err?.code === '23514' && /bubatrent_profile_bank_/.test(err.message || '')) {
     return 'Please check the bank details: bank, account number (6 to 20 digits) and account holder name are all needed.';
   }
+  // No reply from the server at all (Chrome: "Failed to fetch", Safari: "Load failed")
+  if (/^(TypeError: )?(failed to fetch|load failed)$/i.test(err?.message || '')) {
+    return 'Couldn’t reach our server. Please check your internet connection and try again.';
+  }
   return err?.message || 'Something went wrong. Please try again.';
 }

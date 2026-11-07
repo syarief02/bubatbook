@@ -1660,6 +1660,10 @@ export default function UserManual() {
                 'Check they are verified and their licence hasn’t expired (Customers). Bookings must start today or later and end within 6 months.',
               ],
               [
+                'A customer can’t upload their IC, licence or receipt',
+                'The message tells them what to do. "This file couldn’t be opened from your phone": the photo or PDF is in Google Drive or Google Photos, not on the phone. Ask them to take a photo or screenshot of it and choose that. "The upload couldn’t reach our server": their internet dropped; try again. Each try is listed in Upload Logs (section 15).',
+              ],
+              [
                 'A booking disappeared from Deposit Paid',
                 'Its deposit wasn’t verified within 48 hours, so it was released (EXPIRED). Reactivate it if the dates are free (7.8).',
               ],

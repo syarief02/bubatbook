@@ -179,8 +179,10 @@ async function logUploadStep(step, message, metadata = {}) {
  * 1. Rejects HEIC and oversized files up front with a clear message.
  * 2. Compresses large photos so phones don't run out of memory.
  * 3. Falls back to a MIME type from the extension (Android often reports "").
- * 4. Times out after 35s instead of hanging on a bad connection.
- * 5. Logs each step to bubatrent_booking_upload_logs for remote debugging.
+ * 4. Reads the file first, so a file the phone can't open gets a clear message.
+ * 5. Times out after 35s instead of hanging on a bad connection; retries once
+ *    when the connection drops.
+ * 6. Logs each step to bubatrent_booking_upload_logs for remote debugging.
  */
 export async function uploadFileRobust(bucket, path, file, toast = null) {
   // Extract booking_id from path if possible (e.g. receipts/{bookingId}/...)
@@ -246,31 +248,59 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
     // Android gallery often returns file.type = "" — fall back to the extension
     const mimeType = file.type || guessMimeFromName(file.name) || 'image/jpeg';
 
-    let timeoutId;
-    const timeoutPromise = new Promise((_, reject) => {
-      timeoutId = setTimeout(
-        () =>
-          reject(
-            new Error('Upload timed out after 35 seconds. Please check your network connection.')
-          ),
-        35000
-      );
-    });
-    const uploadPromise = supabase.storage.from(bucket).upload(path, file, {
-      upsert: true,
-      contentType: mimeType,
-    });
-
-    let uploadErr;
+    // Read the file before sending it. On Android, a photo or PDF picked from
+    // Google Drive / Google Photos that isn't saved on the phone can't be read,
+    // and the upload then only says "Failed to fetch" (8 Nov 2026).
+    let body;
     try {
-      ({ error: uploadErr } = await Promise.race([uploadPromise, timeoutPromise]));
-    } finally {
-      clearTimeout(timeoutId);
+      body = new Blob([await file.arrayBuffer()], { type: mimeType });
+    } catch (readErr) {
+      logUploadStep(
+        'error',
+        `File could not be read: ${readErr.name}: ${readErr.message}`,
+        logMeta
+      );
+      return { data: null, error: new Error(UNREADABLE_FILE_MESSAGE) };
+    }
+
+    const uploadOnce = async () => {
+      let timeoutId;
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(
+          () =>
+            reject(
+              new Error('Upload timed out after 35 seconds. Please check your network connection.')
+            ),
+          35000
+        );
+      });
+      try {
+        const { error } = await Promise.race([
+          supabase.storage.from(bucket).upload(path, body, { upsert: true, contentType: mimeType }),
+          timeoutPromise,
+        ]);
+        return error;
+      } catch (err) {
+        return err;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    let uploadErr = await uploadOnce();
+    // A dropped connection: try once more
+    if (uploadErr && isNetworkError(uploadErr)) {
+      logUploadStep('retry', `Network error, retrying: ${uploadErr.message}`, logMeta);
+      await new Promise((r) => setTimeout(r, 1500));
+      uploadErr = await uploadOnce();
     }
 
     if (uploadErr) {
       console.error('[UploadHelper] Storage upload error:', uploadErr);
       logUploadStep('error', uploadErr.message || 'Storage upload failed', logMeta);
+      if (isNetworkError(uploadErr)) {
+        return { data: null, error: new Error(NETWORK_ERROR_MESSAGE) };
+      }
       return { data: null, error: uploadErr };
     }
 
@@ -282,8 +312,22 @@ export async function uploadFileRobust(bucket, path, file, toast = null) {
       ...logMeta,
       stack: err.stack?.substring(0, 500),
     });
-    return { data: null, error: err };
+    return { data: null, error: isNetworkError(err) ? new Error(NETWORK_ERROR_MESSAGE) : err };
   }
+}
+
+const UNREADABLE_FILE_MESSAGE =
+  "This file couldn't be opened from your phone. It may be saved in Google Drive or Google Photos rather than on the phone. Save it to your phone first, or take a photo or screenshot of the document and choose that instead.";
+
+const NETWORK_ERROR_MESSAGE =
+  "The upload couldn't reach our server. Please check your internet connection and try again. If it keeps failing, take a photo or screenshot of the document and choose that instead.";
+
+// fetch() failing before any reply: "Failed to fetch" (Chrome), "Load failed"
+// (Safari), "NetworkError when attempting to fetch resource" (Firefox)
+function isNetworkError(err) {
+  return /failed to fetch|load failed|networkerror|network request failed/i.test(
+    err?.message || ''
+  );
 }
 
 /**

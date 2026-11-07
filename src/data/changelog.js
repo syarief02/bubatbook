@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-08',
+    items: [
+      {
+        kind: 'fixed',
+        title: 'Clearer upload messages instead of “Failed to fetch”',
+        text: 'A customer verifying on an Android phone got only “Failed to fetch” when the IC photo or PDF they chose was in Google Drive or Google Photos rather than on the phone. Uploads now check the file first and say what to do: take a photo or screenshot of the document and choose that. If the internet drops during an upload, it tries once more by itself. This covers every upload: IC, licence, receipts and documents. Troubleshooting in the User Manual has the messages.',
+        link: '/admin/upload-logs',
+      },
+    ],
+  },
+  {
     date: '2026-11-06',
     items: [
       {
