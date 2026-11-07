@@ -172,6 +172,7 @@ export function useAdminStats(fleetId) {
         chargesOwed: sumBy(moneyRows || [], chargesOwed),
         month: periodTotals('month'),
         year: periodTotals('year'),
+        lastYear: periodTotals('lastYear'),
         renewalsToReview: renewalsToReview || 0,
         depositsOnHold: onHold.length,
         depositsOnHoldAmount: sumBy(onHold, (b) => Number(b.deposit_amount) || 0),

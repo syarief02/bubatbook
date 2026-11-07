@@ -64,8 +64,9 @@ export default function AdminDashboard() {
   const periodLabel =
     revenuePeriod === 'month'
       ? monthName(stats?.month?.from)
-      : revenuePeriod === 'year'
-        ? (stats?.year?.from || '').slice(0, 4) || 'this year'
+      : revenuePeriod === 'year' || revenuePeriod === 'lastYear'
+        ? (stats?.[revenuePeriod]?.from || '').slice(0, 4) ||
+          (revenuePeriod === 'year' ? 'this year' : 'last year')
         : 'all time';
   const revenue = {
     rentalRevenue: shown.rentalRevenue || 0,
@@ -229,10 +230,11 @@ export default function AdminDashboard() {
               <p className="text-3xl font-bold gradient-text">{formatMYR(revenue.rentalRevenue)}</p>
             </div>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             {[
               ['month', 'This Month'],
               ['year', 'This Year'],
+              ['lastYear', 'Last Year'],
               ['all', 'All Time'],
             ].map(([val, label]) => (
               <button
@@ -247,7 +249,9 @@ export default function AdminDashboard() {
         </div>
         {revenuePeriod !== 'all' && (
           <p className="text-xs text-slate-500 mb-1">
-            Rentals picked up this {revenuePeriod === 'year' ? 'year' : 'month'}, as in Sales.
+            Rentals picked up{' '}
+            {{ month: 'this month', year: 'this year', lastYear: 'last year' }[revenuePeriod]}, as
+            in Sales.
           </p>
         )}
         <p className="text-xs text-slate-500">

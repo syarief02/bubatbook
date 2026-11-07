@@ -153,6 +153,7 @@ export default function AdminSales() {
           ['month', 'This Month'],
           ['today', 'Today'],
           ['year', 'This Year'],
+          ['lastYear', 'Last Year'],
           ['all', 'All Time'],
           ['custom', 'Custom'],
         ].map(([val, label]) => (
