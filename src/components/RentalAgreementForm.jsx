@@ -38,8 +38,9 @@ export function AgreementTerms() {
             </li>
             <li>
               Penyewa mestilah mempunyai{' '}
-              <strong className="text-white">lesen memandu Malaysia Kelas D</strong> dan GDL Kelas D
-              yang sah.
+              <strong className="text-white">lesen memandu Malaysia Kelas D</strong> yang sah. Bagi
+              kenderaan perdagangan (van panel), penyewa juga mestilah mempunyai{' '}
+              <strong className="text-white">GDL Kelas D</strong> yang sah sepanjang tempoh sewa.
             </li>
             <li>
               Penyewa mestilah memaklumkan kepada syarikat sekiranya berlaku sebarang perkara yang
