@@ -16,7 +16,7 @@ export const CHANGELOG = [
       {
         kind: 'improved',
         title: 'Revenue shows this month first',
-        text: 'The Dashboard’s Rental Revenue and the Sales page now open on This Month (rentals picked up this calendar month) instead of all time. On the Dashboard, press All Time for the total since the start; on Sales, All Time, Today and Custom are still there.',
+        text: 'The Dashboard’s Rental Revenue and the Sales page now open on This Month (rentals picked up this calendar month) instead of all time. Both also have a new This Year button next to All Time (rentals picked up since 1 January). Sales still has Today and Custom.',
         link: '/admin/sales',
       },
       {

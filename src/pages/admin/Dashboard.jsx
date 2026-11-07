@@ -60,7 +60,13 @@ export default function AdminDashboard() {
       </AdminLayout>
     );
 
-  const shown = (revenuePeriod === 'month' ? stats?.month : stats) || {};
+  const shown = (revenuePeriod === 'all' ? stats : stats?.[revenuePeriod]) || {};
+  const periodLabel =
+    revenuePeriod === 'month'
+      ? monthName(stats?.month?.from)
+      : revenuePeriod === 'year'
+        ? (stats?.year?.from || '').slice(0, 4) || 'this year'
+        : 'all time';
   const revenue = {
     rentalRevenue: shown.rentalRevenue || 0,
     chargesCollected: shown.chargesCollected || 0,
@@ -218,8 +224,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <p className="text-xs text-slate-500">
-                Rental Revenue (verified rental payments) ·{' '}
-                {revenuePeriod === 'month' ? monthName(stats?.month?.from) : 'all time'}
+                Rental Revenue (verified rental payments) · {periodLabel}
               </p>
               <p className="text-3xl font-bold gradient-text">{formatMYR(revenue.rentalRevenue)}</p>
             </div>
@@ -227,6 +232,7 @@ export default function AdminDashboard() {
           <div className="flex gap-1.5">
             {[
               ['month', 'This Month'],
+              ['year', 'This Year'],
               ['all', 'All Time'],
             ].map(([val, label]) => (
               <button
@@ -239,8 +245,10 @@ export default function AdminDashboard() {
             ))}
           </div>
         </div>
-        {revenuePeriod === 'month' && (
-          <p className="text-xs text-slate-500 mb-1">Rentals picked up this month, as in Sales.</p>
+        {revenuePeriod !== 'all' && (
+          <p className="text-xs text-slate-500 mb-1">
+            Rentals picked up this {revenuePeriod === 'year' ? 'year' : 'month'}, as in Sales.
+          </p>
         )}
         <p className="text-xs text-slate-500">
           Deposits held now: {formatMYR(stats?.depositsHeld || 0)} — not revenue; each goes back to

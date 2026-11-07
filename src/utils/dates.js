@@ -33,8 +33,9 @@ export function getTodayString() {
 
 /**
  * First and last day (YYYY-MM-DD, local time) of a report period: 'today',
- * 'month' (the whole calendar month), 'custom' (either end may be blank) or
- * anything else for all time. A blank end means open-ended.
+ * 'month' (the whole calendar month), 'year' (1 Jan to 31 Dec of this year),
+ * 'custom' (either end may be blank) or anything else for all time. A blank
+ * end means open-ended.
  */
 export function periodRange(preset, start = '', end = '') {
   const today = getTodayString();
@@ -43,6 +44,10 @@ export function periodRange(preset, start = '', end = '') {
     const [y, m] = today.split('-').map(Number);
     const lastDay = new Date(y, m, 0).getDate();
     return { from: `${today.slice(0, 8)}01`, to: `${today.slice(0, 8)}${lastDay}` };
+  }
+  if (preset === 'year') {
+    const y = today.slice(0, 4);
+    return { from: `${y}-01-01`, to: `${y}-12-31` };
   }
   if (preset === 'custom') return { from: start || '', to: end || '' };
   return { from: '', to: '' };

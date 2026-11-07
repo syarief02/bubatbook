@@ -133,9 +133,18 @@ export function useAdminStats(fleetId) {
 
       const { data: moneyRows, error: moneyErr } = await moneyQuery;
       if (moneyErr) throw moneyErr;
-      // This month, counted like the Sales page: rentals by their pickup date
-      const month = periodRange('month');
-      const monthRows = (moneyRows || []).filter((b) => inPeriod(b.pickup_date, month));
+      // This month / this year, counted like the Sales page: rentals by their
+      // pickup date
+      const periodTotals = (preset) => {
+        const range = periodRange(preset);
+        const rows = (moneyRows || []).filter((b) => inPeriod(b.pickup_date, range));
+        return {
+          from: range.from,
+          rentalRevenue: sumBy(rows, rentalPaid),
+          chargesCollected: sumBy(rows, chargesCollected),
+          chargesOwed: sumBy(rows, chargesOwed),
+        };
+      };
 
       // Returned cars whose deposit is on hold until the damage cost is known
       const onHold = (moneyRows || []).filter((b) => b.status === 'RETURNED' && b.deposit_on_hold);
@@ -161,12 +170,8 @@ export function useAdminStats(fleetId) {
         depositsHeld: sumBy(moneyRows || [], depositHeld),
         chargesCollected: sumBy(moneyRows || [], chargesCollected),
         chargesOwed: sumBy(moneyRows || [], chargesOwed),
-        month: {
-          from: month.from,
-          rentalRevenue: sumBy(monthRows, rentalPaid),
-          chargesCollected: sumBy(monthRows, chargesCollected),
-          chargesOwed: sumBy(monthRows, chargesOwed),
-        },
+        month: periodTotals('month'),
+        year: periodTotals('year'),
         renewalsToReview: renewalsToReview || 0,
         depositsOnHold: onHold.length,
         depositsOnHoldAmount: sumBy(onHold, (b) => Number(b.deposit_amount) || 0),

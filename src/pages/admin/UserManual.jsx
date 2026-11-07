@@ -400,11 +400,12 @@ export default function UserManual() {
           <p>
             <B>Rental Revenue</B> is the rent received and kept (less anything given back when a
             rental was shortened or made cheaper). It shows <B>This Month</B> first (rentals picked
-            up this calendar month, as in Sales); press <B>All Time</B> for every rental. Deposits
-            are <em>not</em> revenue: they belong to the customer and go back to their credit after
-            the rental. <B>Deposits held now</B> shows how much deposit money you are holding for
-            bookings that are still running or on hold. Below it: charges after rentals collected,
-            and what customers still owe, for the same period.
+            up this calendar month, as in Sales); press <B>This Year</B> for this calendar year, or{' '}
+            <B>All Time</B> for every rental. Deposits are <em>not</em> revenue: they belong to the
+            customer and go back to their credit after the rental. <B>Deposits held now</B> shows
+            how much deposit money you are holding for bookings that are still running or on hold.
+            Below it: charges after rentals collected, and what customers still owe, for the same
+            period.
           </p>
         </Section>
 
@@ -1444,9 +1445,10 @@ export default function UserManual() {
         <Section id="sales" number={11} icon={DollarSign} iconClass="text-amber-400" title="Sales">
           <p>
             <B>Sales</B> shows, for the selected period (<B>This Month</B>, which it opens on,{' '}
-            <B>Today</B>, <B>All Time</B> or <B>Custom</B>). A rental counts in the period of its
-            pickup date, so a booking made today for March shows under March, not Today. Expenses
-            count by their expense date. <B>This Month</B> is the whole calendar month.
+            <B>Today</B>, <B>This Year</B>, <B>All Time</B> or <B>Custom</B>). A rental counts in
+            the period of its pickup date, so a booking made today for March shows under March, not
+            Today. Expenses count by their expense date. <B>This Month</B> is the whole calendar
+            month.
           </p>
           <Bullets>
             <li>
