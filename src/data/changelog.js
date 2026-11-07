@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-08',
     items: [
       {
+        kind: 'improved',
+        title: 'Revenue shows this month first',
+        text: 'The Dashboard’s Rental Revenue and the Sales page now open on This Month (rentals picked up this calendar month) instead of all time. On the Dashboard, press All Time for the total since the start; on Sales, All Time, Today and Custom are still there.',
+        link: '/admin/sales',
+      },
+      {
         kind: 'data',
         title: 'New expenses: W 9490 C’s tailgate absorbers and rear mirror',
         text: 'Expenses now has the NV200 W 9490 C’s new tailgate absorbers (the pair that holds the rear door up) and its new interior rear-view mirror, both bought online and fitted on 7 Nov. Each has its order and the photos, and shows on the car’s history.',

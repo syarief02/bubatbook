@@ -9,6 +9,7 @@ import {
   rentalPaid,
   sumBy,
 } from '../utils/revenue';
+import { inPeriod, periodRange } from '../utils/dates';
 
 // ─── Fleet-scoped helper ───
 // Applies fleet_group_id filter unless null (super admin "All Fleets" view)
@@ -98,7 +99,7 @@ export function useAdminStats(fleetId) {
       let moneyQuery = supabase
         .from('bubatrent_booking_bookings')
         .select(
-          'status, total_price, rent_paid, full_payment_status, deposit_amount, deposit_status, deposit_credited_at, deposit_on_hold, charges_total, amount_owed'
+          'status, pickup_date, total_price, rent_paid, full_payment_status, deposit_amount, deposit_status, deposit_credited_at, deposit_on_hold, charges_total, amount_owed'
         )
         .in('status', BOOKED_STATUSES);
 
@@ -132,6 +133,9 @@ export function useAdminStats(fleetId) {
 
       const { data: moneyRows, error: moneyErr } = await moneyQuery;
       if (moneyErr) throw moneyErr;
+      // This month, counted like the Sales page: rentals by their pickup date
+      const month = periodRange('month');
+      const monthRows = (moneyRows || []).filter((b) => inPeriod(b.pickup_date, month));
 
       // Returned cars whose deposit is on hold until the damage cost is known
       const onHold = (moneyRows || []).filter((b) => b.status === 'RETURNED' && b.deposit_on_hold);
@@ -157,6 +161,12 @@ export function useAdminStats(fleetId) {
         depositsHeld: sumBy(moneyRows || [], depositHeld),
         chargesCollected: sumBy(moneyRows || [], chargesCollected),
         chargesOwed: sumBy(moneyRows || [], chargesOwed),
+        month: {
+          from: month.from,
+          rentalRevenue: sumBy(monthRows, rentalPaid),
+          chargesCollected: sumBy(monthRows, chargesCollected),
+          chargesOwed: sumBy(monthRows, chargesOwed),
+        },
         renewalsToReview: renewalsToReview || 0,
         depositsOnHold: onHold.length,
         depositsOnHoldAmount: sumBy(onHold, (b) => Number(b.deposit_amount) || 0),

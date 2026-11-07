@@ -53,7 +53,8 @@ export default function AdminSales() {
   const [bookings, setBookings] = useState([]);
   const [claims, setClaims] = useState([]);
   const [cars, setCars] = useState([]);
-  const [dateRange, setDateRange] = useState('all');
+  // This month by default; All Time, Today and Custom are one click away
+  const [dateRange, setDateRange] = useState('month');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -149,9 +150,9 @@ export default function AdminSales() {
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <Filter className="w-4 h-4 text-slate-500" />
         {[
-          ['all', 'All Time'],
-          ['today', 'Today'],
           ['month', 'This Month'],
+          ['today', 'Today'],
+          ['all', 'All Time'],
           ['custom', 'Custom'],
         ].map(([val, label]) => (
           <button

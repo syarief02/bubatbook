@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useAdminCars, useAdminStats, useCarDocuments } from '../../hooks/useAdmin';
@@ -35,11 +36,22 @@ const textColorMap = {
   cyan: 'text-cyan-400',
 };
 
+// '2026-11-01' -> 'November 2026'
+function monthName(from) {
+  if (!from) return 'this month';
+  return new Date(`${from}T00:00:00`).toLocaleDateString('en-GB', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 export default function AdminDashboard() {
   const { activeFleetId } = useFleet();
   const { stats, loading } = useAdminStats(activeFleetId);
   const { cars } = useAdminCars(activeFleetId);
   const { documents } = useCarDocuments(activeFleetId);
+  // Revenue for this month by default (rentals by pickup date, as in Sales)
+  const [revenuePeriod, setRevenuePeriod] = useState('month');
 
   if (loading)
     return (
@@ -47,6 +59,13 @@ export default function AdminDashboard() {
         <LoadingSpinner />
       </AdminLayout>
     );
+
+  const shown = (revenuePeriod === 'month' ? stats?.month : stats) || {};
+  const revenue = {
+    rentalRevenue: shown.rentalRevenue || 0,
+    chargesCollected: shown.chargesCollected || 0,
+    chargesOwed: shown.chargesOwed || 0,
+  };
 
   const cards = [
     {
@@ -192,28 +211,48 @@ export default function AdminDashboard() {
 
       {/* Revenue Card */}
       <div className="glass-card glow-sm mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-            <DollarSign className="w-5 h-5 text-green-400" />
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-400" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">
+                Rental Revenue (verified rental payments) ·{' '}
+                {revenuePeriod === 'month' ? monthName(stats?.month?.from) : 'all time'}
+              </p>
+              <p className="text-3xl font-bold gradient-text">{formatMYR(revenue.rentalRevenue)}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-slate-500">Rental Revenue (verified rental payments)</p>
-            <p className="text-3xl font-bold gradient-text">
-              {formatMYR(stats?.rentalRevenue || 0)}
-            </p>
+          <div className="flex gap-1.5">
+            {[
+              ['month', 'This Month'],
+              ['all', 'All Time'],
+            ].map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setRevenuePeriod(val)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${revenuePeriod === val ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
+        {revenuePeriod === 'month' && (
+          <p className="text-xs text-slate-500 mb-1">Rentals picked up this month, as in Sales.</p>
+        )}
         <p className="text-xs text-slate-500">
           Deposits held now: {formatMYR(stats?.depositsHeld || 0)} — not revenue; each goes back to
           the customer&apos;s credit when the car is returned, less any charges.
         </p>
         <p className="text-xs text-slate-500 mt-1">
           Charges after rentals (late return, damage…) collected:{' '}
-          {formatMYR(stats?.chargesCollected || 0)}
-          {stats?.chargesOwed > 0 && (
+          {formatMYR(revenue.chargesCollected)}
+          {revenue.chargesOwed > 0 && (
             <span className="text-red-400">
               {' '}
-              · still owed by customers: {formatMYR(stats.chargesOwed)}
+              · still owed by customers: {formatMYR(revenue.chargesOwed)}
             </span>
           )}
         </p>
