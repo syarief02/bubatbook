@@ -817,6 +817,18 @@ export default function UserManual() {
             </p>
           </Note>
 
+          <Sub>Where customers pay</Sub>
+          <p>
+            At checkout (the deposit) and in My Bookings (the rental), customers see the
+            fleet&apos;s own bank account: the account number and name with Copy buttons, the
+            DuitNow QR with a Save button, the amount, and the booking code to put as the transfer
+            reference (the first 8 characters of the booking ID, as on the receipt and invoice).
+            BuBat Resources&apos; cars show its RHB account, 2570 1400 0073 29. A fleet without an
+            account on the site (Bocah Trading for now) still tells customers to WhatsApp the admin
+            for the bank details. To add or change a fleet&apos;s account, ask for it to be added to
+            the site.
+          </p>
+
           <Sub>7.1 Checking a deposit</Sub>
           <Steps>
             <li>

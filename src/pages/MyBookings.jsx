@@ -7,6 +7,8 @@ import { uploadFileRobust } from '../lib/uploadHelper';
 import { useToast } from '../components/Toast';
 import { SignedLink } from '../components/SignedFile';
 import BookingStatusBadge from '../components/BookingStatusBadge';
+import PaymentDetails from '../components/PaymentDetails';
+import { paymentAccountFor, bookingReference } from '../data/paymentAccounts';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import { formatDate, formatDateTime } from '../utils/dates';
@@ -291,10 +293,17 @@ export default function MyBookings() {
                     {showFullPaymentUpload && (
                       <div className="bg-violet-500/5 border border-violet-500/10 rounded-xl p-3 mb-3">
                         <p className="text-xs text-violet-300 mb-2">
-                          Upload your rental payment receipt ({formatMYR(rentDue(booking))})
+                          Pay the rental ({formatMYR(rentDue(booking))}), then upload the receipt
                           {rentPaid > 0 &&
                             ` — the ${formatMYR(rentalAmount(booking))} rental less ${formatMYR(rentPaid)} already paid`}
                         </p>
+                        {paymentAccountFor(booking.fleet_group_id) && (
+                          <PaymentDetails
+                            account={paymentAccountFor(booking.fleet_group_id)}
+                            amount={rentDue(booking)}
+                            reference={bookingReference(booking.id)}
+                          />
+                        )}
                         <div className="flex items-center gap-2">
                           <label className="relative flex items-center gap-2 text-xs text-slate-400 cursor-pointer bg-white/5 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors overflow-hidden">
                             <input

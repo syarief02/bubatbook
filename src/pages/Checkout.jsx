@@ -13,6 +13,8 @@ import { uploadFileRobust } from '../lib/uploadHelper';
 import { supabase } from '../lib/supabase';
 import BookingForm from '../components/BookingForm';
 import RentalAgreementForm from '../components/RentalAgreementForm';
+import PaymentDetails from '../components/PaymentDetails';
+import { paymentAccountFor, bookingReference } from '../data/paymentAccounts';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR, longRentalLabel } from '../utils/pricing';
 import { formatDate, formatDateTime, formatTimeRemaining } from '../utils/dates';
@@ -531,6 +533,58 @@ export default function Checkout() {
                   const contactPhone = contact?.whatsapp || '60194961568';
                   const contactName = contact?.name || 'Rent2Go Support';
                   const whatsappUrl = `https://wa.me/${contactPhone}?text=${encodeURIComponent(`Hi ${contactName}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car?.brand} ${car?.model}. Please provide the bank account details.`)}`;
+                  // The car's fleet's own account, if it has one on the site
+                  const payTo = paymentAccountFor(booking.fleet_group_id || car?.fleet_group_id);
+
+                  if (payTo) {
+                    return (
+                      <>
+                        <PaymentDetails
+                          account={payTo}
+                          amount={amountDue}
+                          reference={bookingReference(booking.id)}
+                        />
+                        <p className="text-xs text-slate-500 -mt-3 mb-6">
+                          Then upload your receipt below. You can also leave this page: the car
+                          stays held for you until {formatDateTime(booking.hold_expires_at)}, and
+                          you can upload the receipt from{' '}
+                          <Link to="/my-bookings" className="text-violet-400 hover:underline">
+                            My Bookings
+                          </Link>
+                          . Questions?{' '}
+                          <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-green-400 hover:underline"
+                          >
+                            WhatsApp {contactName}
+                          </a>
+                          .
+                        </p>
+                        <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6 overflow-hidden">
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => setReceiptFile(e.target.files[0])}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            disabled={uploading}
+                          />
+                          <FileImage className="w-6 h-6 text-slate-500" />
+                          <div>
+                            <p className="text-sm text-slate-300">
+                              {receiptFile
+                                ? receiptFile.name
+                                : 'Click or tap to upload payment receipt'}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              JPG, PNG, WebP or PDF · Up to 12MB
+                            </p>
+                          </div>
+                        </label>
+                      </>
+                    );
+                  }
 
                   return (
                     <>

@@ -15,6 +15,11 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'new',
+        title: 'Customers see where to pay: bank account and DuitNow QR',
+        text: 'At checkout (the deposit) and in My Bookings (the rental payment), customers of BuBat Resources’ cars now see its RHB account, 2570 1400 0073 29 (BUBAT RESOURCES), with Copy buttons, the DuitNow QR with a Save button, the amount and the booking code to use as the transfer reference. They no longer need to WhatsApp you for the bank details. Bocah Trading’s cars still ask customers to WhatsApp for the details until Bocah’s account is added.',
+      },
+      {
+        kind: 'new',
         title: 'GDL for commercial vehicles',
         text: 'Customers can add their GDL (Goods Driving Licence) in Verify Account: its expiry date and a photo. It’s optional, but the panel vans are now set to Commercial vehicle (GDL required) in Cars, so customers need a GDL valid until the return date to book one online. The car page says so, and checkout sends customers without one to add it. A GDL sent after verification comes to you as GDL to review in Customers. You can also add one with Edit Customer Details (GDL expiry and image). Book for Customer and the Counter aren’t blocked: Book for Customer warns you, and the booking page shows the customer’s GDL to check at handover. The rental agreement now says a GDL is needed only for commercial vehicles (panel vans).',
         link: '/admin/customers',
