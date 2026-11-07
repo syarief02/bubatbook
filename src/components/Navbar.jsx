@@ -125,7 +125,7 @@ export default function Navbar() {
                   )}
                 </button>
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 glass-card rounded-xl py-2 animate-fade-in">
+                  <div className="absolute right-0 mt-2 w-48 py-2 rounded-xl bg-dark-800 border border-white/10 shadow-xl shadow-black/60 z-50 animate-fade-in">
                     {user && !isVerified && !isAdmin && (
                       <Link
                         to="/verify"

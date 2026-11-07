@@ -43,7 +43,7 @@ export default function FleetSelector() {
         />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-56 glass-card !p-1 z-50 animate-fade-in border border-white/10">
+        <div className="absolute top-full left-0 mt-1 w-56 max-w-[calc(100vw-4rem)] p-1 rounded-xl bg-dark-800 border border-white/10 shadow-xl shadow-black/60 z-50 animate-fade-in">
           {fleets.map((f) => (
             <button
               key={f.id}

@@ -14,6 +14,11 @@ export const CHANGELOG = [
     date: '2026-11-08',
     items: [
       {
+        kind: 'fixed',
+        title: 'Fleet selector list no longer see-through',
+        text: 'Opening the fleet selector at the top of the admin sidebar (BuBat Resources / Bocah Trading) showed the menu items underneath through its list, so on phones the fleet names ran into Counter and Dashboard. The list now has a solid background and sits above the menu. The profile menu at the top right (on a computer) got the same fix.',
+      },
+      {
         kind: 'improved',
         title: 'Revenue shows this month first',
         text: 'The Dashboard’s Rental Revenue and the Sales page now open on This Month (rentals picked up this calendar month) instead of all time. Both also have new This Year and Last Year buttons next to All Time (rentals picked up in that calendar year). Sales still has Today and Custom.',
