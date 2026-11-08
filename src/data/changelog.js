@@ -15,6 +15,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
+        title: 'WWE 6724’s 2025–2026 history recorded',
+        text: 'The Gran Max WWE 6724 (in the workshop since September 2025) now has its rentals and expenses on rent2go from January 2025: the monthly rentals with every payment, the short rentals, and each repair, Puspakom and road tax with its receipt and payment slip. Its June 2025 exchange to WA 5099 Q is on the booking. W 9490 C also got a summons record from February 2025 that was only in the workbook.',
+        link: '/admin/sales',
+      },
+      {
+        kind: 'data',
         title: 'Sold vans’ 2025–2026 history recorded',
         text: 'The four Gran Max vans sold since 2025 (WVW 3146, WA 5099 Q, WA 7085 K and WWX 9326) now have their rentals and expenses on rent2go, from January 2025 to the month each was sold: every rental with its customer, dates and payments (and deposits and refunds), and every repair, service, road tax and carwash with its receipt and payment slip. Van exchanges and shared rentals are split between the vans. Open a van in Cars → History, or see them in Bookings, Expenses and Sales (This Year / Last Year).',
         link: '/admin/sales',
