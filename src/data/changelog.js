@@ -15,6 +15,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
+        title: 'Expenses checked against the bank: office rent and a gearbox bill added',
+        text: 'BuBat Resources’ expenses from January 2025 were checked against its bank statements, transfer by transfer. Two costs paid from the account were missing and are now in Expenses: the monthly office rent (no car; January 2025 to July 2026) and the second-hand gearboxes fitted to WWE 6724 and WA 5099 Q in July 2025 (half on each van). Both count in Sales.',
+        link: '/admin/expenses',
+      },
+      {
+        kind: 'data',
         title: 'WWE 6724’s 2025–2026 history recorded',
         text: 'The Gran Max WWE 6724 (in the workshop since September 2025) now has its rentals and expenses on rent2go from January 2025: the monthly rentals with every payment, the short rentals, and each repair, Puspakom and road tax with its receipt and payment slip. Its June 2025 exchange to WA 5099 Q is on the booking. W 9490 C also got a summons record from February 2025 that was only in the workbook.',
         link: '/admin/sales',
