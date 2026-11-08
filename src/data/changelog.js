@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-08',
     items: [
       {
+        kind: 'data',
+        title: 'Sold vans’ 2025–2026 history recorded',
+        text: 'The four Gran Max vans sold since 2025 (WVW 3146, WA 5099 Q, WA 7085 K and WWX 9326) now have their rentals and expenses on rent2go, from January 2025 to the month each was sold: every rental with its customer, dates and payments (and deposits and refunds), and every repair, service, road tax and carwash with its receipt and payment slip. Van exchanges and shared rentals are split between the vans. Open a van in Cars → History, or see them in Bookings, Expenses and Sales (This Year / Last Year).',
+        link: '/admin/sales',
+      },
+      {
         kind: 'new',
         title: 'Salaries count as fleet expenses',
         text: 'Staff and partner pay is now a fleet expense. In Expenses, Submit Claim has a new choice, Salary (staff & partners), next to Others (General), and the car filter has Salaries. On Sales, salaries have their own row under Revenue and Expenses Per Car, Expenses Paid shows how much of it is salaries, and Profit counts them. Past partner pay from January 2025 has been added for the fleet that pays one: one claim per month, dated the last day of the month worked. Months not settled yet are Pending.',
