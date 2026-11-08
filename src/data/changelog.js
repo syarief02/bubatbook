@@ -17,7 +17,7 @@ export const CHANGELOG = [
         kind: 'data',
         title: 'New photos: Vellfire VJC 5290',
         text: 'The Vellfire’s gallery has 12 new photos taken on 8 Nov 2026: the outside from all four corners, the dashboard and driver’s seat, the cabin from the front and from the boot (seats folded), and the 2nd and 3rd rows. Plates are blurred. The daytime front photo stays the main one.',
-        link: '/cars',
+        link: '/cars/42f4148d-4f92-49a5-ba17-282492e74538',
       },
     ],
   },
