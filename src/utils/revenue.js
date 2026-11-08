@@ -96,3 +96,14 @@ export function expensePaid(c) {
 export function expensePending(c) {
   return c.status === 'pending' ? Number(c.total_amount || 0) : 0;
 }
+
+/**
+ * Pay for the fleet's staff and partners (a partner's salary and commission)
+ * is a general expense (no car) with this category. It counts in the fleet's
+ * expenses and profit like any other claim.
+ */
+export const SALARY_CATEGORY = 'Salary';
+
+export function isSalary(c) {
+  return c.category === SALARY_CATEGORY;
+}

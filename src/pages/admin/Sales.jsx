@@ -17,6 +17,7 @@ import {
   chargesOwed,
   expensePaid,
   expensePending,
+  isSalary,
 } from '../../utils/revenue';
 import {
   DollarSign,
@@ -70,7 +71,7 @@ export default function AdminSales() {
     let cQuery = supabase.from('bubatrent_booking_cars').select('*');
     let eQuery = supabase
       .from('bubatrent_booking_expense_claims')
-      .select('id, car_id, status, total_amount, expense_date');
+      .select('id, car_id, category, status, total_amount, expense_date');
     if (activeFleetId) {
       bQuery = bQuery.eq('fleet_group_id', activeFleetId);
       cQuery = cQuery.eq('fleet_group_id', activeFleetId);
@@ -106,8 +107,17 @@ export default function AdminSales() {
   const expenses = sumBy(filteredClaims, expensePaid);
   const expensesPending = sumBy(filteredClaims, expensePending);
   const profit = rentalRevenue + charges - expenses;
+  // Expenses with no car: staff and partner pay, and everything else
+  const salaries = sumBy(
+    filteredClaims.filter((c) => !c.car_id && isSalary(c)),
+    expensePaid
+  );
+  const salariesPending = sumBy(
+    filteredClaims.filter((c) => !c.car_id && isSalary(c)),
+    expensePending
+  );
   const generalExpenses = sumBy(
-    filteredClaims.filter((c) => !c.car_id),
+    filteredClaims.filter((c) => !c.car_id && !isSalary(c)),
     expensePaid
   );
 
@@ -205,17 +215,19 @@ export default function AdminSales() {
           },
           {
             label: 'Expenses Paid',
-            hint:
-              expensesPending > 0
-                ? `Completed claims · ${formatMYR(expensesPending)} waiting`
-                : 'Completed expense claims',
+            hint: [
+              salaries > 0 ? `Incl. ${formatMYR(salaries)} salaries` : 'Completed expense claims',
+              expensesPending > 0 ? `${formatMYR(expensesPending)} waiting` : '',
+            ]
+              .filter(Boolean)
+              .join(' · '),
             value: expenses,
             icon: Receipt,
             color: 'red',
           },
           {
             label: 'Profit',
-            hint: 'Rental revenue + charges − expenses',
+            hint: 'Rental revenue + charges − expenses (salaries included)',
             value: profit,
             icon: PiggyBank,
             color: 'emerald',
@@ -262,7 +274,7 @@ export default function AdminSales() {
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
           <Car className="w-4 h-4" /> Revenue and Expenses Per Car
         </h2>
-        {carStats.length === 0 && generalExpenses === 0 ? (
+        {carStats.length === 0 && generalExpenses === 0 && salaries + salariesPending === 0 ? (
           <p className="text-sm text-slate-500 italic">
             No bookings or expenses in selected period
           </p>
@@ -305,6 +317,24 @@ export default function AdminSales() {
                     <td className="py-3 text-yellow-400">{formatMYR(car.deposits)}</td>
                   </tr>
                 ))}
+                {salaries + salariesPending > 0 && (
+                  <tr className="border-b border-white/[0.03]">
+                    <td className="py-3 pr-4 text-slate-300">
+                      Salaries (staff &amp; partners)
+                      {salariesPending > 0 && (
+                        <span className="block text-[11px] text-slate-500 font-normal">
+                          {formatMYR(salariesPending)} waiting
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-500">—</td>
+                    <td className="py-3 pr-4 text-slate-500">—</td>
+                    <td className="py-3 pr-4 text-slate-500">—</td>
+                    <td className="py-3 pr-4 text-red-400">{formatMYR(salaries)}</td>
+                    <td className="py-3 pr-4 text-red-400 font-semibold">{formatMYR(-salaries)}</td>
+                    <td className="py-3 text-slate-500">—</td>
+                  </tr>
+                )}
                 {generalExpenses > 0 && (
                   <tr className="border-b border-white/[0.03]">
                     <td className="py-3 pr-4 text-slate-300">Others (General)</td>

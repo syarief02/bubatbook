@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-08',
     items: [
       {
+        kind: 'new',
+        title: 'Salaries count as fleet expenses',
+        text: 'Staff and partner pay is now a fleet expense. In Expenses, Submit Claim has a new choice, Salary (staff & partners), next to Others (General), and the car filter has Salaries. On Sales, salaries have their own row under Revenue and Expenses Per Car, Expenses Paid shows how much of it is salaries, and Profit counts them. Past partner pay from January 2025 has been added for the fleet that pays one: one claim per month, dated the last day of the month worked. Months not settled yet are Pending.',
+        link: '/admin/sales',
+      },
+      {
         kind: 'fixed',
         title: 'Fleet selector list no longer see-through',
         text: 'Opening the fleet selector at the top of the admin sidebar (BuBat Resources / Bocah Trading) showed the menu items underneath through its list, so on phones the fleet names ran into Counter and Dashboard. The list now has a solid background and sits above the menu. The profile menu at the top right (on a computer) got the same fix.',

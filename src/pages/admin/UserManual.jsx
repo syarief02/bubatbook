@@ -1462,11 +1462,13 @@ export default function UserManual() {
               shown under it.
             </li>
             <li>
-              <B>Expenses Paid</B>: completed expense claims (section 12). Claims still waiting to
-              be paid are shown under it.
+              <B>Expenses Paid</B>: completed expense claims (section 12), including staff and
+              partner salaries (shown under it). Claims still waiting to be paid are shown under it
+              too.
             </li>
             <li>
-              <B>Profit</B>: rental revenue plus charges collected, minus expenses paid.
+              <B>Profit</B>: rental revenue plus charges collected, minus expenses paid (salaries
+              included).
             </li>
             <li>
               <B>Deposits Received</B>: deposit money that came in. Refundable, so not income. The
@@ -1478,8 +1480,8 @@ export default function UserManual() {
             </li>
             <li>
               <B>Revenue and Expenses Per Car</B>: for each car (with its plate), bookings, rental
-              revenue, charges, expenses, profit and deposits. General expenses (Others) have their
-              own row.
+              revenue, charges, expenses, profit and deposits. Salaries (staff &amp; partners) and
+              general expenses (Others) each have their own row.
             </li>
           </Bullets>
           <p>Cancelled and expired bookings are not counted.</p>
@@ -1496,8 +1498,9 @@ export default function UserManual() {
           <p>Use Expenses to claim back money spent on the fleet (fuel, washing, repairs).</p>
           <Steps>
             <li>
-              Click <B>Submit Claim</B>. Choose the <B>Car</B> (or <B>Others (General)</B>), the{' '}
-              <B>Expense Date</B> (today or earlier), the <B>Amount (RM)</B> (sen allowed, e.g.
+              Click <B>Submit Claim</B>. Choose the <B>Car</B> (or <B>Others (General)</B>, or{' '}
+              <B>Salary (staff &amp; partners)</B> for a staff member&apos;s or partner&apos;s pay),
+              the <B>Expense Date</B> (today or earlier), the <B>Amount (RM)</B> (sen allowed, e.g.
               85.50) and a <B>Description</B>, and upload at least one invoice image.{' '}
               <em>Enforced</em>: the amount and description are required.
             </li>
@@ -1510,6 +1513,13 @@ export default function UserManual() {
             <li>
               A paid claim can&apos;t be changed. If it is wrong, delete it and submit it again. A
               claim entered by mistake can be deleted, with its images.
+            </li>
+            <li>
+              <B>Salaries</B>: a staff member&apos;s or partner&apos;s pay for a month is a claim
+              with <B>Salary (staff &amp; partners)</B>, dated the last day of the month worked. For
+              a partner paid a share of the profit, record the whole month&apos;s share (salary plus
+              commission). A month not settled yet stays <B>Pending</B> until it is. Filter the list
+              with <B>Salaries</B>. They count in the fleet&apos;s expenses and profit on Sales.
             </li>
           </Steps>
           <p>

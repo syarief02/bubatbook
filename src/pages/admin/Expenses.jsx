@@ -9,7 +9,7 @@ import { useToast } from '../../components/Toast';
 import { formatMYR } from '../../utils/pricing';
 import { formatDate, getTodayString, periodRange, inPeriod } from '../../utils/dates';
 import { friendlyDbError } from '../../utils/dbErrors';
-import { expensePaid, expensePending, sumBy } from '../../utils/revenue';
+import { expensePaid, expensePending, sumBy, isSalary, SALARY_CATEGORY } from '../../utils/revenue';
 import {
   Receipt,
   Plus,
@@ -32,6 +32,12 @@ const BUCKET = 'customer-documents';
 // on their booking (Paid to Workshop), not here
 function paidByCustomer(claim) {
   return claim.bubatrent_booking_workshop_payments?.[0] || null;
+}
+
+// What a claim is for: its car, staff and partner pay, or a general cost
+function claimTarget(claim) {
+  if (claim.bubatrent_booking_cars?.name) return claim.bubatrent_booking_cars.name;
+  return isSalary(claim) ? 'Salary (staff & partners)' : 'Others (General)';
 }
 
 export default function AdminExpenses() {
@@ -130,7 +136,8 @@ export default function AdminExpenses() {
       // The database checks the claim and records who submitted it
       const { error: claimErr } = await supabase.from('bubatrent_booking_expense_claims').insert({
         id: claimId,
-        car_id: formCarId === 'others' ? null : formCarId,
+        car_id: formCarId === 'others' || formCarId === 'salary' ? null : formCarId,
+        ...(formCarId === 'salary' && { category: SALARY_CATEGORY }),
         expense_date: formDate,
         description: formDesc.trim(),
         total_amount: amount,
@@ -231,8 +238,9 @@ export default function AdminExpenses() {
 
   // Claims for the chosen car and dates; the tabs then pick a status
   const matchingClaims = claims.filter((c) => {
-    if (carFilter === 'others' && c.car_id !== null) return false;
-    if (carFilter !== 'all' && carFilter !== 'others' && c.car_id !== carFilter) return false;
+    if (carFilter === 'others' && (c.car_id !== null || isSalary(c))) return false;
+    if (carFilter === 'salary' && (c.car_id !== null || !isSalary(c))) return false;
+    if (!['all', 'others', 'salary'].includes(carFilter) && c.car_id !== carFilter) return false;
     return inPeriod(c.expense_date, period);
   });
   const filteredClaims = matchingClaims.filter((c) => tab === 'all' || c.status === tab);
@@ -291,6 +299,7 @@ export default function AdminExpenses() {
                     </option>
                   ))}
                   <option value="others">Others (General)</option>
+                  <option value="salary">Salary (staff &amp; partners)</option>
                 </select>
               </div>
               <div>
@@ -394,6 +403,7 @@ export default function AdminExpenses() {
             </option>
           ))}
           <option value="others">Others (General)</option>
+          <option value="salary">Salaries</option>
         </select>
       </div>
       {/* Date Filter */}
@@ -470,8 +480,7 @@ export default function AdminExpenses() {
                     </p>
                   )}
                   <p className="text-xs text-slate-500">
-                    {claim.bubatrent_booking_cars?.name || 'Others (General)'} ·{' '}
-                    {formatDate(claim.expense_date)}
+                    {claimTarget(claim)} · {formatDate(claim.expense_date)}
                     {claim.total_amount && ` · ${formatMYR(claim.total_amount)}`}
                   </p>
                 </div>
