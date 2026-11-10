@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-10',
     items: [
       {
+        kind: 'data',
+        title: 'New cab photos: VEY 3830',
+        text: 'The Gran Max VEY 3830’s cab photos are new, taken on 10 Nov: the dashboard, and both front seats with their new red and black seat covers. They replace the older cab photos without covers. The outside and cargo photos and the main picture are unchanged.',
+        link: '/cars/3628277a-a0d1-4304-a051-b1fc47d47b58',
+      },
+      {
         kind: 'improved',
         title: 'Links sent on WhatsApp show what they are for',
         text: 'A rent2go.my link sent on WhatsApp (or Facebook, Telegram) now has its own title and picture instead of the same Rent2Go banner every time. A car link shows the car, its photo, plate and price a day; with dates picked, the dates and number of days too. The agreement link reads "Rental agreement · Booking" and the booking number, and invoice, documents, sign-in and admin links each say which page they open. WhatsApp keeps the preview of a link it has seen before, so a link sent earlier may still show the old one.',

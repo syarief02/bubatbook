@@ -39,13 +39,8 @@ export const CAR_GALLERIES = {
     '/cars/vey3830/11.jpg',
     '/cars/vey3830/12.jpg',
     '/cars/vey3830/13.jpg',
-    '/cars/vey3830/14.jpg',
   ],
-  'VEY 3516': [
-    '/cars/vey3516/1.jpg',
-    '/cars/vey3516/2.jpg',
-    '/cars/vey3516/3.jpg',
-  ],
+  'VEY 3516': ['/cars/vey3516/1.jpg', '/cars/vey3516/2.jpg', '/cars/vey3516/3.jpg'],
   'W 9490 C': [
     '/cars/w9490c/1.jpg',
     '/cars/w9490c/2.jpg',
