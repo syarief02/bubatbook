@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-10',
     items: [
       {
+        kind: 'new',
+        title: 'Counter: deposit paid at pick-up',
+        text: 'A booking can now be saved before the deposit is paid. Under Deposit paid, choose At pick-up (or Not paid yet for a rental already out). The car shows "Deposit not paid" and the Deposits to collect chip lists it until you open the rental and press Deposit received, with cash or transfer, the date and the deposit receipt. A deposit received when you save has its own receipt upload too, separate from the chat screenshots.',
+        link: '/admin/counter',
+      },
+      {
         kind: 'data',
         title: 'Lower daily rate: WA 5202 F',
         text: 'The NV200 panel van WA 5202 F is now RM180 a day (was RM220). The other panel vans stay at RM220. Its long-rental discounts are unchanged (the fleet’s 10% for 7 days or more, 40% for 30 days or more). Bookings already made keep their price.',

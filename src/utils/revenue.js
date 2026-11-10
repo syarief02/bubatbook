@@ -73,6 +73,15 @@ export function depositHeld(b) {
     : 0;
 }
 
+/** A booking or rental on rent whose deposit hasn't been paid yet (e.g. due at pick-up). */
+export function depositToCollect(b) {
+  return (
+    ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'].includes(b?.status) &&
+    Number(b?.deposit_amount) > 0 &&
+    !['verified', 'uploaded'].includes(b?.deposit_status)
+  );
+}
+
 /** Charges after the rental (late return, damage…) received so far: income. */
 export function chargesCollected(b) {
   return Math.max(Number(b.charges_total || 0) - Number(b.amount_owed || 0), 0);

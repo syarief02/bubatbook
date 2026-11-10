@@ -37,6 +37,7 @@ import {
 
 import { SignedLink, SignedImage } from '../../components/SignedFile';
 import { ChargesCard, ReturnCarDialog } from '../../components/ReturnCharges';
+import { ReceiveDepositDialog } from '../../components/ReceiveDeposit';
 import { WorkshopPaymentsCard } from '../../components/WorkshopPayments';
 import { RentalChangesCard } from '../../components/RentalChanges';
 import { BookingRecordsCard } from '../../components/BookingRecords';
@@ -145,6 +146,7 @@ export default function AdminBookingDetail() {
   const [reactivating, setReactivating] = useState(false);
   const [savingDates, setSavingDates] = useState(false);
   const [showReturn, setShowReturn] = useState(false);
+  const [receivingDeposit, setReceivingDeposit] = useState(false);
 
   // Full payment receipt upload
   const [fullPaymentFile, setFullPaymentFile] = useState(null);
@@ -468,8 +470,8 @@ export default function AdminBookingDetail() {
   const rentOpen =
     ['CONFIRMED', 'PICKUP', 'RETURNED'].includes(booking.status) &&
     !['verified', 'uploaded'].includes(booking.full_payment_status);
-  // No receipt to check (a counter booking, or a hold an admin marked as
-  // deposit paid): the admin records the cash deposit
+  // No receipt to check (a counter booking, one paying the deposit at pick-up,
+  // or a hold an admin marked as deposit paid): the admin records the deposit
   const depositAwaitingCash =
     ['pending', 'pending_upload'].includes(booking.deposit_status) &&
     !booking.deposit_receipt_path &&
@@ -606,6 +608,17 @@ export default function AdminBookingDetail() {
             </div>
           )}
         </div>
+      )}
+
+      {receivingDeposit && (
+        <ReceiveDepositDialog
+          booking={booking}
+          onClose={() => setReceivingDeposit(false)}
+          onDone={() => {
+            setReceivingDeposit(false);
+            reloadBooking();
+          }}
+        />
       )}
 
       {showReturn && (
@@ -899,19 +912,18 @@ export default function AdminBookingDetail() {
                   </div>
                 )}
                 {depositAwaitingCash && (
-                  <button
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Record that the customer paid the ${formatMYR(booking.deposit_amount)} deposit in cash?`
-                        )
-                      )
-                        handleVerifyDeposit();
-                    }}
-                    className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors mt-2"
-                  >
-                    ✓ Mark Deposit Received
-                  </button>
+                  <>
+                    <p className="text-xs text-orange-300 mb-2">
+                      {formatMYR(booking.deposit_amount)} not paid yet
+                      {booking.status === 'PICKUP' ? '.' : ' (to pay at pick-up).'}
+                    </p>
+                    <button
+                      onClick={() => setReceivingDeposit(true)}
+                      className="px-3 py-1.5 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
+                    >
+                      ✓ Mark Deposit Received
+                    </button>
+                  </>
                 )}
                 {booking.deposit_status === 'verified' && (
                   <p className="text-xs text-slate-400 mt-2">

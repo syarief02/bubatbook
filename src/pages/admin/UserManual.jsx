@@ -296,16 +296,26 @@ export default function UserManual() {
             Then the customer (search, or <B>New</B> with just a name and phone: no account needed),
             the dates (or tap 1 day, 3 days, 1 week…), the rent (the car&apos;s price, or what you
             agreed), and the money received: rent (all, part or not yet), deposit, cash or transfer,
-            and a receipt if you have one. WhatsApp chat screenshots can go with it as proof.{' '}
-            <B>Save</B> records the booking and its payments, so it shows in Bookings, Sales and
-            Customer History. Dates that clash with another rental of the car are refused.
+            and the receipts if you have them (the rent receipt and the deposit receipt each have
+            their own upload). WhatsApp chat screenshots can go with it as proof. <B>Save</B>{' '}
+            records the booking and its payments, so it shows in Bookings, Sales and Customer
+            History. Dates that clash with another rental of the car are refused.
+          </p>
+          <p>
+            <B>Deposit paid at pick-up:</B> when the customer will pay the deposit with the rent on
+            pick-up day, choose <B>At pick-up</B> under <B>Deposit paid</B> (on a rental already out
+            it says <B>Not paid yet</B>). The booking saves without it, and the car&apos;s tile
+            shows <B>Deposit … not paid</B> until it is in. When the customer pays, tap the car,
+            open the rental and press <B>Deposit … received</B>: choose cash or transfer, the date,
+            and add the deposit receipt. A past rental always records its deposit as received (enter
+            RM0 if none was taken).
           </p>
           <p>
             Tap a car that is out for its rental: <B>Add payment</B> when more rent comes in,{' '}
             <B>Mark returned</B> when it comes back, and extend, end early or change the price. For
             a customer without an account, press <B>Deposit refunded</B> once you have paid the
             deposit back. The chips at the top list what needs settling: overdue returns, rent owed,
-            deposits to refund and deposits on hold.
+            deposits to collect, deposits to refund and deposits on hold.
           </p>
           <Sub>Every day</Sub>
           <Steps>
@@ -862,8 +872,9 @@ export default function UserManual() {
               A deposit fully covered by the customer&apos;s credit is verified automatically.
             </li>
             <li>
-              Paid in cash, with no receipt? Press <B>✓ Mark Deposit Received</B>. It records a cash
-              payment.
+              Not paid yet (a counter booking paying at pick-up, or cash)? When the money comes in,
+              press <B>✓ Mark Deposit Received</B>, choose cash or transfer and the date, and add
+              the receipt if there is one.
             </li>
           </Bullets>
 

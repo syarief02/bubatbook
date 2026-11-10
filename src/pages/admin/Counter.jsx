@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { ReceiveDepositDialog } from '../../components/ReceiveDeposit';
 import { Modal, ReturnCarDialog } from '../../components/ReturnCharges';
 import { RentalChangesCard } from '../../components/RentalChanges';
 import { useToast } from '../../components/Toast';
@@ -34,6 +35,7 @@ import { friendlyDbError } from '../../utils/dbErrors';
 import { normalizePhone } from '../../utils/phoneUtils';
 import { calculatePrice, formatMYR } from '../../utils/pricing';
 import { RENTAL_CHANGES_SELECT } from '../../utils/rent';
+import { depositToCollect } from '../../utils/revenue';
 import { ilikeAny } from '../../utils/search';
 
 // The Counter: record any rental in a few taps, POS style. Tap a car, say
@@ -41,7 +43,8 @@ import { ilikeAny } from '../../utils/search';
 // the customer, dates and what was paid, and save. Rentals arranged on
 // WhatsApp and past ones already paid go in the same way
 // (bubatrent_admin_record_rental). A car that is out shows its rental, with
-// Add payment, Mark returned and the usual rental changes.
+// Add payment, Mark returned and the usual rental changes. A deposit can be
+// paid later (at pick-up): it is flagged until "Deposit received" records it.
 
 const BUCKET = 'customer-documents';
 const OPEN_STATUSES = ['DEPOSIT_PAID', 'CONFIRMED', 'PICKUP'];
@@ -140,10 +143,12 @@ export default function AdminCounter() {
     const rentOwed = bookings.filter(
       (b) => ['PICKUP', 'RETURNED'].includes(b.status) && rentDue(b) > 0
     );
+    const toCollect = bookings.filter(depositToCollect);
     const toRefund = bookings.filter(
       (b) =>
         b.status === 'RETURNED' &&
         !b.user_id &&
+        b.deposit_status === 'verified' &&
         Number(b.deposit_amount) > 0 &&
         !b.deposit_credited_at &&
         !b.deposit_on_hold
@@ -155,6 +160,11 @@ export default function AdminCounter() {
         label: `Rent owed ${formatMYR(rentOwed.reduce((s, b) => s + rentDue(b), 0))}`,
         items: rentOwed,
         tone: 'text-amber-300',
+      },
+      toCollect: {
+        label: `Deposits to collect ${formatMYR(toCollect.reduce((s, b) => s + Number(b.deposit_amount), 0))}`,
+        items: toCollect,
+        tone: 'text-orange-300',
       },
       toRefund: { label: 'Deposits to refund', items: toRefund, tone: 'text-sky-300' },
       onHold: { label: 'Deposits on hold', items: onHold, tone: 'text-violet-300' },
@@ -296,7 +306,9 @@ export default function AdminCounter() {
                     ? formatMYR(rentDue(b))
                     : attention === 'overdue'
                       ? `due ${formatDate(b.return_date)}`
-                      : formatMYR(b.deposit_amount)}
+                      : attention === 'toCollect' && b.status !== 'PICKUP'
+                        ? `${formatMYR(b.deposit_amount)} at pick-up`
+                        : formatMYR(b.deposit_amount)}
                 </span>
               </button>
             ))}
@@ -310,6 +322,7 @@ export default function AdminCounter() {
 function CarTile({ car, state, today, onClick }) {
   const out = state?.out;
   const next = state?.next?.[0];
+  const unpaid = depositToCollect(out || next);
   let status;
   if (out) {
     const late = out.return_date < today;
@@ -353,6 +366,11 @@ function CarTile({ car, state, today, onClick }) {
           <p className="font-medium truncate">{status.text}</p>
           {status.sub && <p className="opacity-80 truncate">{status.sub}</p>}
         </div>
+        {unpaid && (
+          <p className="mt-1.5 rounded-lg px-2 py-1 text-[11px] font-medium bg-orange-500/15 text-orange-300 truncate">
+            Deposit {formatMYR((out || next).deposit_amount)} not paid
+          </p>
+        )}
       </div>
     </button>
   );
@@ -378,6 +396,12 @@ function CarSheet({ car, state, onClose, onRecord, onOpenBooking }) {
                 {formatMYR(b.total_price)}
                 {rentDue(b) > 0 ? ` · ${formatMYR(rentDue(b))} to pay` : ' · paid'}
               </p>
+              {depositToCollect(b) && (
+                <p className="text-xs text-orange-300 mt-0.5">
+                  Deposit {formatMYR(b.deposit_amount)} not paid yet
+                  {b.status === 'PICKUP' ? '' : ' (at pick-up)'}
+                </p>
+              )}
               <p className="text-[11px] text-violet-300 mt-1">
                 Tap for payments, return and changes →
               </p>
@@ -430,6 +454,8 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
   const [method, setMethod] = useState('cash');
   const [paidOn, setPaidOn] = useState('');
   const [receipt, setReceipt] = useState(null);
+  const [depositLater, setDepositLater] = useState(false); // paid at pick-up
+  const [depReceipt, setDepReceipt] = useState(null);
   const [proof, setProof] = useState([]);
   const [depositOutcome, setDepositOutcome] = useState('refunded');
   const [notes, setNotes] = useState('');
@@ -440,6 +466,9 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
   const depositValue =
     deposit === '' ? (mode === 'CONFIRMED' ? estimate.deposit : 0) : Number(deposit) || 0;
   const paid = paidChoice === 'full' ? total : paidChoice === 'part' ? Number(paidPart) || 0 : 0;
+  // A past rental's deposit was received (or none was taken)
+  const later = depositLater && mode !== 'RETURNED' && depositValue > 0;
+  const depositNow = later ? 0 : depositValue;
 
   function pickMode(next) {
     setMode(next);
@@ -471,6 +500,13 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
         if (upErr) throw upErr;
         uploaded.push(receiptPath);
       }
+      let depReceiptPath = null;
+      if (depReceipt && depositNow > 0) {
+        depReceiptPath = `receipts/${id}/deposit_${Date.now()}.${depReceipt.name.split('.').pop()}`;
+        const { error: upErr } = await uploadFileRobust(BUCKET, depReceiptPath, depReceipt, toast);
+        if (upErr) throw upErr;
+        uploaded.push(depReceiptPath);
+      }
       const { error } = await supabase.rpc('bubatrent_admin_record_rental', {
         p_id: id,
         p_car_id: car.id,
@@ -484,11 +520,13 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
         p_deposit: depositValue,
         p_paid: paid,
         p_method: method,
-        p_paid_on: paid > 0 || depositValue > 0 ? paidOn || null : null,
+        p_paid_on: paid > 0 || depositNow > 0 ? paidOn || null : null,
         p_receipt_path: receiptPath,
         p_actual_return: mode === 'RETURNED' ? ret : null,
         p_deposit_outcome: mode === 'RETURNED' && depositValue > 0 ? depositOutcome : null,
         p_notes: notes.trim() || null,
+        p_deposit_paid: !later,
+        p_deposit_receipt_path: depReceiptPath,
       });
       if (error) throw error;
       uploaded.length = 0; // the booking owns the receipt now
@@ -515,7 +553,7 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
         }
       }
       toast.success(
-        `${MODES[mode].label} saved: ${car.plate_number || car.name}, ${customer.name}.`
+        `${MODES[mode].label} saved: ${car.plate_number || car.name}, ${customer.name}.${later ? ` Deposit ${formatMYR(depositValue)} to collect.` : ''}`
       );
       onDone();
     } catch (err) {
@@ -665,7 +703,7 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
 
           <div className="grid grid-cols-2 gap-3 mt-3">
             <div>
-              <p className="text-xs text-slate-400 mb-1">Deposit received (RM)</p>
+              <p className="text-xs text-slate-400 mb-1">Deposit (RM)</p>
               <input
                 type="number"
                 min="0"
@@ -697,7 +735,38 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
             </div>
           </div>
 
-          {(paid > 0 || depositValue > 0) && (
+          {mode !== 'RETURNED' && depositValue > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-slate-400 mb-1.5">Deposit paid</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  [false, 'Received now'],
+                  [true, mode === 'CONFIRMED' ? 'At pick-up' : 'Not paid yet'],
+                ].map(([k, label]) => (
+                  <button
+                    key={label}
+                    onClick={() => setDepositLater(k)}
+                    className={`rounded-xl border px-2 py-2 text-xs font-medium ${
+                      depositLater === k
+                        ? k
+                          ? 'border-orange-500/40 bg-orange-500/15 text-orange-200'
+                          : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200'
+                        : 'border-white/10 text-slate-400 hover:bg-white/5'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {later && (
+                <p className="text-[11px] text-orange-300 mt-1">
+                  The Counter shows it under Deposits to collect until you tap Deposit received.
+                </p>
+              )}
+            </div>
+          )}
+
+          {(paid > 0 || depositNow > 0) && (
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div>
                 <p className="text-xs text-slate-400 mb-1">Paid on</p>
@@ -711,11 +780,22 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
               </div>
               {paid > 0 && (
                 <div>
-                  <p className="text-xs text-slate-400 mb-1">Receipt (optional)</p>
+                  <p className="text-xs text-slate-400 mb-1">Rent receipt (optional)</p>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
                     onChange={(e) => setReceipt(e.target.files?.[0] || null)}
+                    className="input-field !py-1.5 text-xs"
+                  />
+                </div>
+              )}
+              {depositNow > 0 && (
+                <div>
+                  <p className="text-xs text-slate-400 mb-1">Deposit receipt (optional)</p>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setDepReceipt(e.target.files?.[0] || null)}
                     className="input-field !py-1.5 text-xs"
                   />
                 </div>
@@ -779,7 +859,16 @@ function RecordRentalDialog({ car, initialMode, onClose, onDone }) {
           {total - paid > 0 && (
             <Line label="Still to pay" value={formatMYR(total - paid)} cls="text-amber-300" />
           )}
-          {depositValue > 0 && <Line label="Deposit" value={formatMYR(depositValue)} />}
+          {depositValue > 0 &&
+            (later ? (
+              <Line
+                label="Deposit"
+                value={`${formatMYR(depositValue)} to collect${mode === 'CONFIRMED' ? ' at pick-up' : ''}`}
+                cls="text-orange-300"
+              />
+            ) : (
+              <Line label="Deposit received" value={formatMYR(depositValue)} />
+            ))}
         </div>
 
         <button
@@ -988,12 +1077,15 @@ function RentalPanel({ booking, onClose, onChanged }) {
   const [paying, setPaying] = useState(false);
   const [returning, setReturning] = useState(false);
   const [refunding, setRefunding] = useState(false);
+  const [receiving, setReceiving] = useState(false);
   const due = rentDue(booking);
+  const toCollect = depositToCollect(booking);
   const car = booking.bubatrent_booking_cars;
   const wa = waLink(booking.customer_phone);
   const toRefund =
     booking.status === 'RETURNED' &&
     !booking.user_id &&
+    booking.deposit_status === 'verified' &&
     Number(booking.deposit_amount) > 0 &&
     !booking.deposit_credited_at &&
     !booking.deposit_on_hold;
@@ -1041,14 +1133,23 @@ function RentalPanel({ booking, onClose, onChanged }) {
             <Line
               label="Deposit"
               value={`${formatMYR(booking.deposit_amount)}${
-                booking.deposit_credited_at
-                  ? ' · settled'
-                  : booking.deposit_on_hold
-                    ? ' · on hold'
-                    : booking.status === 'RETURNED'
-                      ? ' · to refund'
-                      : ' · held'
+                booking.deposit_status !== 'verified'
+                  ? toCollect
+                    ? booking.status === 'PICKUP'
+                      ? ' · not paid yet'
+                      : ' · to pay at pick-up'
+                    : booking.deposit_status === 'uploaded'
+                      ? ' · receipt to check'
+                      : ' · never received'
+                  : booking.deposit_credited_at
+                    ? ' · settled'
+                    : booking.deposit_on_hold
+                      ? ' · on hold'
+                      : booking.status === 'RETURNED'
+                        ? ' · to refund'
+                        : ' · held'
               }`}
+              cls={toCollect ? 'text-orange-300' : undefined}
             />
           )}
           {booking.customer_phone && (
@@ -1069,6 +1170,11 @@ function RentalPanel({ booking, onClose, onChanged }) {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
+          {toCollect && (
+            <BigButton icon={Wallet} tone="orange" onClick={() => setReceiving(true)}>
+              Deposit {formatMYR(booking.deposit_amount)} received
+            </BigButton>
+          )}
           {due > 0 && (
             <BigButton icon={Banknote} tone="emerald" onClick={() => setPaying(true)}>
               Add payment
@@ -1107,6 +1213,16 @@ function RentalPanel({ booking, onClose, onChanged }) {
           }}
         />
       )}
+      {receiving && (
+        <ReceiveDepositDialog
+          booking={booking}
+          onClose={() => setReceiving(false)}
+          onDone={() => {
+            setReceiving(false);
+            onChanged();
+          }}
+        />
+      )}
       {returning && (
         <ReturnCarDialog
           booking={booking}
@@ -1125,6 +1241,7 @@ function BigButton({ icon: Icon, tone, onClick, disabled, children }) {
   const tones = {
     emerald: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200',
     sky: 'border-sky-500/30 bg-sky-500/10 text-sky-200',
+    orange: 'border-orange-500/30 bg-orange-500/10 text-orange-200',
   };
   return (
     <button
