@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-10',
+    items: [
+      {
+        kind: 'data',
+        title: 'Lower daily rate: WA 5202 F',
+        text: 'The NV200 panel van WA 5202 F is now RM180 a day (was RM220). The other panel vans stay at RM220. Its long-rental discounts are unchanged (the fleet’s 10% for 7 days or more, 40% for 30 days or more). Bookings already made keep their price.',
+        link: '/cars/6aa2c9fe-3b69-4239-82b7-90f4e7e43c22',
+      },
+    ],
+  },
+  {
     date: '2026-11-09',
     items: [
       {
