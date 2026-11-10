@@ -897,7 +897,9 @@ export default function UserManual() {
               Counter bookings start unsigned: the booking page shows{' '}
               <B>Rental Agreement Not Signed</B>. Press <B>Copy Agreement Link</B> and send it by
               WhatsApp (a customer with an account signs it in My Bookings), or, with the customer
-              in front of you, press <B>Sign at Counter</B>.
+              in front of you, press <B>Sign at Counter</B>. In WhatsApp the link shows as{' '}
+              <B>Rental agreement · Booking</B> and the booking number (the first 8 characters of
+              the booking ID), so the customer can tell it apart from a car link.
             </li>
             <li>
               <B>Sign at Counter</B> opens the agreement with the customer&apos;s name, IC and phone

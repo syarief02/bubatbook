@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-10',
     items: [
       {
+        kind: 'improved',
+        title: 'Links sent on WhatsApp show what they are for',
+        text: 'A rent2go.my link sent on WhatsApp (or Facebook, Telegram) now has its own title and picture instead of the same Rent2Go banner every time. A car link shows the car, its photo, plate and price a day; with dates picked, the dates and number of days too. The agreement link reads "Rental agreement · Booking" and the booking number, and invoice, documents, sign-in and admin links each say which page they open. WhatsApp keeps the preview of a link it has seen before, so a link sent earlier may still show the old one.',
+        link: '/admin/manual',
+      },
+      {
         kind: 'new',
         title: 'Counter: deposit paid at pick-up',
         text: 'A booking can now be saved before the deposit is paid. Under Deposit paid, choose At pick-up (or Not paid yet for a rental already out). The car shows "Deposit not paid" and the Deposits to collect chip lists it until you open the rental and press Deposit received, with cash or transfer, the date and the deposit receipt. A deposit received when you save has its own receipt upload too, separate from the chat screenshots.',
