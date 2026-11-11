@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-11',
+    items: [
+      {
+        kind: 'new',
+        title: 'Customers see the car’s road tax, insurance and Puspakom while renting',
+        text: 'In My Bookings, a customer who has the car now (Picked Up, or Confirmed from the pick-up day to the return day) sees Car documents: the road tax, insurance and Puspakom recorded in Car Documents, with the date each is valid until and the files to open, e.g. at a roadblock. Only the one of each type that counts today; not GPS, the cost or older renewals. After the return they are gone. The files are shown as uploaded, so check what is on them.',
+        link: '/admin/car-documents',
+      },
+    ],
+  },
+  {
     date: '2026-11-10',
     items: [
       {

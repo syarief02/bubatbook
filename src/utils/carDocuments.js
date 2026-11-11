@@ -14,6 +14,19 @@ export const DOC_TYPES = [
 
 export const DOC_LABELS = Object.fromEntries(DOC_TYPES.map((t) => [t.id, t.label]));
 
+/**
+ * True while the customer has the car: it is out (Picked Up, also when the
+ * return is overdue), or confirmed and today is within the rental dates. The
+ * database checks the same before giving the customer the car's road tax,
+ * insurance and Puspakom (bubatrent_my_rental_car_documents).
+ */
+export function isCurrentRental(booking, today = getTodayString()) {
+  if (booking.status === 'PICKUP') return true;
+  return (
+    booking.status === 'CONFIRMED' && booking.pickup_date <= today && booking.return_date >= today
+  );
+}
+
 // The dashboard warns this many days before a document expires
 export const DUE_SOON_DAYS = 30;
 

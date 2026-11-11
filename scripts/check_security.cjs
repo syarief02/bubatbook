@@ -162,6 +162,16 @@ function report(ok, name, detail) {
   report(!!sharedDocsErr, 'anon cannot list car documents', sharedDocsErr ? 'denied' : 'allowed');
 
   for (const [fn, args] of [
+    ['bubatrent_my_rental_car_documents', { p_booking_id: '00000000-0000-0000-0000-000000000000' }],
+    ['bubatrent_is_my_rental_car_file', { p_name: 'car-documents/x/y.pdf' }],
+    ['bubatrent_car_current_documents', { p_car_id: '00000000-0000-0000-0000-000000000000' }],
+    ['bubatrent_is_my_current_rental', { p_booking_id: '00000000-0000-0000-0000-000000000000' }],
+  ]) {
+    const { error } = await anon.rpc(fn, args);
+    report(!!error, `anon cannot call ${fn}`, error ? 'denied' : 'allowed');
+  }
+
+  for (const [fn, args] of [
     ['bubatrent_admin_extend_rental', { p_new_return: '2099-01-01' }],
     ['bubatrent_admin_end_rental_early', { p_new_return: '2099-01-01', p_reason: 'customer' }],
     ['bubatrent_admin_change_rental_price', { p_new_total: 1, p_note: 'x' }],

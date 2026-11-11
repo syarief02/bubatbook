@@ -537,6 +537,17 @@ export default function UserManual() {
             reason. The audit log keeps what it said.
           </p>
           <p>
+            <B>Customers see them too, while they rent the car.</B> In My Bookings, a booking that
+            is Picked Up (or Confirmed, from its pick-up day to its return day) shows{' '}
+            <B>Car documents</B>: the car&apos;s road tax, insurance and Puspakom with the date each
+            is valid until, the insurer&apos;s name, and the files you recorded to open, e.g. at a
+            roadblock or after an accident. They see only the one of each type that counts today,
+            not older renewals, GPS, the cost, the receipt number or the agent. The files are shown
+            as you uploaded them, so whatever is on them (your name, IC number and address on a
+            policy, or the price on a receipt) is what the customer sees. Once the car is returned,
+            they disappear from the customer&apos;s page and the files no longer open.
+          </p>
+          <p>
             Documents belong to the car&apos;s fleet. When a car moves to another fleet, its
             documents (and their expiry alerts) go with it; its past bookings, payments and expenses
             stay with the fleet they belong to. A move can also start fresh from a date: then

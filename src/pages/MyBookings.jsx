@@ -8,6 +8,8 @@ import { useToast } from '../components/Toast';
 import { SignedLink } from '../components/SignedFile';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import PaymentDetails from '../components/PaymentDetails';
+import RentalCarDocuments from '../components/RentalCarDocuments';
+import { isCurrentRental } from '../utils/carDocuments';
 import { paymentAccountFor, bookingReference } from '../data/paymentAccounts';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
@@ -212,6 +214,7 @@ export default function MyBookings() {
                           and goes to your credit balance after the car is returned.
                         </p>
                       )}
+                    {isCurrentRental(booking) && <RentalCarDocuments bookingId={booking.id} />}
                     {booking.deposit_on_hold && (
                       <p className="text-xs text-yellow-400 mb-3">
                         Your deposit is on hold while we check the car. We&apos;ll release it to
