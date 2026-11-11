@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
+import { formatPhone } from '../utils/format';
 import {
   CheckCircle,
   FileUp,
@@ -165,7 +166,7 @@ export default function BookingConfirmation() {
   </div>
   <div class="footer">
     Thank you for choosing Rent2Go!<br/>
-    For support: bubatresources@gmail.com · +60 16-256 9733
+    For support: bubatresources@gmail.com · ${formatPhone(contact?.whatsapp || '60194961568')}
   </div>
 </div>
 </body></html>`;

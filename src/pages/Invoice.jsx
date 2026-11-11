@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
+import { formatPhone } from '../utils/format';
+import { useCarContact } from '../hooks/useCars';
 import { chargeLabel } from '../utils/charges';
 import { workshopPayments } from '../utils/workshop';
 import { RENTAL_CHANGES_SELECT, changeText, rentalChanges } from '../utils/rent';
@@ -20,6 +22,8 @@ export default function Invoice() {
   const [fleet, setFleet] = useState(null);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  // The number to contact: the car's WhatsApp contact, as on its WhatsApp button
+  const contact = useCarContact(booking?.car_id);
 
   useEffect(() => {
     if (authLoading) return;
@@ -116,6 +120,9 @@ export default function Invoice() {
   );
   const invoiceNumber = `INV-${booking.id.slice(0, 8).toUpperCase()}`;
   const companyName = fleet?.name || 'Bubat Resources';
+  const contactPhone = formatPhone(
+    contact?.whatsapp || fleet?.support_whatsapp || fleet?.support_phone || '60194961568'
+  );
   const hasVerifiedPayment =
     booking.deposit_status === 'verified' || booking.full_payment_status === 'verified';
 
@@ -148,7 +155,7 @@ export default function Invoice() {
               <p className="text-xs text-gray-400 mt-1">A5-3 Villaria Kondominium</p>
               <p className="text-xs text-gray-400">Jalan PJS 5/32, Taman Desaria</p>
               <p className="text-xs text-gray-400">46000 Petaling Jaya, Selangor</p>
-              <p className="text-xs text-gray-400">Tel: {fleet?.support_phone || '016-256 9733'}</p>
+              <p className="text-xs text-gray-400">Tel: {contactPhone}</p>
             </div>
             <div className="text-left sm:text-right">
               <p className="text-3xl font-bold text-violet-600">INVOIS</p>
@@ -468,7 +475,7 @@ export default function Invoice() {
               Terima kasih kerana memilih {companyName}!
             </p>
             <p>Invois ini dijana secara automatik oleh sistem Rent2Go.</p>
-            <p>Untuk sebarang pertanyaan, sila hubungi {fleet?.support_phone || '016-256 9733'}.</p>
+            <p>Untuk sebarang pertanyaan, sila hubungi {contactPhone}.</p>
           </div>
         </div>
       </div>

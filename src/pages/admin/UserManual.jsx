@@ -470,7 +470,8 @@ export default function UserManual() {
               from the car page, checkout and their booking page. A car you add is yours unless you
               pick someone else. Each person saves their own number in Fleet Settings; until they
               do, or if you choose <B>Fleet number</B>, customers get the fleet&apos;s WhatsApp
-              number. The car list shows each car&apos;s contact.
+              number. The car list shows each car&apos;s contact. The invoice and receipt print this
+              number too.
             </li>
             <li>
               <B>Features</B>: separated by commas, e.g. &quot;Bluetooth, Rear Camera&quot;.
@@ -1451,12 +1452,13 @@ export default function UserManual() {
               the reason, extension, early return, replacement car), any rent given back to the
               customer&apos;s credit, the refundable deposit, the amount paid, anything the customer
               paid the workshop for us (and what it was taken off), and any charges after the rental
-              (what came off the deposit and what is still owed). The fleet name and phone come from
-              Fleet Settings. <B>Print / Save PDF</B> makes a PDF.
+              (what came off the deposit and what is still owed). The fleet name comes from Fleet
+              Settings; the phone number is the car&apos;s WhatsApp contact (section 4), the same
+              number its WhatsApp button opens. <B>Print / Save PDF</B> makes a PDF.
             </li>
             <li>
               Customers can also print a simple booking receipt from <B>View Details</B> →{' '}
-              <B>Print Receipt</B>.
+              <B>Print Receipt</B>. It also gives the car&apos;s WhatsApp contact for support.
             </li>
           </Bullets>
           <Note tone="warn">
@@ -1577,7 +1579,8 @@ export default function UserManual() {
             <li>
               <B>Fleet Name</B>, <B>Support Email</B>, <B>Support Phone</B> and{' '}
               <B>WhatsApp Number</B>. The fleet&apos;s WhatsApp number is for cars with no contact,
-              or whose contact has no number saved; the phone number is printed on invoices.
+              or whose contact has no number saved, on the WhatsApp buttons and on invoices. The
+              support phone is no longer printed on invoices.
             </li>
             <li>
               <B>Long-rental discounts</B>: the percentage off for rentals of 7 days or more and of
