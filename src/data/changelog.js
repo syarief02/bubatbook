@@ -19,6 +19,12 @@ export const CHANGELOG = [
         text: 'The phone number on the invoice (at the top and in “Untuk sebarang pertanyaan, sila hubungi …”) is now the car’s WhatsApp contact from Cars → Edit, the same number its WhatsApp button opens. It used to print the fleet’s Support Phone, which was a different number. The customer’s Print Receipt gives the same number.',
         link: '/admin/cars',
       },
+      {
+        kind: 'data',
+        title: 'Vans show their size: 7ft panel van',
+        text: 'The NV200 and Gran Max vans now list “7ft panel van” first under Features on their car page, instead of “Panel van”, so customers see the van size. The Vanette WQT 6612 still says “Panel van”.',
+        link: '/admin/cars',
+      },
     ],
   },
   {

@@ -474,7 +474,10 @@ export default function UserManual() {
               number too.
             </li>
             <li>
-              <B>Features</B>: separated by commas, e.g. &quot;Bluetooth, Rear Camera&quot;.
+              <B>Features</B>: separated by commas, e.g. &quot;Bluetooth, Rear Camera&quot;. Put the
+              vehicle type first, and for a van its cargo size, the way customers ask for it:
+              &quot;7ft panel van&quot; (NV200, Gran Max), &quot;7 seater MPV&quot;,
+              &quot;Pick-up&quot;.
             </li>
           </Bullets>
           <Sub>How prices are worked out</Sub>
