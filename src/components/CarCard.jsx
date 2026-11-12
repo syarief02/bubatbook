@@ -29,6 +29,14 @@ export default function CarCard({ car, pickupDate, returnDate }) {
             <Calendar className="w-12 h-12 text-slate-700" />
           </div>
         )}
+        {/* The vehicle type: the first feature, e.g. "7ft panel van", "7 seater MPV" */}
+        {car.features?.[0] && (
+          <div className="absolute top-3 left-3">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-sm">
+              {car.features[0]}
+            </span>
+          </div>
+        )}
         {car.price_per_day > 0 && (
           <div className="absolute top-3 right-3">
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white">

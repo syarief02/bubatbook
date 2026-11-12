@@ -25,6 +25,12 @@ export const CHANGELOG = [
         text: 'The NV200 and Gran Max vans now list “7ft panel van” first under Features on their car page, instead of “Panel van”, so customers see the van size. The Vanette WQT 6612 still says “Panel van”.',
         link: '/admin/cars',
       },
+      {
+        kind: 'improved',
+        title: 'Car list shows each vehicle’s type',
+        text: 'Each car in the list on the home page now has its type on the photo, top left: “7ft panel van”, “7 seater MPV”, “Pick-up”. It is the car’s first feature in Cars → Edit.',
+        link: '/',
+      },
     ],
   },
   {
