@@ -4,7 +4,7 @@ import { useCar, checkAvailability } from '../hooks/useCars';
 import { carPath, carSlug } from '../utils/carLinks';
 import { useAuth } from '../hooks/useAuth';
 import { AlertTriangle, Truck } from 'lucide-react';
-import DateRangePicker from '../components/DateRangePicker';
+import CarDatePicker from '../components/CarDatePicker';
 import PriceCalculator from '../components/PriceCalculator';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePrice, formatMYR } from '../utils/pricing';
@@ -257,7 +257,8 @@ export default function CarDetail() {
                 Book This Car
               </h3>
 
-              <DateRangePicker
+              <CarDatePicker
+                carId={carId}
                 pickupDate={pickupDate}
                 returnDate={returnDate}
                 onPickupChange={setPickupDate}
@@ -295,7 +296,7 @@ export default function CarDetail() {
                   ) : isAvailable === false ? (
                     <div className="flex items-center gap-2 text-sm text-red-400">
                       <AlertCircle className="w-4 h-4" />
-                      Not available for these dates. Try different dates.
+                      Not available for these dates. Booked days are greyed out in the calendar.
                     </div>
                   ) : null}
                 </div>

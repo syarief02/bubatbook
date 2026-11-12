@@ -1744,6 +1744,10 @@ export default function UserManual() {
                 'Another booking holds the car then. An unpaid online checkout (Hold) frees up within 24 hours; press Cancel on it in Bookings to free the car sooner.',
               ],
               [
+                'A customer asks which dates a car is free',
+                'The calendar on the car page greys out and strikes through the days it is booked: every day from pick-up to return, both included, of bookings on Hold, Deposit Paid, Confirmed or Picked Up. A free day just before a booked one can’t be a pick-up day (a rental needs at least one night), and return days stop before the next booking and 6 months ahead. Customers see only the dates, not who booked.',
+              ],
+              [
                 'A customer says they can’t book',
                 'Check they are verified and their licence hasn’t expired (Customers). A panel van (commercial vehicle) also needs a GDL valid until the return date. Bookings must start today or later and end within 6 months.',
               ],

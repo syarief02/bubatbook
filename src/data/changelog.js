@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-12',
     items: [
       {
+        kind: 'new',
+        title: 'Car page calendar greys out booked days',
+        text: 'Customers now pick the pick-up and return days on a calendar on the car page, with the days the car is booked greyed out and struck through, so they can see which dates are free instead of guessing. Return days stop before the next booking. Opening a link with dates that clash shows the calendar straight away. Only the dates show, not who booked. The home page search keeps its date boxes.',
+        link: '/',
+      },
+      {
         kind: 'fixed',
         title: 'The invoice gives the car’s WhatsApp number',
         text: 'The phone number on the invoice (at the top and in “Untuk sebarang pertanyaan, sila hubungi …”) is now the car’s WhatsApp contact from Cars → Edit, the same number its WhatsApp button opens. It used to print the fleet’s Support Phone, which was a different number. The customer’s Print Receipt gives the same number.',

@@ -137,6 +137,30 @@ export function useCar(id) {
  * True when no active booking or unexpired hold overlaps the dates.
  * Runs on the server so it sees every customer's bookings, not just the caller's.
  */
+const NO_BOOKED_DAYS = [];
+
+/**
+ * The days a car is taken from today on, for the car page's calendar:
+ * [{from_date, to_date}] (YYYY-MM-DD, both days included). Only dates, never
+ * who booked. Empty when they can't be loaded: the calendar then greys out
+ * nothing, and checkAvailability() still decides.
+ */
+export function useCarBookedDays(carId) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['car-booked-days', carId],
+    queryFn: async () => {
+      const { data: ranges, error } = await supabase.rpc('bubatrent_car_booked_days', {
+        p_car_id: carId,
+      });
+      if (error) return NO_BOOKED_DAYS;
+      return ranges || NO_BOOKED_DAYS;
+    },
+    enabled: !!carId,
+    staleTime: 1000 * 60,
+  });
+  return { ranges: data || NO_BOOKED_DAYS, loading: !!carId && isLoading };
+}
+
 export async function checkAvailability(carId, pickupDate, returnDate) {
   const { data, error } = await supabase.rpc('bubatrent_check_availability', {
     p_car_id: carId,

@@ -204,6 +204,15 @@ function report(ok, name, detail) {
     carContactErr ? `error: ${carContactErr.message}` : 'ok'
   );
 
+  const { data: bookedDays, error: bookedDaysErr } = await anon.rpc('bubatrent_car_booked_days', {
+    p_car_id: '00000000-0000-0000-0000-000000000000',
+  });
+  report(
+    !bookedDaysErr && Array.isArray(bookedDays),
+    'car calendar booked days work for visitors',
+    bookedDaysErr ? `error: ${bookedDaysErr.message}` : `returned ${bookedDays.length} ranges`
+  );
+
   console.log(failed ? `\n${failed} check(s) failed` : '\nAll checks passed');
   process.exit(failed ? 1 : 0);
 })();
