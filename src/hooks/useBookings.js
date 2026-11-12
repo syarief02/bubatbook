@@ -16,6 +16,8 @@ export function useBookings(userId) {
         .select(
           '*, bubatrent_booking_cars(name, brand, model, image_url), bubatrent_booking_charges(id, kind, amount, from_deposit, description, created_at), ' +
             'bubatrent_booking_workshop_payments(id, workshop, description, paid_on, amount, to_rent, to_charges, to_credit, created_at), ' +
+            // Each rent payment's receipt (the first payment and each extension's)
+            'bubatrent_booking_payments(id, amount, payment_type, status, receipt_path, created_at), ' +
             RENTAL_CHANGES_SELECT
         )
         .eq('user_id', userId)

@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-12',
     items: [
       {
+        kind: 'fixed',
+        title: 'Extension receipts are added, not swapped',
+        text: 'After an extension, the new rent receipt used to take the place of the first one under Payment Receipts → Full Payment, so only the latest could be opened there. Both were always kept with their payments. Now Full Payment lists every rent receipt (Receipt 1, Receipt 2…) with its amount and date, and a new one waiting to be checked says so. Customers see each one in My Bookings too (Payment Receipt 1, 2…).',
+        link: '/admin/bookings',
+      },
+      {
         kind: 'new',
         title: 'Car page calendar greys out booked days',
         text: 'Customers now pick the pick-up and return days on a calendar on the car page, with the days the car is booked greyed out and struck through, so they can see which dates are free instead of guessing. Return days stop before the next booking. Opening a link with dates that clash shows the calendar straight away. Only the dates show, not who booked. The home page search keeps its date boxes.',

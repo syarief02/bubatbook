@@ -46,6 +46,7 @@ import {
   RENTAL_CHANGES_SELECT,
   RENTAL_CHANGE_STATUSES,
   rentDue,
+  rentReceipts,
   rentalAmount,
   rentalChanges,
 } from '../../utils/rent';
@@ -979,16 +980,21 @@ export default function AdminBookingDetail() {
                     Paid to Workshop).
                   </p>
                 )}
-                {booking.full_payment_receipt_path && (
+                {/* Every rent receipt: the first payment's and each extension's */}
+                {rentReceipts(booking).map((r, i, all) => (
                   <SignedLink
-                    path={booking.full_payment_receipt_path}
+                    key={r.path}
+                    path={r.path}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 mb-2"
                   >
-                    <Eye className="w-3 h-3" /> View Receipt
+                    <Eye className="w-3 h-3" />
+                    {all.length > 1 ? `Receipt ${i + 1}` : 'View Receipt'}
+                    {r.amount !== null && ` · ${formatMYR(r.amount)} · ${formatDate(r.date)}`}
+                    {r.waiting && ' · waiting to be checked'}
                   </SignedLink>
-                )}
+                ))}
                 {booking.full_payment_status === 'uploaded' && (
                   <button
                     onClick={handleVerifyFullPayment}

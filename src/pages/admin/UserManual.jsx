@@ -942,6 +942,12 @@ export default function UserManual() {
               <B>✓ Verify Full Payment</B>.
             </li>
             <li>
+              After an extension, the customer pays the extra and uploads a new receipt the same
+              way. It is added; the earlier receipts stay. <B>Full Payment</B> then lists them all (
+              <B>Receipt 1</B>, <B>Receipt 2</B>…) with the amount and date of each, and the new one
+              says &quot;waiting to be checked&quot; until you verify it.
+            </li>
+            <li>
               If they sent you the receipt another way, use <B>Upload receipt</B> on their behalf,
               then verify it.
             </li>
@@ -1428,9 +1434,10 @@ export default function UserManual() {
             <li>
               <B>Receipts</B> (deposit and full payment) open from the booking page (
               <B>View Receipt</B>) and from the customer&apos;s My Bookings (<B>Deposit Receipt</B>,{' '}
-              <B>Payment Receipt</B>). The customer can also open receipts you uploaded for their
-              booking. Nobody else can. Links work for an hour; reload the page if one stops
-              working. Each payment in <B>Payment Records</B> also has its own receipt link.
+              <B>Payment Receipt</B>, one per rent payment after an extension: Payment Receipt 1,
+              2…). The customer can also open receipts you uploaded for their booking. Nobody else
+              can. Links work for an hour; reload the page if one stops working. Each payment in{' '}
+              <B>Payment Records</B> also has its own receipt link.
             </li>
             <li>
               <B>Records</B> on the booking page keep any other proof: the WhatsApp chat that

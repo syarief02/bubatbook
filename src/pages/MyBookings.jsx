@@ -17,7 +17,7 @@ import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
 import { chargeLabel } from '../utils/charges';
 import { workshopPayments, workshopSplit } from '../utils/workshop';
-import { changeText, rentDue, rentalAmount, rentalChanges } from '../utils/rent';
+import { changeText, rentDue, rentReceipts, rentalAmount, rentalChanges } from '../utils/rent';
 import {
   CalendarDays,
   ExternalLink,
@@ -377,14 +377,18 @@ export default function MyBookings() {
                         </SignedLink>
                       )}
 
-                      {booking.full_payment_receipt_path && (
+                      {/* Every rent receipt: the first payment's and each extension's */}
+                      {rentReceipts(booking).map((r, i, all) => (
                         <SignedLink
-                          path={booking.full_payment_receipt_path}
+                          key={r.path}
+                          path={r.path}
                           className="text-xs text-emerald-500/70 hover:text-emerald-400 flex items-center gap-1"
                         >
-                          <Receipt className="w-3 h-3" /> Payment Receipt
+                          <Receipt className="w-3 h-3" />
+                          {all.length > 1 ? `Payment Receipt ${i + 1}` : 'Payment Receipt'}
+                          {all.length > 1 && r.amount !== null && ` (${formatMYR(r.amount)})`}
                         </SignedLink>
-                      )}
+                      ))}
 
                       {(booking.deposit_status === 'verified' ||
                         booking.full_payment_status === 'verified') && (

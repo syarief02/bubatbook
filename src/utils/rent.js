@@ -17,6 +17,35 @@ export function rentDue(booking) {
   return Math.max(rentalAmount(booking) - Number(booking.rent_paid || 0), 0);
 }
 
+/**
+ * Every receipt for the rent, oldest first: one per rent payment that came
+ * with a receipt (the first payment, then each extension's), then a receipt
+ * sent but not checked yet. The booking itself keeps only the latest receipt
+ * (full_payment_receipt_path); each payment keeps its own.
+ * [{path, amount, date, waiting}] (amount and date null for one not yet paid).
+ */
+export function rentReceipts(booking) {
+  const receipts = (booking?.bubatrent_booking_payments || [])
+    .filter((p) => p.payment_type === 'full_payment' && p.status === 'completed' && p.receipt_path)
+    .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
+    .map((p) => ({
+      path: p.receipt_path,
+      amount: Number(p.amount),
+      date: p.created_at,
+      waiting: false,
+    }));
+  const latest = booking?.full_payment_receipt_path;
+  if (latest && !receipts.some((r) => r.path === latest)) {
+    receipts.push({
+      path: latest,
+      amount: null,
+      date: null,
+      waiting: booking.full_payment_status === 'uploaded',
+    });
+  }
+  return receipts;
+}
+
 export function rentalChanges(booking) {
   return [...(booking?.bubatrent_booking_rental_changes || [])].sort((a, b) =>
     String(a.created_at).localeCompare(String(b.created_at))
