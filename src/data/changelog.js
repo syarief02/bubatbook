@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-15',
+    items: [
+      {
+        kind: 'data',
+        title: 'Vellfire VJC 5290 listed as 8 seater',
+        text: 'The Vellfire’s car page said 7 seats. It has a middle-row bench and seats 8, as its Japan auction report shows, so it now says 8 seats and “8 seater MPV”.',
+        link: '/admin/cars',
+      },
+    ],
+  },
+  {
     date: '2026-11-12',
     items: [
       {
