@@ -19,6 +19,12 @@ export const CHANGELOG = [
         text: 'The Vellfire’s car page said 7 seats. It has a middle-row bench and seats 8, as its Japan auction report shows, so it now says 8 seats and “8 seater MPV”.',
         link: '/admin/cars',
       },
+      {
+        kind: 'data',
+        title: 'Test rental on the Ranger removed',
+        text: 'The 8–12 Nov booking on the Ford Ranger VDM 6927 was a test, so it was deleted with its payments, agreement, extension and receipts. It no longer shows in Bookings, Sales or the car’s history, and no deposit credit was given for it. The Ranger’s road tax and insurance records are real and stay.',
+        link: '/admin/bookings',
+      },
     ],
   },
   {
