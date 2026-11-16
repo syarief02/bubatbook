@@ -1055,10 +1055,12 @@ export default function UserManual() {
               give money back instead.
             </li>
             <li>
-              Refund the rest of the deposit as the customer prefers: transfer it to the{' '}
-              <B>Bank Account</B> shown on their customer page and record that with{' '}
-              <B>Deduct Credit</B> (&quot;Deposit refunded by transfer&quot;), or leave it as credit
-              for their next booking. The agreement promises the refund within 7 working days.
+              Refund the rest of the deposit as the customer prefers: transfer it to their bank
+              account, shown on the booking page under <B>Customer</B> (press <B>Copy</B> for the
+              account number), and record that with <B>Deduct Credit</B> (&quot;Deposit refunded by
+              transfer&quot;) on their customer page: <B>Open in Customers</B> under the bank
+              account opens it straight away. Or leave it as credit for their next booking. The
+              agreement promises the refund within 7 working days.
             </li>
           </Bullets>
 

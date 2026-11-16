@@ -33,7 +33,9 @@ import {
   Trash2,
   ClipboardCopy,
   FileSignature,
+  Landmark,
 } from 'lucide-react';
+import { hasBankDetails } from '../../utils/banks';
 
 import { SignedLink, SignedImage } from '../../components/SignedFile';
 import { ChargesCard, ReturnCarDialog } from '../../components/ReturnCharges';
@@ -850,6 +852,60 @@ export default function AdminBookingDetail() {
                   <FileText className="w-4 h-4 text-violet-400 mt-0.5" />
                   <span className="text-slate-300">{booking.notes}</span>
                 </div>
+              )}
+
+              {/* Where to refund the deposit, without looking the customer up */}
+              {(!booking.user_id || customerProfile) && (
+                <div className="flex items-start gap-2 pt-1">
+                  <Landmark className="w-4 h-4 text-violet-400 mt-0.5" />
+                  {!booking.user_id ? (
+                    <span className="text-slate-500">
+                      No customer account, so no bank account saved. Refund by hand.
+                    </span>
+                  ) : hasBankDetails(customerProfile) ? (
+                    <div className="text-slate-300 space-y-0.5">
+                      <p>{customerProfile.bank_name}</p>
+                      <p className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-white tracking-wide">
+                          {customerProfile.bank_account_number}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigator.clipboard
+                              .writeText(customerProfile.bank_account_number)
+                              .then(() => toast.success('Account number copied.'))
+                              .catch(() =>
+                                toast.error('Could not copy. Select it and copy instead.')
+                              )
+                          }
+                          className="inline-flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300"
+                        >
+                          <ClipboardCopy className="w-3.5 h-3.5" /> Copy
+                        </button>
+                      </p>
+                      <p className="text-slate-400">{customerProfile.bank_account_holder}</p>
+                    </div>
+                  ) : (
+                    <span className="text-slate-500">
+                      No bank account saved yet. Add it in Customers (Edit).
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {booking.user_id && (
+                <Link
+                  to={`/admin/customers?search=${encodeURIComponent(
+                    customerProfile?.phone ||
+                      customerProfile?.display_name ||
+                      booking.customer_name ||
+                      ''
+                  )}&open=${booking.user_id}`}
+                  className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300"
+                >
+                  <User className="w-3.5 h-3.5" /> Open in Customers (credit, documents, bank)
+                </Link>
               )}
             </div>
           </div>

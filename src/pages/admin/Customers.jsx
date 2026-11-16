@@ -66,9 +66,11 @@ export default function Customers() {
   // ?credit=1 (from the dashboard): customers holding credit, to refund or keep
   const [creditOnly, setCreditOnly] = useState(() => searchParams.get('credit') === '1');
   const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || '');
-  const [expandedId, setExpandedId] = useState(null);
+  // A booking page links here with ?open=<customer id>: that customer starts opened
+  const openId = searchParams.get('open');
+  const [expandedId, setExpandedId] = useState(() => openId || null);
   const [bookings, setBookings] = useState([]);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsLoading, setBookingsLoading] = useState(() => Boolean(openId));
   const [roleChanging, setRoleChanging] = useState(null);
   const [confirmRole, setConfirmRole] = useState(null);
   const [verifyChanging, setVerifyChanging] = useState(null);
@@ -121,6 +123,15 @@ export default function Customers() {
     verification: verificationFilter !== 'ALL' ? verificationFilter : undefined,
     credit: creditOnly,
   });
+
+  // The customer opened from a booking page: load their bookings
+  useEffect(() => {
+    if (!openId) return;
+    getCustomerBookings(openId)
+      .then(setBookings)
+      .catch(() => setBookings([]))
+      .finally(() => setBookingsLoading(false));
+  }, [openId]);
 
   async function handleExpand(customerId) {
     if (expandedId === customerId) {

@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-17',
     items: [
       {
+        kind: 'improved',
+        title: 'Customer’s bank account on the booking page',
+        text: 'Under Customer, a booking now shows the customer’s bank, account number (with a Copy button) and account holder, so you can refund a deposit without looking them up. Open in Customers takes you straight to that customer, already opened, for their credit, documents and Deduct Credit. A counter booking without an account says to refund by hand; a customer without bank details says to add them in Customers.',
+        link: '/admin/bookings',
+      },
+      {
         kind: 'rule',
         title: 'Bocah Trading: perubahan terma sewaan (Google Form → Terma Rent2Go Versi 3)',
         text: 'Mulai 17 Nov 2026, semua sewaan melalui Rent2Go (Bocah Trading dan Bubat Resources) menggunakan satu set terma yang sama, dan penyewa menandatangani perjanjian di Rent2Go (dalam talian atau di kaunter), bukan lagi melalui Google Form. Kontrak yang sudah ditandatangani sebelum 17 Nov 2026 kekal dengan terma asalnya. Terma dalam Bahasa Melayu dan Bahasa Inggeris; jika berbeza, versi Bahasa Melayu terpakai. "Syarikat" ialah pemilik kenderaan dalam invois Rent2Go; invois Bocah Trading kini menunjukkan No. SSM 202003204563 (003146703-M) dan alamat Batu Caves. Nombor klausa di bawah merujuk kepada rent2go.my/terms.',
