@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-16',
+    items: [
+      {
+        kind: 'new',
+        title: 'Rental terms page anyone can open: rent2go.my/terms',
+        text: 'Customers can read the Terma & Syarat before signing up: the same terms, damage table, deposit refund and cancellation penalty as the rental agreement they sign. Send the link when someone asks for the terms. It is in the footer and under the Book button on every car page, and shows a proper title when shared on WhatsApp.',
+        link: '/terms',
+      },
+    ],
+  },
+  {
     date: '2026-11-15',
     items: [
       {

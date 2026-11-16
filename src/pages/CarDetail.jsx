@@ -346,6 +346,12 @@ export default function CarDetail() {
                   )}
                 </>
               )}
+
+              <p className="text-xs text-slate-500 mt-3 text-center">
+                <Link to="/terms" className="underline hover:text-slate-300">
+                  Rental terms (Terma & Syarat)
+                </Link>
+              </p>
             </div>
 
             {days > 0 && (

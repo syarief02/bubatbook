@@ -26,6 +26,10 @@ const PAGES = {
   '/profile': ['Your Rent2Go profile', 'Your details, documents and credit balance.'],
   '/my-bookings': ['Your Rent2Go bookings', 'Your bookings, payments and rental agreements.'],
   '/privacy': ['Rent2Go privacy policy', 'How Rent2Go collects, uses and protects your data.'],
+  '/terms': [
+    'Terma & Syarat Sewaan · Rent2Go',
+    'Rental terms every renter signs: licence and GDL, late return, damage, deposit refund and cancellation.',
+  ],
   '/reset-password': ['Reset your Rent2Go password', 'Choose a new password for your account.'],
 };
 
