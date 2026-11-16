@@ -986,7 +986,8 @@ export default function UserManual() {
               For each charge press <B>Add charge</B>, choose <B>Late return</B>, <B>Cleaning</B>,{' '}
               <B>Fuel</B>, <B>Damage</B> or <B>Other</B>, and type the amount. A note is optional
               (e.g. &quot;6 hours late&quot;) but required for Damage and Other. The
-              agreement&apos;s rates (terms version 2, signed from 16 Nov 2026):
+              agreement&apos;s rates (terms version 3, signed from 17 Nov 2026, the same for every
+              fleet):
               <ul className="list-disc pl-5 mt-1 space-y-1">
                 <li>
                   <strong>Late return:</strong> RM10 an hour under 1300cc, RM15 an hour for 1300 to
@@ -995,21 +996,24 @@ export default function UserManual() {
                 </li>
                 <li>
                   <strong>Fuel:</strong> what it costs to fill it back to the pick-up level.{' '}
-                  <strong>Cleaning:</strong> RM20.
+                  <strong>Cleaning:</strong> RM30.
                 </li>
                 <li>
                   <strong>Damage:</strong> the actual cost (repairs insurance doesn&apos;t pay, the
-                  insurance excess, the lost NCD, the rent lost while it is in the workshop), up to
-                  the damage table&apos;s amount for its cc and days in the workshop. Theft or a
-                  write-off: the &quot;more than 7 days&quot; amount. No limit (full cost) for an
-                  unapproved or unlicensed driver, drink or drugs, forbidden use, outside the
-                  Peninsula, keys left in the car, no police report within 24 hours, or a claim the
-                  insurer refuses through the renter&apos;s fault.
+                  insurance excess and claim costs, the lost NCD, the rent lost while it is in the
+                  workshop), up to the damage table&apos;s amount for its cc and days in the
+                  workshop. Theft or a write-off: the &quot;more than 7 days&quot; amount. No limit
+                  (full cost) for an unapproved or unlicensed driver, drink or drugs, dangerous
+                  driving or a serious traffic offence, forbidden use, outside the Peninsula, keys
+                  left in the car, no police report within 24 hours, or a claim the insurer refuses
+                  through the renter&apos;s fault. A deposit can be held until an insurance claim is
+                  settled.
                 </li>
               </ul>
-              The renter&apos;s signed agreement shows which terms they signed: those signed before
-              16 Nov 2026 have version 1 (RM10/RM15/RM20 an hour and the damage table, without these
-              details). Leave the list empty if the car came back on time and in good condition.
+              The renter&apos;s signed agreement shows which terms they signed: version 1 (before 16
+              Nov 2026: RM10/RM15/RM20 an hour, RM20 cleaning and the damage table, without these
+              details) or version 2 (16 Nov 2026: as above but RM20 cleaning). Leave the list empty
+              if the car came back on time and in good condition.
             </li>
             <li>
               The summary shows the deposit held, the charges, what comes off the deposit, what goes
@@ -1071,8 +1075,15 @@ export default function UserManual() {
               back; refund any cash part by hand if you received it.
             </li>
             <li>
-              The agreement allows a 25% penalty of the rental total when a customer cancels before
-              pick-up. Take it with <B>Deduct Credit</B> if you charge it.
+              A customer who cancels <strong>3 days or more</strong> before pick-up gets the deposit
+              back in full (it goes to their credit by itself). Cancelling{' '}
+              <strong>less than 3 days</strong> before: the agreement allows a penalty of 25% of the
+              rental total; take it with <B>Deduct Credit</B> if you charge it. (Agreements signed
+              before 17 Nov 2026 allow the 25% at any time.)
+            </li>
+            <li>
+              Moving the dates instead: free with 3 days&apos; notice, to dates within 1 month, if
+              the car is free. Use <B>Edit Dates</B> (7.9).
             </li>
             <li>
               If <strong>you</strong> cancel (the car broke down, or you can&apos;t provide it), the
@@ -1252,12 +1263,14 @@ export default function UserManual() {
             <li>
               <B>End early</B> (Confirmed, Picked Up or Returned): choose the last day and why.{' '}
               <B>Customer&apos;s choice</B>: the unused days less the agreement&apos;s 25% penalty
-              on those unused days (an agreement signed before 16 Nov 2026: 25% of the whole rental;
-              the form works out which). <B>Car broke down, no replacement</B>: the unused days, no
-              penalty. You can type a different amount (up to the unused days), with a reason. What
-              the customer paid above the new price goes to their credit. The rental keeps at least
-              one day; to stop it before that, <B>Cancel</B> it. The car is free again after the new
-              date. This does not mark the car returned: use <B>Mark Returned</B> as usual.
+              on those unused days, monthly rentals included (an agreement signed before 16 Nov
+              2026: 25% of the whole rental; the form works out which).{' '}
+              <B>Car broke down, no replacement</B>: the unused days, no penalty (or, if the
+              customer prefers, extend the rental by the same days free instead). You can type a
+              different amount (up to the unused days), with a reason. What the customer paid above
+              the new price goes to their credit. The rental keeps at least one day; to stop it
+              before that, <B>Cancel</B> it. The car is free again after the new date. This does not
+              mark the car returned: use <B>Mark Returned</B> as usual.
             </li>
             <li>
               <B>Replace car</B> (Confirmed or Picked Up): choose another car of the fleet. Before
@@ -1501,10 +1514,10 @@ export default function UserManual() {
             </li>
           </Bullets>
           <Note tone="info">
-            BuBat Resources invoices show its SSM number (201603369817, PG0408963-K) and address.
-            Other fleets&apos; invoices (Bocah Trading) show only the fleet&apos;s name and phone
-            number. For a fleet&apos;s own registration number and address on its invoices, ask for
-            the invoice to be updated.
+            Each fleet&apos;s invoices show its own SSM number and address: BuBat Resources
+            (201603369817, PG0408963-K; Petaling Jaya) and Bocah Trading (202003204563, 003146703-M;
+            Batu Caves). A new fleet&apos;s invoices show only its name and phone number until its
+            details are added.
           </Note>
         </Section>
 
@@ -1786,7 +1799,7 @@ export default function UserManual() {
               ],
               [
                 'A customer asks for the terms and conditions before signing up',
-                'Send them rent2go.my/terms. It shows the same Terma & Syarat (in Malay and English), damage table, deposit refund and cancellation penalty as the rental agreement they sign, and needs no account. The footer and every car page link to it too. A signed agreement always shows the terms it was signed with: version 1 before 16 Nov 2026, version 2 after.',
+                'Send them rent2go.my/terms. It shows the same Terma & Syarat (in Malay and English), damage table, deposit refund and cancellation penalty as the rental agreement they sign, and needs no account. The footer and every car page link to it too. The terms are the same for every fleet (BuBat Resources and Bocah Trading) from 17 Nov 2026. A signed agreement always shows the terms it was signed with: version 1 before 16 Nov 2026, version 2 on 16 Nov, version 3 from 17 Nov.',
               ],
               [
                 'A customer says they can’t book',

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import { AgreementTerms } from '../components/AgreementTerms';
-import { BUBAT_NAME, BUBAT_SSM } from '../data/company';
+import { BOCAH_NAME, BOCAH_SSM, BUBAT_NAME, BUBAT_SSM } from '../data/company';
 
 const CONTACT_EMAIL = 'bubatresources@gmail.com';
 const CONTACT_PHONE = '+60 19-496 1568';
@@ -23,15 +23,16 @@ export default function Terms() {
       <div className="glass-card mb-6 text-sm text-slate-300 leading-relaxed space-y-2">
         <p>
           Ini terma dalam perjanjian sewaan yang ditandatangani oleh setiap penyewa sebelum
-          mengambil kenderaan. Sewa dan deposit untuk tarikh anda ditunjukkan semasa membuat
-          tempahan. Saiz enjin (cc) setiap kenderaan ada di halaman kenderaan itu. Perjanjian yang
-          sudah ditandatangani kekal dengan terma semasa ia ditandatangani (lihat My Bookings).
+          mengambil kenderaan, sama bagi semua kenderaan di Rent2Go. Sewa dan deposit untuk tarikh
+          anda ditunjukkan semasa membuat tempahan. Saiz enjin (cc) setiap kenderaan ada di halaman
+          kenderaan itu. Perjanjian yang sudah ditandatangani kekal dengan terma semasa ia
+          ditandatangani (lihat My Bookings).
         </p>
         <p className="text-slate-400">
-          These are the terms of the rental agreement every renter signs before pick-up. The rent
-          and deposit for your dates are shown when you book. Each vehicle&apos;s engine size (cc)
-          is on its car page. An agreement already signed keeps the terms it was signed with (see My
-          Bookings).
+          These are the terms of the rental agreement every renter signs before pick-up, the same
+          for every vehicle on Rent2Go. The rent and deposit for your dates are shown when you book.
+          Each vehicle&apos;s engine size (cc) is on its car page. An agreement already signed keeps
+          the terms it was signed with (see My Bookings).
         </p>
       </div>
 
@@ -40,9 +41,9 @@ export default function Terms() {
       <div className="glass-card text-sm text-slate-300 leading-relaxed">
         <h2 className="text-lg font-semibold text-white mb-3">Pertanyaan / Questions</h2>
         <p>
-          {BUBAT_NAME} (Rent2Go)
+          Rent2Go, dikendalikan oleh / run by {BUBAT_NAME} (No. SSM {BUBAT_SSM})
           <br />
-          No. SSM: {BUBAT_SSM}
+          {BOCAH_NAME}: No. SSM {BOCAH_SSM}
           <br />
           WhatsApp:{' '}
           <a

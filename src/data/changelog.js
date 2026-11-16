@@ -11,6 +11,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-17',
+    items: [
+      {
+        kind: 'rule',
+        title: 'One set of rental terms for every fleet (version 3)',
+        text: 'BuBat Resources and Bocah Trading now use the same Terma & Syarat, merged from both companies’ terms, for every rental signed from 17 Nov 2026. New: moving dates is free with 3 days’ notice (to dates within 1 month); cancelling 3 days or more before pick-up gets the deposit back in full, later costs 25% of the rental; extensions are asked 24 hours ahead; cleaning is RM30; a similar replacement within 24 hours for a breakdown (or the days free); renters check coolant, oil and tyres; drivers changed only with approval; company rentals show their SSM and a driver letter; no dangerous goods; tell the company within 12 hours of an accident; dangerous driving pays the full cost; you may end the rental at once for a serious breach; disputes go to discussion within 14 days, then mediation; signing on Rent2Go counts as signing on paper. Late return stays by engine size, and ending early (monthly too) stays 25% of the unused days. Bocah Trading invoices now show its own SSM number and address. Earlier signed agreements keep their own terms.',
+        link: '/terms',
+      },
+    ],
+  },
+  {
     date: '2026-11-16',
     items: [
       {
