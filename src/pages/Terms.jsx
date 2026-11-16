@@ -41,9 +41,9 @@ export default function Terms() {
       <div className="glass-card text-sm text-slate-300 leading-relaxed">
         <h2 className="text-lg font-semibold text-white mb-3">Pertanyaan / Questions</h2>
         <p>
-          Rent2Go, dikendalikan oleh / run by {BUBAT_NAME} (No. SSM {BUBAT_SSM})
+          {BUBAT_NAME} (Rent2Go) · No. SSM {BUBAT_SSM}
           <br />
-          {BOCAH_NAME}: No. SSM {BOCAH_SSM}
+          {BOCAH_NAME} · No. SSM {BOCAH_SSM}
           <br />
           WhatsApp:{' '}
           <a
