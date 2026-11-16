@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-16',
     items: [
       {
+        kind: 'data',
+        title: 'NV200 WA 5202 F off the booking page for repair',
+        text: 'WA 5202 F needs its gear lever repaired, maybe the gearbox, so it is marked unavailable and customers can’t book it. It had no bookings. Make it available again in Cars once it is fixed. The other NV200, VEY 3516, can still be booked.',
+        link: '/admin/cars',
+      },
+      {
         kind: 'fixed',
         title: 'SSM number on the terms page, and only on BuBat Resources invoices',
         text: 'The terms page and Privacy Policy now show Bubat Resources’ SSM registration number. Invoices showed Bubat Resources’ SSM number and address for every fleet; Bocah Trading’s invoices now show only its own name and phone number.',
