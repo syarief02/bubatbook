@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 
-const LAST_UPDATED = '11 October 2026';
+const LAST_UPDATED = '16 November 2026';
 const CONTACT_EMAIL = 'bubatresources@gmail.com';
 const CONTACT_PHONE = '+60 19-496 1568';
 
@@ -19,6 +19,7 @@ const SECTIONS = [
       'Identity verification: your IC/MyKad number, driving licence details (expiry date and licence class), photos of your IC and driving licence, and your address. If you add your GDL (Goods Driving Licence), needed for commercial vehicles, we keep its expiry date and photo too. Car rental requires us to confirm who is driving our vehicles.',
       'Bookings and payments: the car, dates and prices of your bookings, payment receipts you upload, and your deposit credit balance. Payments are made by bank transfer; we do not collect card details.',
       'Rental agreements: the signature you draw when signing an agreement, together with the agreement details.',
+      'Vehicle location: our vehicles may be fitted with GPS trackers. During your rental we can see where the vehicle is, and we use this only for security, getting the vehicle back, and looking into accidents or traffic summonses.',
       'Technical information: when you upload a file we record basic device and browser details to troubleshoot failed uploads. We keep you signed in using your browser’s local storage. We do not use advertising or tracking cookies.',
     ],
   },

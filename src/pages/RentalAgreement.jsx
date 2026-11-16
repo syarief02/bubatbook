@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate, formatDateTime } from '../utils/dates';
 import { RENTAL_CHANGES_SELECT, changeText, rentalChanges } from '../utils/rent';
-import RentalAgreementForm, { AgreementTerms } from '../components/RentalAgreementForm';
+import RentalAgreementForm from '../components/RentalAgreementForm';
+import { AgreementTerms } from '../components/AgreementTerms';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
 import { CheckCircle, Printer, UserCheck } from 'lucide-react';
@@ -203,7 +204,7 @@ export default function RentalAgreement() {
               </div>
             )}
 
-          <AgreementTerms />
+          <AgreementTerms agreedAt={existingAgreement.agreed_at} />
 
           <div className="glass-card mb-6">
             <h2 className="text-lg font-semibold text-white mb-4">

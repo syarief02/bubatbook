@@ -8,6 +8,7 @@ import { friendlyDbError } from '../utils/dbErrors';
 import { formatDate, formatDateTime, getTodayString } from '../utils/dates';
 import { calculatePrice, formatMYR } from '../utils/pricing';
 import { changeText, rentalAmount, rentalChanges, rentDue } from '../utils/rent';
+import { termsVersion } from '../utils/terms';
 
 // Changing a rental after booking: an agreed price, a later or earlier return
 // date, another car. The money moves happen in the database functions
@@ -270,32 +271,51 @@ function EndEarlyDialog({ booking, onClose, onDone }) {
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // As bubatrent_admin_end_rental_early: the unused days at what this rental
-  // cost per day; the customer's choice pays the agreement's 25% penalty
+  // The terms the customer signed: version 1 (before 16 Nov 2026) took the
+  // 25% penalty on the whole rental, version 2 on the unused days only.
+  // undefined while loading; null when there is no signed agreement.
+  const [agreedAt, setAgreedAt] = useState(undefined);
+  useEffect(() => {
+    supabase
+      .from('bubatrent_booking_rental_agreements')
+      .select('agreed_at')
+      .eq('booking_id', booking.id)
+      .maybeSingle()
+      .then(({ data }) => setAgreedAt(data?.agreed_at ?? null));
+  }, [booking.id]);
+  const oldTerms = termsVersion(agreedAt) === 1;
+
+  // The unused days at what this rental cost per day; the customer's choice
+  // pays the agreement's 25% penalty. bubatrent_admin_end_rental_early works
+  // out version 1's amount; version 2's is sent as the amount, with a note.
   const total = rentalAmount(booking);
   const booked = daysBetween(booking.pickup_date, booking.return_date);
   const unused = daysBetween(newReturn, booking.return_date);
   const valid = newReturn >= earliest && newReturn <= latest;
   const unusedRent = valid ? round2((total * unused) / booked) : 0;
-  const penalty = reason === 'customer' ? round2(total * 0.25) : 0;
+  const penalty = reason === 'customer' ? round2((oldTerms ? total : unusedRent) * 0.25) : 0;
   const standard = Math.max(round2(unusedRent - penalty), 0);
   const changed = custom !== '' && round2(Number(custom)) !== standard;
   const reduction = changed ? round2(Number(custom)) : standard;
+  const newTermsPenalty = reason === 'customer' && !oldTerms;
 
   async function submit() {
+    if (agreedAt === undefined) return;
     if (!valid)
       return toast.error(`Choose a date from ${formatDate(earliest)} to ${formatDate(latest)}.`);
     if (changed && (!(reduction >= 0 && reduction <= unusedRent) || !note.trim()))
       return toast.error(
         `The amount taken off can be RM0 to ${formatMYR(unusedRent)}, with a reason.`
       );
+    const notes = [note.trim()];
+    if (newTermsPenalty && !changed) notes.push('25% penalty on the unused days (terms v2)');
     setSaving(true);
     const { data, error } = await supabase.rpc('bubatrent_admin_end_rental_early', {
       p_booking_id: booking.id,
       p_new_return: newReturn,
       p_reason: reason,
-      p_reduction: changed ? reduction : null,
-      p_note: note.trim() || null,
+      p_reduction: changed || newTermsPenalty ? reduction : null,
+      p_note: notes.filter(Boolean).join(' · ') || null,
     });
     setSaving(false);
     if (error) return toast.error(friendlyDbError(error));
@@ -341,7 +361,9 @@ function EndEarlyDialog({ booking, onClose, onDone }) {
               <span>
                 Customer&apos;s choice
                 <span className="block text-xs text-slate-500">
-                  25% penalty on the rental (agreement)
+                  {oldTerms
+                    ? '25% penalty on the whole rental (agreement signed before 16 Nov 2026)'
+                    : '25% penalty on the unused days (agreement)'}
                 </span>
               </span>
             </label>
@@ -363,7 +385,10 @@ function EndEarlyDialog({ booking, onClose, onDone }) {
           <div className="bg-white/[0.03] rounded-xl p-3 space-y-1">
             <Row label={`Unused days (${unused} of ${booked})`} value={formatMYR(unusedRent)} />
             {penalty > 0 && (
-              <Row label="Penalty, 25% of the rental" value={`−${formatMYR(penalty)}`} />
+              <Row
+                label={oldTerms ? 'Penalty, 25% of the rental' : 'Penalty, 25% of the unused days'}
+                value={`−${formatMYR(penalty)}`}
+              />
             )}
             <Row
               label={changed ? 'Taken off the rental (changed)' : 'Taken off the rental'}

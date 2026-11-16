@@ -14,6 +14,12 @@ export const CHANGELOG = [
     date: '2026-11-16',
     items: [
       {
+        kind: 'rule',
+        title: 'Rental terms version 2: clearer, in Malay and English',
+        text: 'New agreements are signed with version 2 of the Terma & Syarat. Same licence, GDL, cleaning and damage table, but clearer: the damage table is the most a renter pays per incident (full cost for an unapproved driver, drink or drugs, keys left in the car, no police report and similar), theft or a write-off costs the “more than 7 days” amount, late return is RM10/RM15/RM20 an hour by engine size with more than 5 hours counting as a full day, and the 25% penalty for ending early is on the unused days only (End early works it out). New clauses: approved drivers only, Lalamove allowed in vans with a GDL but no passenger e-hailing, Peninsular Malaysia only, photos at pick-up, same fuel level, tolls and late summonses, GPS, accident steps, breakdowns for every rental, monthly rent paid in advance, and a full refund if you cancel. Agreements signed before 16 Nov 2026 keep showing version 1, the terms the renter signed.',
+        link: '/terms',
+      },
+      {
         kind: 'new',
         title: 'Rental terms page anyone can open: rent2go.my/terms',
         text: 'Customers can read the Terma & Syarat before signing up: the same terms, damage table, deposit refund and cancellation penalty as the rental agreement they sign. Send the link when someone asks for the terms. It is in the footer and under the Book button on every car page, and shows a proper title when shared on WhatsApp.',

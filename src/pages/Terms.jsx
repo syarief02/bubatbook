@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FileText } from 'lucide-react';
-import { AgreementTerms } from '../components/RentalAgreementForm';
+import { AgreementTerms } from '../components/AgreementTerms';
 
 const CONTACT_EMAIL = 'bubatresources@gmail.com';
 const CONTACT_PHONE = '+60 19-496 1568';
@@ -23,12 +23,14 @@ export default function Terms() {
         <p>
           Ini terma dalam perjanjian sewaan yang ditandatangani oleh setiap penyewa sebelum
           mengambil kenderaan. Sewa dan deposit untuk tarikh anda ditunjukkan semasa membuat
-          tempahan. Saiz enjin (cc) setiap kenderaan ada di halaman kenderaan itu.
+          tempahan. Saiz enjin (cc) setiap kenderaan ada di halaman kenderaan itu. Perjanjian yang
+          sudah ditandatangani kekal dengan terma semasa ia ditandatangani (lihat My Bookings).
         </p>
         <p className="text-slate-400">
           These are the terms of the rental agreement every renter signs before pick-up. The rent
           and deposit for your dates are shown when you book. Each vehicle&apos;s engine size (cc)
-          is on its car page.
+          is on its car page. An agreement already signed keeps the terms it was signed with (see My
+          Bookings).
         </p>
       </div>
 

@@ -986,9 +986,30 @@ export default function UserManual() {
               For each charge press <B>Add charge</B>, choose <B>Late return</B>, <B>Cleaning</B>,{' '}
               <B>Fuel</B>, <B>Damage</B> or <B>Other</B>, and type the amount. A note is optional
               (e.g. &quot;6 hours late&quot;) but required for Damage and Other. The
-              agreement&apos;s rates are RM10/RM15/RM20 per hour late, RM20 for cleaning, and the
-              damage table for damage. Leave the list empty if the car came back on time and in good
-              condition.
+              agreement&apos;s rates (terms version 2, signed from 16 Nov 2026):
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li>
+                  <strong>Late return:</strong> RM10 an hour under 1300cc, RM15 an hour for 1300 to
+                  1699cc, RM20 an hour for 1700cc and above. More than 5 hours late counts as a full
+                  extra day&apos;s rent.
+                </li>
+                <li>
+                  <strong>Fuel:</strong> what it costs to fill it back to the pick-up level.{' '}
+                  <strong>Cleaning:</strong> RM20.
+                </li>
+                <li>
+                  <strong>Damage:</strong> the actual cost (repairs insurance doesn&apos;t pay, the
+                  insurance excess, the lost NCD, the rent lost while it is in the workshop), up to
+                  the damage table&apos;s amount for its cc and days in the workshop. Theft or a
+                  write-off: the &quot;more than 7 days&quot; amount. No limit (full cost) for an
+                  unapproved or unlicensed driver, drink or drugs, forbidden use, outside the
+                  Peninsula, keys left in the car, no police report within 24 hours, or a claim the
+                  insurer refuses through the renter&apos;s fault.
+                </li>
+              </ul>
+              The renter&apos;s signed agreement shows which terms they signed: those signed before
+              16 Nov 2026 have version 1 (RM10/RM15/RM20 an hour and the damage table, without these
+              details). Leave the list empty if the car came back on time and in good condition.
             </li>
             <li>
               The summary shows the deposit held, the charges, what comes off the deposit, what goes
@@ -1050,8 +1071,13 @@ export default function UserManual() {
               back; refund any cash part by hand if you received it.
             </li>
             <li>
-              The agreement allows a 25% penalty when a customer cancels. Take it with{' '}
-              <B>Deduct Credit</B> if you charge it.
+              The agreement allows a 25% penalty of the rental total when a customer cancels before
+              pick-up. Take it with <B>Deduct Credit</B> if you charge it.
+            </li>
+            <li>
+              If <strong>you</strong> cancel (the car broke down, or you can&apos;t provide it), the
+              agreement promises everything back in full, or another car if the customer agrees.
+              Don&apos;t take a penalty.
             </li>
           </Bullets>
 
@@ -1226,11 +1252,12 @@ export default function UserManual() {
             <li>
               <B>End early</B> (Confirmed, Picked Up or Returned): choose the last day and why.{' '}
               <B>Customer&apos;s choice</B>: the unused days less the agreement&apos;s 25% penalty
-              on the rental. <B>Car broke down, no replacement</B>: the unused days, no penalty. You
-              can type a different amount (up to the unused days), with a reason. What the customer
-              paid above the new price goes to their credit. The rental keeps at least one day; to
-              stop it before that, <B>Cancel</B> it. The car is free again after the new date. This
-              does not mark the car returned: use <B>Mark Returned</B> as usual.
+              on those unused days (an agreement signed before 16 Nov 2026: 25% of the whole rental;
+              the form works out which). <B>Car broke down, no replacement</B>: the unused days, no
+              penalty. You can type a different amount (up to the unused days), with a reason. What
+              the customer paid above the new price goes to their credit. The rental keeps at least
+              one day; to stop it before that, <B>Cancel</B> it. The car is free again after the new
+              date. This does not mark the car returned: use <B>Mark Returned</B> as usual.
             </li>
             <li>
               <B>Replace car</B> (Confirmed or Picked Up): choose another car of the fleet. Before
@@ -1257,8 +1284,9 @@ export default function UserManual() {
           </Bullets>
           <Note tone="info" title="Example: early return">
             12 days for RM1,512, the customer stops after 3. Unused: 9 days, RM1,134. Penalty: 25%
-            of RM1,512 = RM378. Taken off the rental: RM756, which goes back to the customer&apos;s
-            credit if they had paid. The rental is now RM756.
+            of RM1,134 = RM283.50. Taken off the rental: RM850.50, which goes back to the
+            customer&apos;s credit if they had paid. The rental is now RM661.50. (Under an agreement
+            signed before 16 Nov 2026 the penalty is 25% of RM1,512 = RM378, so RM756 comes off.)
           </Note>
         </Section>
 
@@ -1756,7 +1784,7 @@ export default function UserManual() {
               ],
               [
                 'A customer asks for the terms and conditions before signing up',
-                'Send them rent2go.my/terms. It shows the same Terma & Syarat, damage table, deposit refund and cancellation penalty as the rental agreement they sign, and needs no account. The footer and every car page link to it too.',
+                'Send them rent2go.my/terms. It shows the same Terma & Syarat (in Malay and English), damage table, deposit refund and cancellation penalty as the rental agreement they sign, and needs no account. The footer and every car page link to it too. A signed agreement always shows the terms it was signed with: version 1 before 16 Nov 2026, version 2 after.',
               ],
               [
                 'A customer says they can’t book',
