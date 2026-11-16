@@ -12,6 +12,7 @@ import { RENTAL_CHANGES_SELECT, changeText, rentalChanges } from '../utils/rent'
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
 import { Printer, ArrowLeft } from 'lucide-react';
+import { BUBAT_NAME, BUBAT_SSM, isBubatFleet } from '../data/company';
 
 export default function Invoice() {
   const { id } = useParams();
@@ -119,7 +120,8 @@ export default function Invoice() {
     0
   );
   const invoiceNumber = `INV-${booking.id.slice(0, 8).toUpperCase()}`;
-  const companyName = fleet?.name || 'Bubat Resources';
+  const companyName = fleet?.name || BUBAT_NAME;
+  const bubatInvoice = fleet ? isBubatFleet(fleet) : !booking.fleet_group_id;
   const contactPhone = formatPhone(
     contact?.whatsapp || fleet?.support_whatsapp || fleet?.support_phone || '60194961568'
   );
@@ -151,11 +153,18 @@ export default function Invoice() {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8 pb-6 border-b-2 border-gray-200">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{companyName}</h1>
-              <p className="text-sm text-gray-500 mt-1">(201603369817) (PG0408963-K)</p>
-              <p className="text-xs text-gray-400 mt-1">A5-3 Villaria Kondominium</p>
-              <p className="text-xs text-gray-400">Jalan PJS 5/32, Taman Desaria</p>
-              <p className="text-xs text-gray-400">46000 Petaling Jaya, Selangor</p>
-              <p className="text-xs text-gray-400">Tel: {contactPhone}</p>
+              {/* Bubat Resources' registration and address; not on another fleet's invoices */}
+              {bubatInvoice && (
+                <>
+                  <p className="text-sm text-gray-500 mt-1">No. SSM: {BUBAT_SSM}</p>
+                  <p className="text-xs text-gray-400 mt-1">A5-3 Villaria Kondominium</p>
+                  <p className="text-xs text-gray-400">Jalan PJS 5/32, Taman Desaria</p>
+                  <p className="text-xs text-gray-400">46000 Petaling Jaya, Selangor</p>
+                </>
+              )}
+              <p className={`text-xs text-gray-400 ${bubatInvoice ? '' : 'mt-1'}`}>
+                Tel: {contactPhone}
+              </p>
             </div>
             <div className="text-left sm:text-right">
               <p className="text-3xl font-bold text-violet-600">INVOIS</p>

@@ -1500,9 +1500,11 @@ export default function UserManual() {
               <B>Print Receipt</B>. It also gives the car&apos;s WhatsApp contact for support.
             </li>
           </Bullets>
-          <Note tone="warn">
-            The company registration numbers and address on the invoice are fixed to BuBat
-            Resources. If another fleet joins, ask for the invoice to be updated first.
+          <Note tone="info">
+            BuBat Resources invoices show its SSM number (201603369817, PG0408963-K) and address.
+            Other fleets&apos; invoices (Bocah Trading) show only the fleet&apos;s name and phone
+            number. For a fleet&apos;s own registration number and address on its invoices, ask for
+            the invoice to be updated.
           </Note>
         </Section>
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
+import { BUBAT_NAME, BUBAT_SSM } from '../data/company';
 
 const LAST_UPDATED = '16 November 2026';
 const CONTACT_EMAIL = 'bubatresources@gmail.com';
@@ -106,7 +107,9 @@ export default function Privacy() {
         <section>
           <h2 className="text-lg font-semibold text-white mb-3">Contact us</h2>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Bubat Resources (Rent2Go)
+            {BUBAT_NAME} (Rent2Go)
+            <br />
+            SSM registration: {BUBAT_SSM}
             <br />
             Email:{' '}
             <a href={`mailto:${CONTACT_EMAIL}`} className="text-violet-400 hover:text-violet-300">

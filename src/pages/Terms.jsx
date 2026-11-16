@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import { AgreementTerms } from '../components/AgreementTerms';
+import { BUBAT_NAME, BUBAT_SSM } from '../data/company';
 
 const CONTACT_EMAIL = 'bubatresources@gmail.com';
 const CONTACT_PHONE = '+60 19-496 1568';
@@ -39,7 +40,9 @@ export default function Terms() {
       <div className="glass-card text-sm text-slate-300 leading-relaxed">
         <h2 className="text-lg font-semibold text-white mb-3">Pertanyaan / Questions</h2>
         <p>
-          Bubat Resources (Rent2Go)
+          {BUBAT_NAME} (Rent2Go)
+          <br />
+          No. SSM: {BUBAT_SSM}
           <br />
           WhatsApp:{' '}
           <a
