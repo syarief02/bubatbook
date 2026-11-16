@@ -8,11 +8,88 @@
 //
 // kind: 'new' (a new page or feature), 'improved', 'fixed', 'rule' (how
 // something works now), 'data' (prices, fleets, cars, photos).
+//
+// A long entry can add `details: [{ heading, items: [text], numbered }]` (a
+// text may hold line breaks), folded under `detailsLabel` until opened; its
+// `link` then shows inside, labelled `linkLabel`.
 
 export const CHANGELOG = [
   {
     date: '2026-11-17',
     items: [
+      {
+        kind: 'rule',
+        title: 'Bocah Trading: perubahan terma sewaan (Google Form → Terma Rent2Go Versi 3)',
+        text: 'Mulai 17 Nov 2026, semua sewaan melalui Rent2Go (Bocah Trading dan Bubat Resources) menggunakan satu set terma yang sama, dan penyewa menandatangani perjanjian di Rent2Go (dalam talian atau di kaunter), bukan lagi melalui Google Form. Kontrak yang sudah ditandatangani sebelum 17 Nov 2026 kekal dengan terma asalnya. Terma dalam Bahasa Melayu dan Bahasa Inggeris; jika berbeza, versi Bahasa Melayu terpakai. "Syarikat" ialah pemilik kenderaan dalam invois Rent2Go; invois Bocah Trading kini menunjukkan No. SSM 202003204563 (003146703-M) dan alamat Batu Caves. Nombor klausa di bawah merujuk kepada rent2go.my/terms.',
+        detailsLabel: 'Lihat perbezaan penuh daripada terma asal Bocah Trading',
+        link: '/terms',
+        linkLabel: 'Buka terma penuh (rent2go.my/terms)',
+        details: [
+          {
+            heading: 'A. Yang berubah (berbeza daripada terma asal Bocah Trading)',
+            numbered: true,
+            items: [
+              'Bayaran tempahan dan pembatalan (klausa 1 dan 4)\nDulu: Bayaran tempahan RM100, tidak dikembalikan jika batal kurang 3 hari sebelum tarikh sewa. Deposit keselamatan dibayar berasingan sebelum kunci diserahkan.\nSekarang: Tiada bayaran tempahan berasingan. Deposit dibayar semasa tempahan (atau selewat-lewatnya sebelum kunci diserahkan); ia mengesahkan tempahan dan dipegang sebagai deposit keselamatan. Batal 3 hari atau lebih sebelum tarikh ambil: deposit dikembalikan penuh (atau disimpan sebagai kredit). Batal kurang 3 hari sebelum: penalti 25% daripada jumlah sewa, ditolak daripada deposit.',
+              'Tukar tarikh (klausa 3)\nDulu: Boleh tukar ke tarikh dalam tempoh 1 bulan dengan notis 3 hari; jika tarikh baharu tidak ditetapkan, RM100 luput.\nSekarang: Sama (notis 3 hari, ke tarikh dalam tempoh 1 bulan, tanpa caj). Jika tarikh baharu tidak ditetapkan dalam tempoh itu, dikira batal kurang 3 hari (penalti 25%).',
+              'Pemulangan deposit (klausa 7)\nDulu: Dalam 3 hingga 7 hari bekerja selepas tamat sewa.\nSekarang: Dalam 7 hari bekerja, atau disimpan sebagai kredit jika penyewa mahu. Boleh ditahan sehingga kos kerosakan diketahui atau tuntutan insurans selesai.',
+              'Caj lewat pulang (klausa 17)\nDulu: RM20 sejam untuk semua kenderaan.\nSekarang: Ikut saiz enjin: RM10 sejam (bawah 1300cc), RM15 sejam (1300cc hingga 1699cc, contoh Gran Max 1.5), RM20 sejam (1700cc ke atas). Lewat lebih 5 jam dikira sewa sehari penuh.\nBaharu: jika kenderaan tidak dipulangkan dan penyewa tidak dapat dihubungi lebih 24 jam selepas masa pemulangan, syarikat boleh mengambil semula kenderaan dan membuat laporan polis.',
+              'Tanggungan kerosakan (klausa 23 hingga 25)\nDulu: Penyewa tanggung semua kos jika kemalangan berpunca daripada kecuaian. Sewa bulanan: RM500 lebihan / kos tuntutan insurans. Kehilangan atau total loss akibat kecuaian: baki pampasan insurans, kos pentadbiran, tunda dan kerugian pendapatan.\nSekarang: Penyewa membayar kos sebenar (pembaikan yang tidak dibayar insurans, lebihan insurans dan kos tuntutan, NCD yang hilang, sewa yang hilang semasa kenderaan di bengkel), sehingga had maksimum dalam jadual mengikut cc. Contoh Gran Max (1300cc hingga 1499cc): maksimum RM3,500 (bengkel 1 hingga 7 hari), RM4,500 (bengkel lebih 7 hari), RM1,000 (kerosakan kecil).\nKecurian atau hapus kira: amaun "Bengkel lebih 7 hari", dengan syarat laporan polis dibuat dalam 24 jam dan semua kunci dipulangkan.\nTiada had (kos penuh, termasuk tunda, kos pentadbiran dan sewa yang hilang) jika: pemandu tidak diluluskan atau tiada lesen atau GDL yang sah; pemandu di bawah pengaruh alkohol atau dadah; pemanduan berbahaya atau kesalahan jalan raya yang serius; penggunaan yang dilarang, atau keluar dari Semenanjung tanpa kebenaran; kunci ditinggalkan dalam kenderaan atau kenderaan tidak dikunci; laporan polis tidak dibuat dalam 24 jam; atau insurans menolak tuntutan kerana kesalahan penyewa.\nCaj tetap RM500 dibuang; diganti dengan lebihan dan kos tuntutan sebenar.',
+              'Tamat awal sewa bulanan (klausa 6)\nDulu: Seluruh deposit keselamatan dilucutkan.\nSekarang: Penalti 25% daripada sewa bagi hari yang tidak digunakan; baki sewa hari tersebut dikembalikan (atau disimpan sebagai kredit). Peraturan yang sama untuk semua sewaan.',
+              'Penamatan kerana pelanggaran terma (klausa 27)\nDulu: Syarikat menamatkan perjanjian serta-merta; semua bayaran pendahuluan atau deposit dilucutkan.\nSekarang: Syarikat boleh menamatkan perjanjian serta-merta dan mengambil semula kenderaan (contoh: menyewakan semula kenderaan, penggunaan yang dilarang, pemandu tidak diluluskan, sewa bulanan lewat lebih 7 hari). Penyewa membayar sewa sehingga tarikh itu, caj dan kerosakan, serta penalti 25% daripada sewa hari yang tidak digunakan; jumlah ini boleh ditolak daripada deposit dan sewa yang telah dibayar.',
+              'Kerosakan kenderaan sendiri (klausa 21)\nDulu: Kenderaan gantian dalam 24 jam; jika tiada, kontrak dilanjutkan secara automatik tanpa caj.\nSekarang: Kenderaan gantian yang setara dalam 24 jam jika ada. Jika tiada, penyewa memilih: sewa hari yang terjejas dikembalikan, atau sewa dilanjutkan tanpa caj. Jangan baiki sendiri tanpa kebenaran syarikat; kos yang diluluskan dibayar balik dengan resit.',
+              'Pemeriksaan semasa serahan (klausa 14)\nDulu: Penyewa "disarankan" mengambil gambar kenderaan.\nSekarang: Periksa bersama syarikat dan rekod (gambar atau video) kerosakan sedia ada, paras minyak dan bacaan odometer. Kerosakan baharu yang tidak direkod semasa serahan dianggap berlaku dalam tempoh sewa. Pemeriksaan bersama semasa pemulangan dikekalkan.',
+              'Kawasan pemanduan (klausa 13)\nDulu: Semenanjung Malaysia sahaja.\nSekarang: Semenanjung Malaysia sahaja, tetapi Singapura, Thailand, Sabah atau Sarawak dibenarkan dengan kebenaran bertulis syarikat.',
+              'Tandatangan dan keseluruhan perjanjian (klausa 30)\nDulu: Hantar Google Form / tanda kotak persetujuan; borang itu ialah keseluruhan perjanjian.\nSekarang: Tandatangan dan kotak persetujuan di Rent2Go (dalam talian atau di kaunter), sah di bawah Akta Perdagangan Elektronik 2006. Perjanjian ini, bersama tempahan dan invois Rent2Go, ialah keseluruhan perjanjian dan menggantikan borang sewa terdahulu bagi sewaan tersebut.',
+              'Perubahan perjanjian (klausa 29)\nDulu: Mesti bertulis dan ditandatangani oleh kedua-dua pihak.\nSekarang: Mesti bertulis, termasuk perubahan tarikh, harga atau kenderaan yang direkod di Rent2Go atau dipersetujui melalui WhatsApp atau e-mel.',
+            ],
+          },
+          {
+            heading: 'B. Yang ditambah (tiada dalam terma asal)',
+            items: [
+              'Sewa bulanan dibayar terlebih dahulu setiap bulan pada tarikh yang dipersetujui (klausa 2).',
+              'Jika syarikat membatalkan tempahan: semua bayaran dikembalikan penuh, atau kenderaan lain disediakan jika penyewa bersetuju (klausa 8).',
+              'Penyewa bertanggungjawab atas setiap pemandu (klausa 11).',
+              'Larangan yang disebut dengan jelas: pengedaran dadah, perlumbaan, perjudian, menarik kenderaan lain, dan e-hailing penumpang (Grab dan sebagainya) tanpa kebenaran bertulis. Penghantaran barang dengan van panel (cth. Lalamove) dibenarkan dengan GDL yang sah (klausa 12).',
+              "Saman dan kompaun yang diterima selepas kenderaan dipulangkan atau deposit dikembalikan tetap ditanggung penyewa. Syarikat boleh memberi butiran penyewa kepada PDRM, JPJ, pihak berkuasa tempatan atau syarikat tol untuk memindahkan saman. Tol daripada kad Touch 'n Go / RFID kenderaan termasuk (klausa 16).",
+              'GPS: kenderaan mungkin dipasang GPS; lokasi boleh dipantau untuk keselamatan, mendapatkan semula kenderaan dan menyiasat kemalangan atau saman (klausa 18).',
+              'Sewa panjang: bawa kenderaan untuk servis apabila diminta (klausa 19).',
+              'Lampu amaran: berhenti dengan selamat dan hubungi syarikat; kerosakan akibat terus memandu ditanggung penyewa (klausa 20).',
+              'Selepas kemalangan: ambil gambar kenderaan, tempat kejadian dan butiran pihak lain; jangan baiki atau tunda kenderaan tanpa kebenaran syarikat (klausa 26).',
+              'Salinan dokumen kenderaan juga boleh dilihat di My Bookings di Rent2Go (klausa 9).',
+              'Terma dalam dua bahasa (BM dan BI); versi BM terpakai.',
+            ],
+          },
+          {
+            heading: 'C. Yang dikekalkan daripada terma Bocah Trading',
+            items: [
+              'Sewa penuh dibayar selewat-lewatnya semasa mengambil kenderaan.',
+              'Lanjutan sewa dimaklumkan sekurang-kurangnya 24 jam sebelum tamat sewa, tertakluk kepada kekosongan.',
+              'Caj pembersihan RM30 (kini juga untuk kenderaan Bubat Resources).',
+              'Pulangkan kenderaan dengan paras minyak yang sama.',
+              'Syarikat memastikan cukai jalan, insurans dan Puspakom sah; kenderaan diserahkan bersih, selamat dan berfungsi.',
+              'Dokumen asal: MyKad atau pasport, lesen Kelas D, GDL Kelas D; sewaan atas nama syarikat: dokumen SSM dan surat lantikan pemandu. Dokumen disimpan sulit (kini mengikut Dasar Privasi Rent2Go).',
+              'Hanya pemandu yang diluluskan; tukar atau tambah pemandu dengan kelulusan dahulu. Kenderaan tidak boleh disewakan semula, dipinjamkan atau diserahkan kepada orang lain.',
+              'Patuhi Akta Pengangkutan Jalan 1987, had laju dan had muatan; dilarang memandu di bawah pengaruh alkohol atau dadah, membawa barang berbahaya, mudah terbakar atau beracun, dan muatan berlebihan.',
+              'Penyewa menanggung minyak, tol, parking, saman dan kompaun.',
+              'Syarikat menanggung servis berkala dan kerosakan akibat haus dan lusuh; servis dan pembaikan di bengkel syarikat atau dengan kelulusan syarikat.',
+              'Pemeriksaan berkala oleh penyewa: air dan kipas radiator, minyak enjin, tekanan dan keadaan tayar.',
+              'Kemalangan: maklumkan dalam 12 jam, laporan polis dalam 24 jam, jangan mengaku salah atau berunding dengan pihak ketiga.',
+              'Deposit boleh ditahan sementara tuntutan insurans belum selesai.',
+              'Jika syarikat bersalah (kenderaan tidak layak jalan, dokumen tidak sah, atau mengambil balik kenderaan tanpa kesalahan penyewa): deposit dan baki sewa dikembalikan penuh tanpa potongan.',
+              'Pertikaian: rundingan dalam 14 hari, kemudian pengantara (mediator); undang-undang Malaysia (Akta Kontrak 1950, Akta Pengangkutan Jalan 1987); terma lain kekal jika satu terma tidak sah.',
+            ],
+          },
+          {
+            heading: 'D. Yang dibuang',
+            items: [
+              'Bayaran tempahan RM100 yang tidak dikembalikan (diganti dengan peraturan deposit, A1).',
+              'Caj tetap RM500 untuk tuntutan insurans sewa bulanan (diganti dengan kos sebenar, A5).',
+              'Lucut seluruh deposit jika sewa bulanan ditamatkan awal (diganti dengan penalti 25% hari yang tidak digunakan, A6).',
+              'Lucut semua bayaran jika melanggar terma (diganti dengan bayar jumlah terhutang dan penalti 25%, A7).',
+            ],
+          },
+        ],
+      },
       {
         kind: 'improved',
         title: 'Rental terms easier to read: one language at a time',

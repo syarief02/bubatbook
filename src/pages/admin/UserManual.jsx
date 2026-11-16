@@ -1802,6 +1802,10 @@ export default function UserManual() {
                 'Send them rent2go.my/terms. It shows the same Terma & Syarat (Malay, with a switch to English at the top), damage table, deposit refund and cancellation penalty as the rental agreement they sign, and needs no account. The footer and every car page link to it too. The terms are the same for every fleet (BuBat Resources and Bocah Trading) from 17 Nov 2026. A signed agreement always shows the terms it was signed with: version 1 before 16 Nov 2026, version 2 on 16 Nov, version 3 from 17 Nov.',
               ],
               [
+                'Bocah Trading asks what changed from its old terms',
+                'What’s New, 17 Nov 2026, “Bocah Trading: perubahan terma sewaan”: open “Lihat perbezaan penuh” for the full list, in Malay, of what changed, what was added, what was kept and what was dropped from Bocah Trading’s Google Form contract, with the clause numbers of rent2go.my/terms.',
+              ],
+              [
                 'A customer says they can’t book',
                 'Check they are verified and their licence hasn’t expired (Customers). A panel van (commercial vehicle) also needs a GDL valid until the return date. Bookings must start today or later and end within 6 months.',
               ],

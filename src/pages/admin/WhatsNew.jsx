@@ -14,6 +14,41 @@ const KINDS = {
   data: { label: 'Prices & cars', cls: 'bg-white/5 text-slate-300 border-white/10' },
 };
 
+// A long entry's full list (details: [{ heading, items }]), folded until opened
+function Details({ item }) {
+  return (
+    <details className="mt-2 group">
+      <summary className="text-xs text-violet-400 cursor-pointer select-none hover:text-violet-300">
+        {item.detailsLabel || 'Show the details'}
+      </summary>
+      <div className="mt-3 space-y-4">
+        {item.details.map((part) => {
+          const List = part.numbered ? 'ol' : 'ul';
+          return (
+            <div key={part.heading}>
+              <p className="text-xs font-semibold text-slate-300 mb-1">{part.heading}</p>
+              <List
+                className={`${part.numbered ? 'list-decimal' : 'list-disc'} pl-5 space-y-2 text-xs text-slate-400`}
+              >
+                {part.items.map((line) => (
+                  <li key={line} className="whitespace-pre-line">
+                    {line}
+                  </li>
+                ))}
+              </List>
+            </div>
+          );
+        })}
+        {item.link && (
+          <Link to={item.link} className="inline-block text-xs text-violet-400 hover:underline">
+            {item.linkLabel || 'Open'}
+          </Link>
+        )}
+      </div>
+    </details>
+  );
+}
+
 export default function WhatsNew() {
   // Opening the page clears the dot in the menu
   useEffect(() => {
@@ -50,11 +85,15 @@ export default function WhatsNew() {
                         {item.title}
                       </p>
                       <p className="text-xs text-slate-400 mt-1">{item.text}</p>
+                      {item.details && <Details item={item} />}
                     </div>
-                    {item.link && <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />}
+                    {item.link && !item.details && (
+                      <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                    )}
                   </>
                 );
-                return item.link ? (
+                // An entry with details opens them in place; its link is inside
+                return item.link && !item.details ? (
                   <Link
                     key={item.title}
                     to={item.link}
