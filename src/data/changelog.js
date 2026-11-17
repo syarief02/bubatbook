@@ -19,6 +19,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'improved',
+        title: 'Rental terms: swipe between parts',
+        text: 'Asked by Bocah Trading. On rent2go.my/terms and in the agreement renters sign, each part (A to G) is now a slide: swipe left or right, tap a letter at the top, or use Next at the bottom of a part. A part opens at its top. Printing a signed agreement still prints every part, one after another.',
+        link: '/terms',
+      },
+      {
+        kind: 'improved',
         title: 'Rental terms neater: bold key points, shorter sentences',
         text: 'Asked by Bocah Trading. On rent2go.my/terms and in the agreement renters sign, each part (A to G) has a letter badge, each clause a number badge and a bold title, and the amounts and time limits (25%, 3 days, 24 hours, RM30, late fees) are in bold. Long sentences are shorter. The rules, amounts and clause numbers haven’t changed.',
         link: '/terms',

@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { TERMS_V3_DATE } from '../utils/terms';
 
 // Version 3 of the rental terms, from 17 Nov 2026: one set for every fleet
 // (BuBat Resources and Bocah Trading). Shown in one language at a time, Malay
-// first; the Malay text applies if the two differ. Each clause has a short
-// title, a text, and optionally a list and a closing text; **text** is shown
-// in bold. Clauses are numbered straight through; the cross-references
-// (clauses 4, 12, 13) follow that numbering. The wording was tightened on 17
-// Nov 2026 before anyone had signed it. Now that renters sign it: don't change
-// the wording, add a new version instead (see AgreementTerms.jsx).
+// first; the Malay text applies if the two differ. The parts A–G are slides
+// (swipe sideways, asked by Bocah Trading); printed, they follow each other.
+// Each clause has a short title, a text, and optionally a list and a closing
+// text; **text** is shown in bold. Clauses are numbered straight through; the
+// cross-references (clauses 4, 12, 13) follow that numbering. The wording was
+// tightened on 17 Nov 2026 before anyone had signed it. Now that renters sign
+// it: don't change the wording, add a new version instead (see
+// AgreementTerms.jsx).
 
 const INTRO = {
   ms: {
@@ -630,9 +633,62 @@ function ClauseBody({ clause, lang }) {
   );
 }
 
+// The slides' buttons and hint
+const NAV = {
+  ms: {
+    hint: 'Leret ke kiri atau kanan, atau tekan huruf, untuk ke bahagian lain.',
+    parts: 'Bahagian',
+    prev: 'Sebelum',
+    next: 'Seterusnya',
+    end: 'Tamat terma',
+  },
+  en: {
+    hint: 'Swipe left or right, or tap a letter, for the other parts.',
+    parts: 'Parts',
+    prev: 'Back',
+    next: 'Next',
+    end: 'End of the terms',
+  },
+};
+
 export default function TermsV3() {
   const [lang, setLang] = useState('ms');
+  const [active, setActive] = useState(0);
+  const [height, setHeight] = useState(null);
+  const topRef = useRef(null);
+  const trackRef = useRef(null);
+  const slideRefs = useRef([]);
   const intro = INTRO[lang];
+  const nav = NAV[lang];
+
+  // The slides are as tall as the part in view, so a short part leaves no gap
+  useEffect(() => {
+    const slide = slideRefs.current[active];
+    if (!slide) return undefined;
+    const observer = new ResizeObserver(() => setHeight(slide.offsetHeight));
+    observer.observe(slide);
+    return () => observer.disconnect();
+  }, [active]);
+
+  // A new part is read from its top
+  useEffect(() => {
+    const top = topRef.current;
+    if (top && top.getBoundingClientRect().top < 0) {
+      top.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [active]);
+
+  // The part in view, once a swipe has settled on it
+  function onScroll() {
+    const track = trackRef.current;
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    if (i !== active && Math.abs(track.scrollLeft - i * track.clientWidth) < 2) setActive(i);
+  }
+
+  function goTo(i) {
+    const track = trackRef.current;
+    track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' });
+  }
 
   return (
     <>
@@ -704,28 +760,100 @@ export default function TermsV3() {
         <p className="mt-3 text-xs text-slate-500">{intro.language}</p>
       </div>
 
-      {SECTIONS.map((section, s) => (
-        <section key={section.letter} className="glass-card mb-6">
-          <h2 className="flex items-center gap-3 mb-4">
-            <span className="w-9 h-9 shrink-0 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 font-bold flex items-center justify-center">
-              {section.letter}
-            </span>
-            <span className="text-lg font-bold text-white leading-snug">{section.title[lang]}</span>
-          </h2>
-          <ol className="divide-y divide-white/5">
-            {section.clauses.map((clause, i) => (
-              <li key={clause.ms.title} className="flex gap-3 py-4 first:pt-0 last:pb-0">
-                <span className="shrink-0 min-w-7 h-7 px-1.5 rounded-lg bg-white/5 text-xs font-bold text-slate-300 tabular-nums flex items-center justify-center">
-                  {SECTION_STARTS[s] + i}
-                </span>
-                <div className="min-w-0 flex-1 text-sm text-slate-300 leading-relaxed">
-                  <ClauseBody clause={clause} lang={lang} />
-                </div>
-              </li>
+      {/* One part (A–G) per slide: swipe, tap a letter or use the buttons. Printed, all parts follow each other. */}
+      <div ref={topRef} className="scroll-mt-20 mb-3 print:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex gap-1.5" role="group" aria-label={nav.parts}>
+            {SECTIONS.map((section, i) => (
+              <button
+                key={section.letter}
+                type="button"
+                onClick={() => goTo(i)}
+                aria-pressed={i === active}
+                aria-label={`${section.letter}. ${section.title[lang]}`}
+                className={`w-9 h-9 shrink-0 rounded-xl border text-sm font-bold transition-colors ${
+                  i === active
+                    ? 'bg-violet-500 border-violet-500 text-white'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                }`}
+              >
+                {section.letter}
+              </button>
             ))}
-          </ol>
-        </section>
-      ))}
+          </div>
+          <span className="text-xs text-slate-500 tabular-nums">
+            {active + 1}/{SECTIONS.length}
+          </span>
+        </div>
+        <p className="text-xs text-slate-500 mt-2">{nav.hint}</p>
+      </div>
+
+      <div
+        ref={trackRef}
+        onScroll={onScroll}
+        style={height ? { height } : undefined}
+        className="flex items-start overflow-x-auto overflow-y-hidden snap-x snap-mandatory overscroll-x-contain transition-[height] duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden print:block print:!h-auto print:overflow-visible"
+      >
+        {SECTIONS.map((section, s) => (
+          <section
+            key={section.letter}
+            ref={(el) => {
+              slideRefs.current[s] = el;
+            }}
+            className="w-full shrink-0 snap-start snap-always print:w-auto"
+          >
+            <div className="glass-card mb-6">
+              <h2 className="flex items-center gap-3 mb-4">
+                <span className="w-9 h-9 shrink-0 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 font-bold flex items-center justify-center">
+                  {section.letter}
+                </span>
+                <span className="text-lg font-bold text-white leading-snug">
+                  {section.title[lang]}
+                </span>
+              </h2>
+              <ol className="divide-y divide-white/5">
+                {section.clauses.map((clause, i) => (
+                  <li key={clause.ms.title} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+                    <span className="shrink-0 min-w-7 h-7 px-1.5 rounded-lg bg-white/5 text-xs font-bold text-slate-300 tabular-nums flex items-center justify-center">
+                      {SECTION_STARTS[s] + i}
+                    </span>
+                    <div className="min-w-0 flex-1 text-sm text-slate-300 leading-relaxed">
+                      <ClauseBody clause={clause} lang={lang} />
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="mt-5 pt-4 border-t border-white/10 flex items-center gap-3 print:hidden">
+                {s > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => goTo(s - 1)}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white/5 text-xs text-slate-300 hover:text-white transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    {nav.prev}
+                  </button>
+                )}
+                {s < SECTIONS.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => goTo(s + 1)}
+                    className="ml-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500 hover:bg-violet-600 text-xs font-medium text-white text-left transition-colors"
+                  >
+                    <span>
+                      {nav.next}: {SECTIONS[s + 1].letter}. {SECTIONS[s + 1].title[lang]}
+                    </span>
+                    <ChevronRight className="w-4 h-4 shrink-0" />
+                  </button>
+                ) : (
+                  <span className="ml-auto text-xs text-slate-500">{nav.end}</span>
+                )}
+              </div>
+            </div>
+          </section>
+        ))}
+      </div>
     </>
   );
 }
