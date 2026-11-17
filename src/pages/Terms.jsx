@@ -18,21 +18,19 @@ export default function Terms() {
         </div>
         <h1 className="text-3xl font-bold text-white">Terma & Syarat Sewaan</h1>
       </div>
-      <p className="text-sm text-slate-500 mb-6">Rental Terms & Conditions · Rent2Go</p>
+      <p className="text-sm text-slate-500 mb-4">Rental Terms & Conditions · Rent2Go</p>
 
-      <div className="glass-card mb-6 text-sm text-slate-300 leading-relaxed space-y-2">
-        <p>
-          Ini terma dalam perjanjian sewaan yang ditandatangani oleh setiap penyewa sebelum
-          mengambil kenderaan, sama bagi semua kenderaan di Rent2Go. Sewa dan deposit untuk tarikh
-          anda ditunjukkan semasa membuat tempahan. Saiz enjin (cc) setiap kenderaan ada di halaman
-          kenderaan itu. Perjanjian yang sudah ditandatangani kekal dengan terma semasa ia
-          ditandatangani (lihat My Bookings).
+      <div className="text-sm leading-relaxed space-y-2 mb-6 pl-4 border-l-2 border-violet-500/40">
+        <p className="text-slate-300">
+          Terma perjanjian yang ditandatangani <b className="text-white">setiap penyewa</b> sebelum
+          mengambil kenderaan, sama bagi semua kenderaan di Rent2Go. Saiz enjin (cc) ada di halaman
+          setiap kenderaan. Perjanjian yang sudah ditandatangani kekal dengan terma asalnya (lihat
+          My Bookings).
         </p>
-        <p className="text-slate-400">
-          These are the terms of the rental agreement every renter signs before pick-up, the same
-          for every vehicle on Rent2Go. The rent and deposit for your dates are shown when you book.
-          Each vehicle&apos;s engine size (cc) is on its car page. An agreement already signed keeps
-          the terms it was signed with (see My Bookings).
+        <p className="text-slate-500">
+          The agreement every renter signs before pick-up, the same for every vehicle on Rent2Go.
+          Each vehicle&apos;s engine size (cc) is on its car page. A signed agreement keeps the
+          terms it was signed with (see My Bookings).
         </p>
       </div>
 

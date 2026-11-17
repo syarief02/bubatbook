@@ -19,6 +19,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'improved',
+        title: 'Rental terms neater: bold key points, shorter sentences',
+        text: 'Asked by Bocah Trading. On rent2go.my/terms and in the agreement renters sign, each part (A to G) has a letter badge, each clause a number badge and a bold title, and the amounts and time limits (25%, 3 days, 24 hours, RM30, late fees) are in bold. Long sentences are shorter. The rules, amounts and clause numbers haven’t changed.',
+        link: '/terms',
+      },
+      {
+        kind: 'improved',
         title: 'Customer’s bank account on the booking page',
         text: 'Under Customer, a booking now shows the customer’s bank, account number (with a Copy button) and account holder, so you can refund a deposit without looking them up. Open in Customers takes you straight to that customer, already opened, for their credit, documents and Deduct Credit. A counter booking without an account says to refund by hand; a customer without bank details says to add them in Customers.',
         link: '/admin/bookings',
