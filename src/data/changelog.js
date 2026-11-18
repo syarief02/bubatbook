@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'new',
+        title: 'Customers can WhatsApp you after sending their documents',
+        text: 'On “Verification Pending” (new customers) and “Update Under Review” (a new licence, GDL or IC), a green “WhatsApp us to verify faster” button opens WhatsApp to 019-496 1568 with a message giving their name, phone and email. Find them in Customers (Customers to Verify) and verify them.',
+        link: '/admin/customers?verification=pending',
+      },
+      {
         kind: 'data',
         title: 'Bocah Trading: 7 more vehicles',
         text: 'Added from Bocah Trading’s Drive, with photos and their road tax, insurance and Puspakom in Car Documents. Open for booking: Perodua Bezza 1.0 G 2025 (RBC 9682, RM120/day, RM672 for 7 days, RM1,800 for 30 days) and Nissan NV200 2014 (WA 3301 U, RM180/day, RM945 for 7 days, RM2,484 for 30 days). Hidden until their documents are renewed and recorded: Gran Max VNH 3681 (2023, automatic) and WXM 2302, NV200 WXN 5736, BPA 3919 and WYX 6643. Their road tax had run out (and some insurance or Puspakom); Car Documents lists what each needs. Customers WhatsApp Bocah Trading’s fleet number about them.',

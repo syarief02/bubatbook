@@ -6,6 +6,8 @@ export const BUBAT_NAME = 'Bubat Resources';
 export const BUBAT_SSM = '201603369817 (PG0408963-K)';
 export const BOCAH_NAME = 'Bocah Trading';
 export const BOCAH_SSM = '202003204563 (003146703-M)';
+// Rent2Go's main WhatsApp (Bubat Resources), for messages not about one car
+export const RENT2GO_WHATSAPP = '60194961568';
 
 const COMPANIES = [
   {

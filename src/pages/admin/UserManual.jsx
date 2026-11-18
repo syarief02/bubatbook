@@ -648,7 +648,11 @@ export default function UserManual() {
               of their IC (MyKad) and driving licence, and gives their address and bank account
               (bank, account number, holder name; deposits are refunded there). Their GDL (expiry
               date and photo) is optional: it&apos;s needed only for commercial vehicles (below).
-              They then see &quot;Verification Pending&quot;.
+              They then see &quot;Verification Pending&quot;, with a{' '}
+              <B>WhatsApp us to verify faster</B> button: it opens WhatsApp to 019-496 1568 with a
+              message giving their name, phone and email, so you can find them in Customers and
+              verify them. A verified customer who sends a new licence, GDL or IC sees the same
+              button on &quot;Update Under Review&quot;.
             </li>
             <li>
               After you verify them they can book. An expired licence stops new bookings until they

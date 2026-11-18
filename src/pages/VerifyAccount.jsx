@@ -8,6 +8,8 @@ import { normalizePhone } from '../utils/phoneUtils';
 import { friendlyDbError } from '../utils/dbErrors';
 import { formatDate, formatDateTime } from '../utils/dates';
 import { bankDetailsError, bankForSave, bankFromProfile, hasBankDetails } from '../utils/banks';
+import { formatPhone } from '../utils/format';
+import { RENT2GO_WHATSAPP } from '../data/company';
 import BankDetailsFields from '../components/BankDetailsFields';
 import {
   FileCheck,
@@ -23,7 +25,34 @@ import {
   MapPin,
   Landmark,
   Truck,
+  MessageCircle,
 } from 'lucide-react';
+
+// While their documents wait for a check, the customer can WhatsApp the team
+// a ready-made message with their name and number, so it's checked sooner.
+function WhatsAppToVerify({ profile, user, isUpdate }) {
+  const name = profile?.display_name || user?.user_metadata?.full_name || '';
+  const lines = [
+    isUpdate
+      ? "Hi, I've sent my new licence / GDL / IC on Rent2Go for checking."
+      : "Hi, I've submitted my documents for account verification on Rent2Go.",
+    name && `Name: ${name}`,
+    profile?.phone && `Phone: ${formatPhone(profile.phone)}`,
+    user?.email && `Email: ${user.email}`,
+    'Please verify my account. Thank you!',
+  ].filter(Boolean);
+  return (
+    <a
+      href={`https://wa.me/${RENT2GO_WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1fb257] text-white text-sm font-medium transition-colors"
+    >
+      <MessageCircle className="w-4 h-4" />
+      WhatsApp us to verify faster
+    </a>
+  );
+}
 
 export default function VerifyAccount() {
   const { user, profile, isVerified, refreshProfile } = useAuth();
@@ -314,9 +343,12 @@ export default function VerifyAccount() {
               ? "You can book again once it's approved."
               : 'Your current verification stays valid meanwhile.'}
           </p>
-          <Link to="/" className="btn-secondary inline-flex items-center gap-2">
-            Back to Home
-          </Link>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <WhatsAppToVerify profile={profile} user={user} isUpdate />
+            <Link to="/" className="btn-secondary inline-flex items-center gap-2">
+              Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -428,9 +460,12 @@ export default function VerifyAccount() {
               </Link>
             </p>
           )}
-          <Link to="/" className="btn-secondary inline-flex items-center gap-2">
-            Back to Home
-          </Link>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <WhatsAppToVerify profile={profile} user={user} />
+            <Link to="/" className="btn-secondary inline-flex items-center gap-2">
+              Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     );
