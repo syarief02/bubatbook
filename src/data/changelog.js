@@ -15,6 +15,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-19',
+    items: [
+      {
+        kind: 'data',
+        title: 'Bocah Trading: 7 more vehicles',
+        text: 'Added from Bocah Trading’s Drive, with photos and their road tax, insurance and Puspakom in Car Documents. Open for booking: Perodua Bezza 1.0 G 2025 (RBC 9682, RM120/day, RM672 for 7 days, RM1,800 for 30 days) and Nissan NV200 2014 (WA 3301 U, RM180/day, RM945 for 7 days, RM2,484 for 30 days). Hidden until their documents are renewed and recorded: Gran Max VNH 3681 (2023, automatic) and WXM 2302, NV200 WXN 5736, BPA 3919 and WYX 6643. Their road tax had run out (and some insurance or Puspakom); Car Documents lists what each needs. Customers WhatsApp Bocah Trading’s fleet number about them.',
+        link: '/admin/car-documents',
+      },
+    ],
+  },
+  {
     date: '2026-11-18',
     items: [
       {

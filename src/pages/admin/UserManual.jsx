@@ -471,7 +471,9 @@ export default function UserManual() {
               pick someone else. Each person saves their own number in Fleet Settings; until they
               do, or if you choose <B>Fleet number</B>, customers get the fleet&apos;s WhatsApp
               number. The car list shows each car&apos;s contact. The invoice and receipt print this
-              number too.
+              number too. Each car has one contact: to have a second person answer, they need their
+              own Rent2Go account in the fleet, then pick them on the cars they look after. Bocah
+              Trading&apos;s vehicles from its Drive (added 19 Nov 2026) use the fleet number.
             </li>
             <li>
               <B>Features</B>: separated by commas, e.g. &quot;Bluetooth, Rear Camera&quot;. Put the
