@@ -19,8 +19,8 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
-        title: 'BuBat Resources: new weekly and monthly prices',
-        text: 'Long rentals are cheaper, close to what renters pay elsewhere in the Klang Valley, so more cars can go out by the month. Alza RM180/day, RM1,008 for 7 days, RM2,700 for 30 days. Veloz RM200/day, RM1,120 for 7 days, RM3,300 for 30 days. Vellfire RM400/day, RM2,240 for 7 days, RM6,000 for 30 days. NV200 VEY 3516 RM180/day (was RM220), RM945 for 7 days, RM2,484 for 30 days. Bookings already made keep their price. Bocah Trading’s cars are unchanged.',
+        title: 'New weekly and monthly prices for every vehicle',
+        text: 'Long rentals are cheaper, close to what renters pay elsewhere in the Klang Valley, so more vehicles can go out by the month. Alza RM180/day, RM1,008 for 7 days, RM2,700 for 30 days. Veloz RM200/day, RM1,120 for 7 days, RM3,300 for 30 days. Vellfire RM400/day, RM2,240 for 7 days, RM6,000 for 30 days. Ranger RM380/day, RM2,128 for 7 days, RM5,700 for 30 days. Panel vans (NV200 VEY 3516, Gran Max VEY 3830) RM180/day (was RM220), RM945 for 7 days, RM2,484 for 30 days; the vans not open for booking have the same rates for when they return. Bookings already made keep their price.',
         link: '/admin/cars',
       },
     ],

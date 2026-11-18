@@ -487,11 +487,12 @@ export default function UserManual() {
               Rental total = number of days × Price/Day, less the car&apos;s long-rental discount
               for 7 days or more or for 30 days or more: the car&apos;s own (its{' '}
               <B>Long-term bookings</B>), else its fleet&apos;s (Fleet Settings, section 13; BuBat
-              Resources 10% and 40%, Bocah Trading 20% and 25%). Since 18 Nov 2026 each BuBat car
-              open for booking has its own discounts (Alza and Vellfire 20% and 50%, Veloz 20% and
-              45%, NV200 VEY 3516 25% and 54%). A car with long-term bookings off has no discount.
-              Because of the bigger discount, 30 days can cost less than 29: at RM140/day with 10%
-              and 40%, 29 days are RM3,654 and 30 days RM2,520.
+              Resources 10% and 40%, Bocah Trading 20% and 25%). Since 18 Nov 2026 every vehicle has
+              its own discounts, so the fleet&apos;s are used only for a car added with blank boxes
+              (Alza, Vellfire and Ranger 20% and 50%, Veloz 20% and 45%, panel vans 25% and 54%). A
+              car with long-term bookings off has no discount. Because of the bigger discount, 30
+              days can cost less than 29: at RM140/day with 10% and 40%, 29 days are RM3,654 and 30
+              days RM2,520.
             </li>
             <li>
               Deposit = 30% of the rental total, rounded up to the ringgit, at least RM100. The
