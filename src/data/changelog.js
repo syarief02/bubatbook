@@ -19,6 +19,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
+        title: 'New prices: panel vans, Vellfire and Ranger',
+        text: 'After comparing with other rental companies in KL and Selangor:\n• Panel vans (all Gran Max and NV200): RM200 a day (was RM180), RM1,050 for 7 days, RM2,790 for 30 days. Other companies charge RM250–350 a day for the same vans.\n• Vellfire VJC 5290: RM450 a day (was RM400), RM2,520 for 7 days, RM6,075 for 30 days.\n• Ranger VDM 6927: still RM380 a day; RM2,261 for 7 days and RM4,560 for 30 days, so a company renting by the month gets a fair price.\nAlza and Veloz are unchanged. Customers already quoted a price on WhatsApp or Facebook keep it: book them at the Counter with Change price.',
+        link: '/cars',
+      },
+      {
+        kind: 'data',
         title: 'Bezza RBC 9682: new price RM130 a day',
         text: 'The Perodua Bezza 1.0 G 2025 (RBC 9682, Bocah Trading) is now RM130 a day, RM728 for 7 days and RM1,950 for 30 days (was RM120, RM672 and RM1,800). It is still cheaper than other Bezza rentals in KL and Selangor, and it is a newer car. Its Facebook ad shows the same price.',
         link: '/cars/rbc9682',
