@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'data',
+        title: 'Car documents from Drive: two Bocah vans open, Veloz insurance renewed',
+        text: 'New renewals from the Drive are in Car Documents with their photos:\n• NV200 WXN 5736: road tax and Puspakom to 23 Apr 2027 (insurance to 26 Oct 2027).\n• NV200 WYX 6643: road tax to 1 Feb 2027, Puspakom to 12 Mar 2027 (insurance to 1 Feb 2027).\nBoth vans now have every document valid, so they are open for booking at Bocah Trading’s package prices.\n• Veloz VQB 5567: insurance renewed with Allianz, 27 Nov 2026 to 26 Nov 2027.',
+        link: '/admin/car-documents',
+      },
+      {
         kind: 'new',
         title: 'Edit a car’s package prices in Cars',
         text: 'Open a car in Cars → Long rentals and choose Discounts or Packages. With Packages, add each length and its price (e.g. 3 days RM500, 7 days RM1,000, 30 days RM2,700); the 1-day price is Price/Day. You can also set the longest rental (e.g. 14 days) and a fixed deposit instead of 30%. The form shows what customers pay for 1 day to 1 month. Bookings already made keep their price.',
