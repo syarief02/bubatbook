@@ -19,8 +19,8 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
-        title: 'Car documents from Drive: two Bocah vans open, Veloz insurance renewed',
-        text: 'New renewals from the Drive are in Car Documents with their photos:\n• NV200 WXN 5736: road tax and Puspakom to 23 Apr 2027 (insurance to 26 Oct 2027).\n• NV200 WYX 6643: road tax to 1 Feb 2027, Puspakom to 12 Mar 2027 (insurance to 1 Feb 2027).\nBoth vans now have every document valid, so they are open for booking at Bocah Trading’s package prices.\n• Veloz VQB 5567: insurance renewed with Allianz, 27 Nov 2026 to 26 Nov 2027.\n• Gran Max WXM 2302: road tax to 15 Feb 2027 (Puspakom to 15 Feb 2027). It stays hidden until its insurance, expired since 30 Jul 2026, is renewed.',
+        title: 'Car documents from Drive: three Bocah vans open, Veloz insurance renewed',
+        text: 'New renewals from the Drive are in Car Documents with their photos:\n• NV200 WXN 5736: road tax and Puspakom to 23 Apr 2027 (insurance to 26 Oct 2027).\n• NV200 WYX 6643: road tax to 1 Feb 2027, Puspakom to 12 Mar 2027 (insurance to 1 Feb 2027).\nBoth vans now have every document valid, so they are open for booking at Bocah Trading’s package prices.\n• Veloz VQB 5567: insurance renewed with Allianz, 27 Nov 2026 to 26 Nov 2027.\n• Gran Max WXM 2302: road tax and Puspakom to 15 Feb 2027, insurance to 14 Aug 2027. Every document is valid, so it is open for booking too.',
         link: '/admin/car-documents',
       },
       {
