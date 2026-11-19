@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'data',
+        title: 'Bezza RBC 9682: new price RM130 a day',
+        text: 'The Perodua Bezza 1.0 G 2025 (RBC 9682, Bocah Trading) is now RM130 a day, RM728 for 7 days and RM1,950 for 30 days (was RM120, RM672 and RM1,800). It is still cheaper than other Bezza rentals in KL and Selangor, and it is a newer car. Its Facebook ad shows the same price.',
+        link: '/cars/rbc9682',
+      },
+      {
         kind: 'improved',
         title: 'WhatsApp messages from customers now name the car and link to it',
         text: 'When a customer taps WhatsApp on a car’s page, at checkout (deposit) or on their booking, the message now gives the car’s name, year and plate and its link, e.g. “Nissan NV200 Panel Van 2014 (WA 3301 U) … https://www.rent2go.my/cars/wa3301u”. Several NV200s and Gran Maxes look alike, so the plate shows which one they mean, and the link shows its prices and free dates.',
@@ -26,7 +32,7 @@ export const CHANGELOG = [
       {
         kind: 'data',
         title: 'Facebook rental ads for Bocah’s Bezza and NV200',
-        text: 'The Perodua Bezza RBC 9682 (RM120 a day) and the Nissan NV200 WA 3301 U (RM180 a day) now have Facebook Marketplace rental ads, like Bocah’s Ranger and Gran Max. The ads link to each car’s page here.',
+        text: 'The Perodua Bezza RBC 9682 (RM130 a day) and the Nissan NV200 WA 3301 U (RM180 a day) now have Facebook Marketplace rental ads, like Bocah’s Ranger and Gran Max. The ads link to each car’s page here.',
       },
       {
         kind: 'data',
