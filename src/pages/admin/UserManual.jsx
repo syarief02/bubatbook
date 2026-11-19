@@ -1639,9 +1639,11 @@ export default function UserManual() {
           <Bullets>
             <li>
               <B>Your WhatsApp number</B> (top of the page, for every admin): customers WhatsApp it
-              about the cars you are the contact for (section 4). Type it the local way (012-345
-              6789) or with the country code; it is saved as 60123456789. Only you can change it.
-              Save it empty to remove it.
+              about the cars you are the contact for (section 4). Their message names the car with
+              its plate and has the car&apos;s link (e.g. rent2go.my/cars/wa3301u), so you can see
+              which car it is and its prices. Type it the local way (012-345 6789) or with the
+              country code; it is saved as 60123456789. Only you can change it. Save it empty to
+              remove it.
             </li>
             <li>
               <B>Fleet Name</B>, <B>Support Email</B>, <B>Support Phone</B> and{' '}

@@ -9,6 +9,7 @@ import BookingStatusBadge from '../components/BookingStatusBadge';
 import { formatDate, formatDateTime } from '../utils/dates';
 import { formatMYR } from '../utils/pricing';
 import { formatPhone } from '../utils/format';
+import { carLabel, carUrl } from '../utils/carLinks';
 import {
   CheckCircle,
   FileUp,
@@ -314,7 +315,8 @@ export default function BookingConfirmation() {
               `Hi, I'd like to make payment for my booking:\n\n` +
                 `📋 Booking ID: ${booking.id.slice(0, 8).toUpperCase()}\n` +
                 `👤 Name: ${booking.customer_name || 'N/A'}\n` +
-                `🚗 Car: ${car?.name || car?.brand + ' ' + car?.model}\n` +
+                `🚗 Car: ${carLabel(car)}\n` +
+                `🔗 ${carUrl(car)}\n` +
                 `📅 Dates: ${booking.pickup_date} → ${booking.return_date}\n` +
                 `💰 ${isHold ? 'Deposit Due' : 'Amount'}: RM${isHold ? booking.deposit_amount : booking.total_price}\n\n` +
                 `I will upload my receipt after payment. Thank you!`

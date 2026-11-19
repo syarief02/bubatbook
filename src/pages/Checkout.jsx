@@ -36,7 +36,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
-import { carPath } from '../utils/carLinks';
+import { carLabel, carPath, carUrl } from '../utils/carLinks';
 
 // The customer signs the rental agreement before paying the deposit
 const STEPS = ['Your Info', 'Review', 'Agreement', 'Payment'];
@@ -532,7 +532,7 @@ export default function Checkout() {
                 (() => {
                   const contactPhone = contact?.whatsapp || '60194961568';
                   const contactName = contact?.name || 'Rent2Go Support';
-                  const whatsappUrl = `https://wa.me/${contactPhone}?text=${encodeURIComponent(`Hi ${contactName}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking ${car?.brand} ${car?.model}. Please provide the bank account details.`)}`;
+                  const whatsappUrl = `https://wa.me/${contactPhone}?text=${encodeURIComponent(`Hi ${contactName}, I would like to pay the deposit of ${formatMYR(amountDue)} for booking the ${carLabel(car)}. Please provide the bank account details.\n${carUrl(car)}`)}`;
                   // The car's fleet's own account, if it has one on the site
                   const payTo = paymentAccountFor(booking.fleet_group_id || car?.fleet_group_id);
 

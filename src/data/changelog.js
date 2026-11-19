@@ -18,6 +18,17 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'improved',
+        title: 'WhatsApp messages from customers now name the car and link to it',
+        text: 'When a customer taps WhatsApp on a car’s page, at checkout (deposit) or on their booking, the message now gives the car’s name, year and plate and its link, e.g. “Nissan NV200 Panel Van 2014 (WA 3301 U) … https://www.rent2go.my/cars/wa3301u”. Several NV200s and Gran Maxes look alike, so the plate shows which one they mean, and the link shows its prices and free dates.',
+        link: '/cars',
+      },
+      {
+        kind: 'data',
+        title: 'Facebook rental ads for Bocah’s Bezza and NV200',
+        text: 'The Perodua Bezza RBC 9682 (RM120 a day) and the Nissan NV200 WA 3301 U (RM180 a day) now have Facebook Marketplace rental ads, like Bocah’s Ranger and Gran Max. The ads link to each car’s page here.',
+      },
+      {
         kind: 'data',
         title: 'NV200 VEY 3516 off the website: on a monthly rental',
         text: 'The NV200 VEY 3516 is hidden from booking because its monthly renter carries on (arranged on WhatsApp). Its Facebook rental ad is marked sold, so it is off Marketplace too. Turn it back on in Cars, and mark the Facebook ad available, when the van is free again.',

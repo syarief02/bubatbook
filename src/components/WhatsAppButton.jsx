@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import { useCar, useCarContact } from '../hooks/useCars';
+import { carLabel, carUrl } from '../utils/carLinks';
 
 const DEFAULT_PHONE = '60194961568'; // Default fallback
 const DEFAULT_MSG = 'Hi, I want to inquire about car rental at Rent2Go!';
@@ -14,9 +15,10 @@ export default function WhatsAppButton() {
   const contact = useCarContact(car?.id);
 
   const phoneNumber = (carId && contact?.whatsapp) || DEFAULT_PHONE;
+  // The car's name, plate and link, so the admin knows which car and its prices
   const message =
     carId && contact?.whatsapp && car
-      ? `Hi ${contact.name || 'Admin'}, I want to inquire about the ${car.brand} ${car.model} on Rent2Go!`
+      ? `Hi ${contact.name || 'Admin'}, I want to inquire about the ${carLabel(car)} on Rent2Go:\n${carUrl(car)}`
       : DEFAULT_MSG;
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
