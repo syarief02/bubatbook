@@ -448,6 +448,14 @@ export default function UserManual() {
               discounts under its price.
             </li>
             <li>
+              <B>Package prices</B>: some cars are priced by packages instead (Bocah Trading&apos;s
+              own rates, e.g. 3 days RM500, 1 week RM1,000, 1 month RM2,700). Other lengths are
+              priced pro rata from the package before, never more than the next one. Such a car can
+              also have a longest rental (e.g. 14 days) and a fixed deposit instead of 30%. The car
+              page, checkout and the Counter show the package price, and the form shows the packages
+              instead of the discounts. Rent2Go sets the packages.
+            </li>
+            <li>
               <B>Available</B>: set to <B>No</B> to hide the car from the website and stop new
               bookings (the car shows as Unavailable in the list). Existing bookings are not
               affected.

@@ -721,7 +721,7 @@ export default function Checkout() {
               </div>
               {(booking ? Number(booking.long_rental_discount) : estimate.longDiscount) > 0 && (
                 <div className="flex justify-between text-green-400">
-                  <span>{longRentalLabel(days, estimate.discountPct)}</span>
+                  <span>{longRentalLabel(days, estimate.discountPct, estimate.isPackage)}</span>
                   <span>
                     -
                     {formatMYR(

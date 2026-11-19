@@ -15,7 +15,7 @@ import { useFleet } from '../../hooks/useFleet';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
-import { carLongRentalRates, formatMYR } from '../../utils/pricing';
+import { carLongRentalRates, formatMYR, packageLines } from '../../utils/pricing';
 import { DOC_LABELS, documentAlerts } from '../../utils/carDocuments';
 import { formatDate } from '../../utils/dates';
 import { friendlyDbError } from '../../utils/dbErrors';
@@ -571,7 +571,11 @@ function discountValue(value) {
 }
 
 /** A car's long-rental discounts, as the car list shows them. */
-function longTermLabel({ weekly_discount_pct: weekly, monthly_discount_pct: monthly }) {
+function longTermLabel(rates) {
+  const { weekly_discount_pct: weekly, monthly_discount_pct: monthly } = rates;
+  const packages = packageLines(rates);
+  if (packages.length)
+    return `Packages: ${packages.join(' · ')}${rates.max_days ? ` · max ${rates.max_days} days` : ''}`;
   if (!weekly && !monthly) return 'No long-term discount';
   return `${weekly}% off 7+ days · ${monthly}% off 30+ days`;
 }
@@ -590,6 +594,24 @@ function LongTermBookings({ form, setForm, fleet }) {
   const on = form.long_rental_enabled !== false;
   const rates = carLongRentalRates({ ...form, long_rental_enabled: true }, fleet);
   const rate = Number(form.price_per_day) || 0;
+  const packages = packageLines(rates);
+
+  if (packages.length) {
+    return (
+      <div className="rounded-xl border border-white/10 p-4 space-y-1">
+        <p className="text-sm font-medium text-white">Package prices</p>
+        <p className="text-[11px] text-slate-400">
+          1 day {formatMYR(rate)} · {packages.join(' · ')}
+          {rates.max_days ? ` · max ${rates.max_days} days` : ''}
+          {rates.fixed_deposit != null ? ` · deposit ${formatMYR(rates.fixed_deposit)}` : ''}
+        </p>
+        <p className="text-[11px] text-slate-500">
+          This car is priced by its packages, so the long-term discounts don&apos;t apply. Other
+          lengths are priced pro rata. Ask Rent2Go to change the packages.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-white/10 p-4 space-y-4">

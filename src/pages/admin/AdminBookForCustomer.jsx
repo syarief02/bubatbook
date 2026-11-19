@@ -538,7 +538,7 @@ export default function AdminBookForCustomer() {
                 Price: <strong>{formatMYR(estimate.total)}</strong> ({estimate.days} days × RM
                 {selectedCar.price_per_day}
                 {estimate.longDiscount > 0 &&
-                  `, ${longRentalLabel(estimate.days, estimate.discountPct).toLowerCase()} −${formatMYR(estimate.longDiscount)}`}
+                  `, ${longRentalLabel(estimate.days, estimate.discountPct, estimate.isPackage).toLowerCase()} −${formatMYR(estimate.longDiscount)}`}
                 )
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

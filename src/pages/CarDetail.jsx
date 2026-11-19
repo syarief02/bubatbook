@@ -7,7 +7,7 @@ import { AlertTriangle, Truck } from 'lucide-react';
 import CarDatePicker from '../components/CarDatePicker';
 import PriceCalculator from '../components/PriceCalculator';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { calculatePrice, formatMYR } from '../utils/pricing';
+import { calculatePrice, formatMYR, packageLines } from '../utils/pricing';
 import { PHOTO_CREDITS, CAR_GALLERIES } from '../utils/carPhotos';
 import {
   ArrowLeft,
@@ -85,7 +85,7 @@ export default function CarDetail() {
     );
   }
 
-  const { days, deposit } = calculatePrice(
+  const { days, deposit, tooLong } = calculatePrice(
     car.price_per_day,
     pickupDate,
     returnDate,
@@ -93,7 +93,7 @@ export default function CarDetail() {
   );
 
   function handleBookNow() {
-    if (!pickupDate || !returnDate || days <= 0 || !isAvailable) return;
+    if (!pickupDate || !returnDate || days <= 0 || tooLong || !isAvailable) return;
     const checkoutUrl = `/checkout/${car.id}?pickup=${pickupDate}&return=${returnDate}`;
     if (!user) {
       navigate(`/login?returnTo=${encodeURIComponent(checkoutUrl)}`);
@@ -197,6 +197,16 @@ export default function CarDetail() {
               <div className="text-right shrink-0">
                 <p className="text-2xl font-bold gradient-text">{formatMYR(car.price_per_day)}</p>
                 <p className="text-xs text-slate-500">per day</p>
+                {packageLines(car.long_rental_rates).map((line) => (
+                  <p key={line} className="text-xs text-slate-400">
+                    {line}
+                  </p>
+                ))}
+                {car.long_rental_rates?.max_days && (
+                  <p className="text-xs text-slate-500">
+                    Max {car.long_rental_rates.max_days} days
+                  </p>
+                )}
               </div>
             </div>
 
@@ -323,6 +333,7 @@ export default function CarDetail() {
                       !pickupDate ||
                       !returnDate ||
                       days <= 0 ||
+                      tooLong ||
                       checkingAvailability ||
                       isAvailable === false
                     }

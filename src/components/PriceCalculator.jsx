@@ -2,12 +2,18 @@ import { calculatePrice, formatMYR, longRentalLabel } from '../utils/pricing';
 import { Clock, CreditCard, Receipt, Tag } from 'lucide-react';
 
 export default function PriceCalculator({ pricePerDay, pickupDate, returnDate, rates }) {
-  const { days, base, discountPct, longDiscount, total, deposit } = calculatePrice(
-    pricePerDay,
-    pickupDate,
-    returnDate,
-    rates
-  );
+  const {
+    days,
+    base,
+    discountPct,
+    longDiscount,
+    total,
+    deposit,
+    isPackage,
+    hasFixedDeposit,
+    maxDays,
+    tooLong,
+  } = calculatePrice(pricePerDay, pickupDate, returnDate, rates);
 
   if (!days || days <= 0) {
     return (
@@ -36,7 +42,7 @@ export default function PriceCalculator({ pricePerDay, pickupDate, returnDate, r
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-2 text-green-400">
               <Tag className="w-4 h-4" />
-              {longRentalLabel(days, discountPct)}
+              {longRentalLabel(days, discountPct, isPackage)}
             </span>
             <span className="text-green-400 font-medium">-{formatMYR(longDiscount)}</span>
           </div>
@@ -55,11 +61,17 @@ export default function PriceCalculator({ pricePerDay, pickupDate, returnDate, r
         <div className="flex items-center justify-between text-sm bg-violet-500/10 rounded-xl px-4 py-3 -mx-1">
           <span className="flex items-center gap-2 text-violet-300">
             <CreditCard className="w-4 h-4" />
-            Deposit (30%, min RM100)
+            {hasFixedDeposit ? 'Deposit' : 'Deposit (30%, min RM100)'}
           </span>
           <span className="text-violet-300 font-bold text-lg">{formatMYR(deposit)}</span>
         </div>
       </div>
+
+      {tooLong && (
+        <p className="text-xs text-amber-300">
+          This car can be rented for up to {maxDays} days. Choose an earlier return date.
+        </p>
+      )}
 
       <p className="text-xs text-slate-500">
         Pay {formatMYR(deposit)} deposit now to lock your booking. The full rental of{' '}

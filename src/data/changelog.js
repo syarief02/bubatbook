@@ -18,9 +18,15 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'new',
+        title: 'Package prices: Bocah Trading’s rates',
+        text: 'A car can now be priced by packages instead of a daily rate and discounts. Bocah Trading’s cars from its Drive use its own rates:\n• Panel vans (NV200 WA 3301 U, and VNH 3681, WXM 2302, WXN 5736, BPA 3919, WYX 6643 when their documents are renewed): 1 day RM200, 3 days RM500, 1 week RM1,000, 2 weeks RM1,650, 1 month RM2,700.\n• Bezza RBC 9682: 1 day RM150, 2 days RM250, 3 days RM300, then RM100 a day, up to 14 days, deposit RM100.\nOther lengths are priced pro rata. The car page lists the packages, and checkout and the Counter use them.',
+        link: '/cars/wa3301u',
+      },
+      {
         kind: 'data',
         title: 'New prices: panel vans, Vellfire and Ranger',
-        text: 'After comparing with other rental companies in KL and Selangor:\n• Panel vans (all Gran Max and NV200): RM200 a day (was RM180), RM1,050 for 7 days, RM2,790 for 30 days. Other companies charge RM250–350 a day for the same vans.\n• Vellfire VJC 5290: RM450 a day (was RM400), RM2,520 for 7 days, RM6,075 for 30 days.\n• Ranger VDM 6927: still RM380 a day; RM2,261 for 7 days and RM4,560 for 30 days, so a company renting by the month gets a fair price.\nAlza and Veloz are unchanged. Customers already quoted a price on WhatsApp or Facebook keep it: book them at the Counter with Change price.',
+        text: 'After comparing with other rental companies in KL and Selangor:\n• Panel vans (BuBat’s vans and the Gran Max VEY 3830): RM200 a day (was RM180), RM1,050 for 7 days, RM2,790 for 30 days. Other companies charge RM250–350 a day for the same vans.\n• Vellfire VJC 5290: RM450 a day (was RM400), RM2,520 for 7 days, RM6,075 for 30 days.\n• Ranger VDM 6927: still RM380 a day; RM2,261 for 7 days and RM4,560 for 30 days, so a company renting by the month gets a fair price.\nAlza and Veloz are unchanged. Customers already quoted a price on WhatsApp or Facebook keep it: book them at the Counter with Change price.',
         link: '/cars',
       },
       {

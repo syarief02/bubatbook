@@ -25,12 +25,40 @@ export function carLongRentalRates(car, fleet) {
   return {
     weekly_discount_pct: pct('weekly_discount_pct'),
     monthly_discount_pct: pct('monthly_discount_pct'),
+    packages: car.rate_packages || null,
+    max_days: car.max_rental_days ?? null,
+    fixed_deposit: car.fixed_deposit ?? null,
   };
 }
 
+/** A car's package prices, shortest first: [{ days, total }], or [] when it has none. */
+export function ratePackages(rates) {
+  const list = Array.isArray(rates?.packages) ? rates.packages : [];
+  return list
+    .map((p) => ({ days: Number(p.days), total: Number(p.total) }))
+    .filter((p) => p.days > 0)
+    .sort((a, b) => a.days - b.days);
+}
+
 /**
- * Price for the dates: days x the daily rate, less the long-rental discount.
- * Same as bubatrent_rental_quote, which prices the booking.
+ * The price for some days from a car's packages, as bubatrent_rental_quote
+ * works it out: the largest package that fits, pro rata to whole ringgit,
+ * never more than the next package.
+ */
+export function packageTotal(days, packages) {
+  if (!packages.length || days <= 0) return null;
+  const tier = [...packages].reverse().find((p) => p.days <= days) || packages[0];
+  let total = tier.days === days ? tier.total : Math.round((tier.total * days) / tier.days);
+  const next = packages.find((p) => p.days > days);
+  if (next && next.total < total) total = next.total;
+  return total;
+}
+
+/**
+ * Price for the dates: the car's packages if it has them, else days x the
+ * daily rate less the long-rental discount. Same as bubatrent_rental_quote,
+ * which prices the booking. The deposit is the car's fixed deposit, else 30%
+ * (minimum RM100). tooLong: more days than the car can be rented for.
  */
 export function calculatePrice(pricePerDay, pickupDate, returnDate, rates = null) {
   if (!pickupDate || !returnDate) return NO_PRICE;
@@ -43,17 +71,68 @@ export function calculatePrice(pricePerDay, pickupDate, returnDate, rates = null
   if (days <= 0) return NO_PRICE;
 
   const base = days * pricePerDay;
-  const discountPct = longRentalPct(days, rates);
-  const longDiscount = Math.round(base * discountPct) / 100;
-  const total = base - longDiscount;
-  const deposit = Math.max(100, Math.ceil(total * 0.3)); // 30% deposit, minimum RM100
+  const packages = ratePackages(rates);
+  const isPackage = packages.length > 0;
+  let total;
+  let discountPct;
+  let longDiscount;
+  if (isPackage) {
+    total = packageTotal(days, packages);
+    longDiscount = base - total;
+    discountPct = base > 0 ? Math.round(((base - total) * 10000) / base) / 100 : 0;
+  } else {
+    discountPct = longRentalPct(days, rates);
+    longDiscount = Math.round(base * discountPct) / 100;
+    total = base - longDiscount;
+  }
+  const fixedDeposit = rates?.fixed_deposit;
+  const hasFixedDeposit =
+    fixedDeposit !== null && fixedDeposit !== undefined && fixedDeposit !== '';
+  const deposit = hasFixedDeposit ? Number(fixedDeposit) : Math.max(100, Math.ceil(total * 0.3));
+  const maxDays = rates?.max_days ? Number(rates.max_days) : null;
 
-  return { days, base, discountPct, longDiscount, total, deposit };
+  return {
+    days,
+    base,
+    discountPct,
+    longDiscount,
+    total,
+    deposit,
+    isPackage,
+    hasFixedDeposit,
+    maxDays,
+    tooLong: !!maxDays && days > maxDays,
+  };
 }
 
-/** "Weekly rate (10% off)" for a rental of this many days. */
-export function longRentalLabel(days, pct) {
+/** "Weekly rate (10% off)", or "Package price" for a car with packages. */
+export function longRentalLabel(days, pct, isPackage = false) {
+  if (isPackage) return 'Package price';
   return `${days >= 30 ? 'Monthly' : 'Weekly'} rate (${Number(pct)}% off)`;
+}
+
+/** "3 days RM 500" etc. for a car's packages after the first day. */
+export function packageLines(rates) {
+  const packages = ratePackages(rates);
+  const lines = packages
+    .filter((p) => p.days > 1)
+    .map((p) => {
+      const label =
+        p.days === 7
+          ? '1 week'
+          : p.days === 14
+            ? '2 weeks'
+            : p.days === 30
+              ? '1 month'
+              : `${p.days} days`;
+      return `${label} ${formatMYR(p.total)}`;
+    });
+  // Longer than the last package: its daily rate
+  const last = packages[packages.length - 1];
+  if (lines.length && last && Number.isInteger(last.total / last.days)) {
+    lines.push(`then ${formatMYR(last.total / last.days)}/day`);
+  }
+  return lines;
 }
 
 // Whole ringgit as "RM 140"; amounts with sen keep them, as "RM 85.50"
