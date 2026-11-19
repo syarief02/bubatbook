@@ -18,6 +18,18 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'data',
+        title: 'NV200 VEY 3516 off the website: on a monthly rental',
+        text: 'The NV200 VEY 3516 is hidden from booking because its monthly renter carries on (arranged on WhatsApp). Its Facebook rental ad is marked sold, so it is off Marketplace too. Turn it back on in Cars, and mark the Facebook ad available, when the van is free again.',
+        link: '/admin/cars',
+      },
+      {
+        kind: 'data',
+        title: 'New photos: Vellfire VJC 5290 and Gran Max VEY 3830',
+        text: 'Vellfire VJC 5290: 7 daylight photos taken today (front, back and side, dashboard, the cabin, the middle row and the third row), after the dealer photos. Gran Max VEY 3830: 2 wide photos of the cab with the red seat covers and 1 of the cargo partition. Number plates are blurred.',
+        link: '/cars/vjc5290',
+      },
+      {
         kind: 'improved',
         title: 'Payment receipts on Vehicle History and Customer History',
         text: 'Each rental on a vehicle’s History page (Cars → history button) and in Customer History now shows the customer’s payment receipts under it: the deposit, rent and charge payments, each with its amount. Click one to open the slip without opening the booking.',
