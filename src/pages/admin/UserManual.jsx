@@ -448,12 +448,14 @@ export default function UserManual() {
               discounts under its price.
             </li>
             <li>
-              <B>Package prices</B>: some cars are priced by packages instead (Bocah Trading&apos;s
-              own rates, e.g. 3 days RM500, 1 week RM1,000, 1 month RM2,700). Other lengths are
-              priced pro rata from the package before, never more than the next one. Such a car can
-              also have a longest rental (e.g. 14 days) and a fixed deposit instead of 30%. The car
-              page, checkout and the Counter show the package price, and the form shows the packages
-              instead of the discounts. Rent2Go sets the packages.
+              <B>Long rentals</B>: choose <B>Discounts</B> (above) or <B>Packages</B>. With
+              packages, add a row for each length and its price, e.g. 3 days RM500, 7 days RM1,000,
+              30 days RM2,700 (Bocah Trading&apos;s rates); the 1-day price is Price/Day. Other
+              lengths are priced pro rata from the package before, never more than the next one, and
+              the discounts don&apos;t apply. <B>Longest rental</B> stops bookings over that many
+              days (blank = no limit), and <B>Fixed deposit</B> replaces the 30% deposit (blank =
+              30%, min RM100). The form shows what customers pay for 1 day to 1 month. The car page,
+              checkout and the Counter use the same prices; bookings already made keep theirs.
             </li>
             <li>
               <B>Available</B>: set to <B>No</B> to hide the car from the website and stop new

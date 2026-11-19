@@ -19,6 +19,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'new',
+        title: 'Edit a car’s package prices in Cars',
+        text: 'Open a car in Cars → Long rentals and choose Discounts or Packages. With Packages, add each length and its price (e.g. 3 days RM500, 7 days RM1,000, 30 days RM2,700); the 1-day price is Price/Day. You can also set the longest rental (e.g. 14 days) and a fixed deposit instead of 30%. The form shows what customers pay for 1 day to 1 month. Bookings already made keep their price.',
+        link: '/admin/cars',
+      },
+      {
+        kind: 'new',
         title: 'Package prices: Bocah Trading’s rates',
         text: 'A car can now be priced by packages instead of a daily rate and discounts. Bocah Trading’s cars from its Drive use its own rates:\n• Panel vans (NV200 WA 3301 U, and VNH 3681, WXM 2302, WXN 5736, BPA 3919, WYX 6643 when their documents are renewed): 1 day RM200, 3 days RM500, 1 week RM1,000, 2 weeks RM1,650, 1 month RM2,700.\n• Bezza RBC 9682: 1 day RM150, 2 days RM250, 3 days RM300, then RM100 a day, up to 14 days, deposit RM100.\nOther lengths are priced pro rata. The car page lists the packages, and checkout and the Counter use them.',
         link: '/cars/wa3301u',

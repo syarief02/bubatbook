@@ -15,7 +15,7 @@ import { useFleet } from '../../hooks/useFleet';
 import { useToast } from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
-import { carLongRentalRates, formatMYR, packageLines } from '../../utils/pricing';
+import { calculatePrice, carLongRentalRates, formatMYR, packageLines } from '../../utils/pricing';
 import { DOC_LABELS, documentAlerts } from '../../utils/carDocuments';
 import { formatDate } from '../../utils/dates';
 import { friendlyDbError } from '../../utils/dbErrors';
@@ -54,6 +54,10 @@ const EMPTY_CAR = {
   long_rental_enabled: true,
   weekly_discount_pct: null,
   monthly_discount_pct: null,
+  // Package prices instead of discounts (null = discounts), longest rental, fixed deposit
+  rate_packages: null,
+  max_rental_days: null,
+  fixed_deposit: null,
 };
 
 export default function AdminCars() {
@@ -108,6 +112,42 @@ export default function AdminCars() {
       toast.error('Long-term discounts must be between 0% and 90%.');
       return;
     }
+    // Packages: every row needs whole days (2–365) and a price, each length once
+    let packages = null;
+    if (Array.isArray(form.rate_packages)) {
+      const rows = form.rate_packages.filter((p) => Number(p.days) !== 1);
+      const bad = rows.find(
+        (p) =>
+          !Number.isInteger(Number(p.days)) ||
+          Number(p.days) < 2 ||
+          Number(p.days) > 365 ||
+          !(Number(p.total) > 0)
+      );
+      if (bad) {
+        toast.error('Each package needs a number of days (2 to 365) and a price.');
+        return;
+      }
+      const clean = cleanPackages(form);
+      if (new Set(clean.map((p) => p.days)).size !== clean.length) {
+        toast.error('Two packages have the same number of days.');
+        return;
+      }
+      packages = clean.length ? [{ days: 1, total: Number(form.price_per_day) }, ...clean] : null;
+    }
+    const maxDays =
+      form.max_rental_days === '' || form.max_rental_days == null
+        ? null
+        : Number(form.max_rental_days);
+    if (maxDays !== null && !(Number.isInteger(maxDays) && maxDays >= 1 && maxDays <= 365)) {
+      toast.error('The longest rental must be 1 to 365 days, or blank for no limit.');
+      return;
+    }
+    const fixedDeposit =
+      form.fixed_deposit === '' || form.fixed_deposit == null ? null : Number(form.fixed_deposit);
+    if (fixedDeposit !== null && !(fixedDeposit >= 0 && fixedDeposit <= 100000)) {
+      toast.error('The fixed deposit must be RM0 to RM100,000, or blank for 30%.');
+      return;
+    }
     setSaving(true);
     try {
       const data = {
@@ -124,6 +164,9 @@ export default function AdminCars() {
         long_rental_enabled: form.long_rental_enabled !== false,
         weekly_discount_pct: weekly,
         monthly_discount_pct: monthly,
+        rate_packages: packages,
+        max_rental_days: maxDays,
+        fixed_deposit: fixedDeposit,
       };
       delete data.id;
       delete data.created_at;
@@ -586,42 +629,189 @@ const LONG_TERM_TIERS = [
 ];
 
 /**
- * The listing's long-term bookings, as a Trevo host sets them: on or off,
- * the discount for 7+ and 30+ days (blank = the fleet's) and what the
- * customer pays at that length.
+ * A car's long-rental pricing: either long-term discounts, as a Trevo host
+ * sets them (on or off, % off for 7+ and 30+ days, blank = the fleet's), or
+ * packages (a price for 2 days, 3 days, a week…; the 1-day price is the
+ * Price/Day box). Also the longest rental and a fixed deposit, and what the
+ * customer pays for some lengths.
  */
 function LongTermBookings({ form, setForm, fleet }) {
-  const on = form.long_rental_enabled !== false;
-  const rates = carLongRentalRates({ ...form, long_rental_enabled: true }, fleet);
+  const usesPackages = Array.isArray(form.rate_packages);
   const rate = Number(form.price_per_day) || 0;
-  const packages = packageLines(rates);
+  const rates = carLongRentalRates({ ...form, long_rental_enabled: true }, fleet);
 
-  if (packages.length) {
-    return (
-      <div className="rounded-xl border border-white/10 p-4 space-y-1">
-        <p className="text-sm font-medium text-white">Package prices</p>
-        <p className="text-[11px] text-slate-400">
-          1 day {formatMYR(rate)} · {packages.join(' · ')}
-          {rates.max_days ? ` · max ${rates.max_days} days` : ''}
-          {rates.fixed_deposit != null ? ` · deposit ${formatMYR(rates.fixed_deposit)}` : ''}
-        </p>
-        <p className="text-[11px] text-slate-500">
-          This car is priced by its packages, so the long-term discounts don&apos;t apply. Other
-          lengths are priced pro rata. Ask Rent2Go to change the packages.
-        </p>
-      </div>
-    );
+  function choosePackages() {
+    if (usesPackages) return;
+    // Start from what the discounts give today, to edit
+    const at = (days, pct) => Math.round(rate * days * (1 - pct / 100));
+    setForm({
+      ...form,
+      rate_packages: [
+        { days: 7, total: at(7, rates.weekly_discount_pct) },
+        { days: 30, total: at(30, rates.monthly_discount_pct) },
+      ],
+    });
   }
+
+  // What the customer pays, as the website will price it
+  const preview = [1, 2, 3, 7, 14, 30]
+    .filter((days) => !form.max_rental_days || days <= Number(form.max_rental_days))
+    .map((days) => {
+      const end = new Date(Date.UTC(2026, 0, 1 + days)).toISOString().slice(0, 10);
+      const price = calculatePrice(rate, '2026-01-01', end, {
+        ...carLongRentalRates(form, fleet),
+        packages: usesPackages ? [{ days: 1, total: rate }, ...cleanPackages(form)] : null,
+      });
+      return `${days} day${days === 1 ? '' : 's'} ${formatMYR(price.total)}`;
+    });
 
   return (
     <div className="rounded-xl border border-white/10 p-4 space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-white">Long-term bookings</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">
-            Discounts for customers booking 7 days or more. More chance of longer bookings.
-          </p>
+      <div>
+        <p className="text-sm font-medium text-white">Long rentals</p>
+        <p className="text-[11px] text-slate-500 mt-0.5">
+          Price longer rentals with a discount off the daily rate, or with your own package prices
+          (e.g. 3 days RM500, 1 week RM1,000).
+        </p>
+        <div className="flex gap-2 mt-2">
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, rate_packages: null })}
+            className={`px-3 py-1.5 rounded-lg text-xs border ${
+              usesPackages
+                ? 'border-white/10 text-slate-400 hover:text-white'
+                : 'border-violet-500/40 bg-violet-500/15 text-violet-200'
+            }`}
+          >
+            Discounts
+          </button>
+          <button
+            type="button"
+            onClick={choosePackages}
+            className={`px-3 py-1.5 rounded-lg text-xs border ${
+              usesPackages
+                ? 'border-violet-500/40 bg-violet-500/15 text-violet-200'
+                : 'border-white/10 text-slate-400 hover:text-white'
+            }`}
+          >
+            Packages
+          </button>
         </div>
+      </div>
+
+      {usesPackages ? (
+        <PackageEditor form={form} setForm={setForm} rate={rate} />
+      ) : (
+        <DiscountTiers form={form} setForm={setForm} fleet={fleet} rates={rates} rate={rate} />
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs text-slate-300">Longest rental (days)</label>
+          <input
+            type="number"
+            value={form.max_rental_days ?? ''}
+            onChange={(e) => setForm({ ...form, max_rental_days: e.target.value })}
+            className="input-field py-1.5 mt-1"
+            min="1"
+            max="365"
+            step="1"
+            placeholder="No limit"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-slate-300">Fixed deposit (RM)</label>
+          <input
+            type="number"
+            value={form.fixed_deposit ?? ''}
+            onChange={(e) => setForm({ ...form, fixed_deposit: e.target.value })}
+            className="input-field py-1.5 mt-1"
+            min="0"
+            step="1"
+            placeholder="30%, min RM100"
+          />
+        </div>
+      </div>
+
+      <p className="text-[11px] text-slate-400">Customer pays: {preview.join(' · ')}</p>
+      <p className="text-[11px] text-slate-500">Bookings already made keep their price.</p>
+    </div>
+  );
+}
+
+/** The packages being edited, as numbers: days over 1 with a price, shortest first. */
+function cleanPackages(form) {
+  return (Array.isArray(form.rate_packages) ? form.rate_packages : [])
+    .map((p) => ({ days: Number(p.days), total: Number(p.total) }))
+    .filter((p) => Number.isInteger(p.days) && p.days > 1 && p.total > 0)
+    .sort((a, b) => a.days - b.days);
+}
+
+/** Package rows: how many days and the price for them. */
+function PackageEditor({ form, setForm, rate }) {
+  const rows = (form.rate_packages || []).filter((p) => Number(p.days) !== 1);
+  const update = (next) => setForm({ ...form, rate_packages: next });
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] text-slate-400">
+        1 day: {formatMYR(rate)} (the Price/Day box). Other lengths are priced pro rata from the
+        package before, never more than the next one.
+      </p>
+      {rows.map((p, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <input
+            type="number"
+            value={p.days}
+            onChange={(e) =>
+              update(rows.map((r, j) => (j === i ? { ...r, days: e.target.value } : r)))
+            }
+            className="input-field w-20 py-1.5"
+            min="2"
+            max="365"
+            step="1"
+            aria-label="Days"
+          />
+          <span className="text-xs text-slate-400">days for RM</span>
+          <input
+            type="number"
+            value={p.total}
+            onChange={(e) =>
+              update(rows.map((r, j) => (j === i ? { ...r, total: e.target.value } : r)))
+            }
+            className="input-field w-28 py-1.5"
+            min="1"
+            step="1"
+            aria-label="Price"
+          />
+          <button
+            type="button"
+            onClick={() => update(rows.filter((_, j) => j !== i))}
+            className="text-xs text-red-400 hover:text-red-300 px-2"
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => update([...rows, { days: '', total: '' }])}
+        className="text-xs text-violet-400 hover:text-violet-300"
+      >
+        + Add package
+      </button>
+    </div>
+  );
+}
+
+/** The long-term discounts: on or off, % off for 7+ and 30+ days. */
+function DiscountTiers({ form, setForm, fleet, rates, rate }) {
+  const on = form.long_rental_enabled !== false;
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-[11px] text-slate-500">
+          Discounts for customers booking 7 days or more. More chance of longer bookings.
+        </p>
         <button
           type="button"
           role="switch"
@@ -680,8 +870,8 @@ function LongTermBookings({ form, setForm, fleet }) {
 
       <p className="text-[11px] text-slate-500">
         {on
-          ? `A blank box uses the fleet's discount (${Number(fleet?.weekly_discount_pct || 0)}% and ${Number(fleet?.monthly_discount_pct || 0)}%, Fleet Settings). Bookings already made keep their price.`
-          : 'Off: no discount, however long the rental. Bookings already made keep their price.'}
+          ? `A blank box uses the fleet's discount (${Number(fleet?.weekly_discount_pct || 0)}% and ${Number(fleet?.monthly_discount_pct || 0)}%, Fleet Settings).`
+          : 'Off: no discount, however long the rental.'}
       </p>
     </div>
   );
