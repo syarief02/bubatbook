@@ -15,15 +15,17 @@ import {
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import GoogleButton, { OrDivider } from '../components/GoogleButton';
+import { useTranslation } from 'react-i18next';
 
 // New accounts confirm their mobile number, which also links any counter record
 const AFTER_SIGNUP = `/complete-profile?returnTo=${encodeURIComponent('/')}`;
 
 function PasswordStrength({ password }) {
+  const { t } = useTranslation();
   const checks = [
-    { label: '8+ characters', pass: password.length >= 8 },
-    { label: 'Uppercase letter', pass: /[A-Z]/.test(password) },
-    { label: 'Number', pass: /\d/.test(password) },
+    { label: t('8+ characters'), pass: password.length >= 8 },
+    { label: t('Uppercase letter'), pass: /[A-Z]/.test(password) },
+    { label: t('Number'), pass: /\d/.test(password) },
   ];
   const passed = checks.filter((c) => c.pass).length;
 
@@ -66,6 +68,7 @@ export default function Signup() {
   const { signUp, user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const { t } = useTranslation();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -101,17 +104,17 @@ export default function Signup() {
     setError('');
 
     if (lockedUntil && Date.now() < lockedUntil) {
-      setError(`Too many attempts. Try again in ${lockCountdown}s`);
+      setError(t('Too many attempts. Try again in {{lockCountdown}}s', { lockCountdown }));
       return;
     }
 
     if (!phone.trim() || phone.replace(/\D/g, '').length < 9) {
-      setError('Please enter a valid phone number');
+      setError(t('Please enter a valid phone number'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('Password must be at least 8 characters'));
       return;
     }
 
@@ -119,11 +122,11 @@ export default function Signup() {
     try {
       const data = await signUp(email, password, displayName, phone.trim());
       if (data?.session) {
-        toast.success('Account created! Now confirm your mobile number.');
+        toast.success(t('Account created! Now confirm your mobile number.'));
         navigate(AFTER_SIGNUP);
       } else {
         // Email confirmation is on: there is no session until the link is clicked
-        toast.success('Account created! Check your email to confirm your address, then log in.');
+        toast.success(t('Account created! Check your email to confirm your address, then log in.'));
         navigate('/login');
       }
     } catch (err) {
@@ -135,8 +138,10 @@ export default function Signup() {
       // The email may belong to an account our staff created at the counter
       setError(
         /already registered/i.test(err.message || '')
-          ? 'This email already has an account. Sign in, use "Forgot password", or continue with Google.'
-          : err.message || 'Failed to create account'
+          ? t(
+              'This email already has an account. Sign in, use "Forgot password", or continue with Google.'
+            )
+          : err.message || t('Failed to create account')
       );
     } finally {
       setLoading(false);
@@ -150,25 +155,25 @@ export default function Signup() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center mx-auto mb-4">
             <Car className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Create your account</h1>
-          <p className="text-sm text-slate-400">Join Rent2Go to start booking</p>
+          <h1 className="text-2xl font-bold text-white mb-1">{t('Create your account')}</h1>
+          <p className="text-sm text-slate-400">{t('Join Rent2Go to start booking')}</p>
         </div>
 
         <div className="glass-card">
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 mb-6">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
+              {t(error)}
             </div>
           )}
 
-          <GoogleButton label="Sign up with Google" />
+          <GoogleButton label={t('Sign up with Google')} />
           <OrDivider />
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="input-label flex items-center gap-1.5">
                 <User className="w-4 h-4 text-violet-400" />
-                Full Name
+                {t('Full Name')}
               </label>
               <input
                 type="text"
@@ -184,7 +189,7 @@ export default function Signup() {
             <div>
               <label className="input-label flex items-center gap-1.5">
                 <Mail className="w-4 h-4 text-violet-400" />
-                Email
+                {t('Email')}
               </label>
               <input
                 type="email"
@@ -200,7 +205,7 @@ export default function Signup() {
             <div>
               <label className="input-label flex items-center gap-1.5">
                 <Phone className="w-4 h-4 text-violet-400" />
-                Phone Number
+                {t('Phone Number')}
               </label>
               <input
                 type="tel"
@@ -216,7 +221,7 @@ export default function Signup() {
             <div>
               <label className="input-label flex items-center gap-1.5">
                 <Lock className="w-4 h-4 text-violet-400" />
-                Password
+                {t('Password')}
               </label>
               <div className="relative">
                 <input
@@ -224,7 +229,7 @@ export default function Signup() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field !pr-10"
-                  placeholder="Minimum 8 characters"
+                  placeholder={t('Minimum 8 characters')}
                   required
                   disabled={loading}
                   minLength={8}
@@ -242,14 +247,14 @@ export default function Signup() {
             </div>
 
             <button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? t('Creating account...') : t('Create Account')}
             </button>
           </form>
 
           <p className="text-center text-sm text-slate-500 mt-6">
-            Already have an account?{' '}
+            {t('Already have an account?')}{' '}
             <Link to="/login" className="text-violet-400 hover:text-violet-300 font-medium">
-              Sign in
+              {t('Sign in')}
             </Link>
           </p>
         </div>

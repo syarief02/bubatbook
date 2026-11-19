@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { Lock, AlertCircle, CheckCircle, Car, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ResetPassword() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -50,12 +52,12 @@ export default function ResetPassword() {
     setError('');
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('Password must be at least 6 characters long'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('Passwords do not match'));
       return;
     }
 
@@ -90,7 +92,7 @@ export default function ResetPassword() {
 
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Failed to update password. Link may have expired.');
+      setError(err.message || t('Failed to update password. Link may have expired.'));
     } finally {
       setLoading(false);
     }
@@ -103,9 +105,9 @@ export default function ResetPassword() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center mx-auto mb-4">
             <Car className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Set New Password</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">{t('Set New Password')}</h1>
           <p className="text-sm text-slate-400">
-            Choose a strong new password for your Rent2Go account
+            {t('Choose a strong new password for your Rent2Go account')}
           </p>
         </div>
 
@@ -113,7 +115,7 @@ export default function ResetPassword() {
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 mb-6">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
+              {t(error)}
             </div>
           )}
 
@@ -122,13 +124,14 @@ export default function ResetPassword() {
               <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Password Updated!</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">{t('Password Updated!')}</h3>
               <p className="text-sm text-slate-400 mb-6">
-                Your password has been changed successfully. You can now use your new password to
-                sign in.
+                {t(
+                  'Your password has been changed successfully. You can now use your new password to sign in.'
+                )}
               </p>
               <button onClick={() => navigate('/login')} className="btn-primary w-full">
-                Go to Sign In
+                {t('Go to Sign In')}
               </button>
             </div>
           ) : !checking && !isRecoverySession && !user ? (
@@ -136,14 +139,17 @@ export default function ResetPassword() {
               <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-yellow-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Invalid or Expired Link</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">
+                {t('Invalid or Expired Link')}
+              </h3>
               <p className="text-sm text-slate-400 mb-6">
-                This password reset link is invalid or has already expired. Please request a new
-                link from the login page.
+                {t(
+                  'This password reset link is invalid or has already expired. Please request a new link from the login page.'
+                )}
               </p>
               <Link to="/login" className="btn-secondary w-full inline-block text-center">
                 <ArrowLeft className="w-4 h-4 inline mr-1" />
-                Back to Sign In
+                {t('Back to Sign In')}
               </Link>
             </div>
           ) : (
@@ -151,7 +157,7 @@ export default function ResetPassword() {
               <div>
                 <label className="input-label flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-violet-400" />
-                  New Password
+                  {t('New Password')}
                 </label>
                 <div className="relative">
                   <input
@@ -174,13 +180,13 @@ export default function ResetPassword() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Minimum 6 characters</p>
+                <p className="text-xs text-slate-500 mt-1">{t('Minimum 6 characters')}</p>
               </div>
 
               <div>
                 <label className="input-label flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-violet-400" />
-                  Confirm New Password
+                  {t('Confirm New Password')}
                 </label>
                 <div className="relative">
                   <input
@@ -209,7 +215,7 @@ export default function ResetPassword() {
               </div>
 
               <button type="submit" disabled={loading} className="btn-primary w-full">
-                {loading ? 'Updating Password...' : 'Update Password'}
+                {loading ? t('Updating Password...') : t('Update Password')}
               </button>
 
               <div className="text-center pt-2">
@@ -218,7 +224,7 @@ export default function ResetPassword() {
                   className="text-xs text-slate-400 hover:text-white transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 inline mr-1" />
-                  Cancel and return to Sign In
+                  {t('Cancel and return to Sign In')}
                 </Link>
               </div>
             </form>

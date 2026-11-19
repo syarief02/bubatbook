@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './Toast';
+import { useTranslation } from 'react-i18next';
 
 function GoogleLogo({ className }) {
   return (
@@ -26,7 +27,8 @@ function GoogleLogo({ className }) {
 }
 
 /** "Continue with Google" — sends the user to Google, then back via mobile verification. */
-export default function GoogleButton({ returnTo = '/', label = 'Continue with Google' }) {
+export default function GoogleButton({ returnTo = '/', label }) {
+  const { t } = useTranslation();
   const { signInWithGoogle } = useAuth();
   const toast = useToast();
   const [redirecting, setRedirecting] = useState(false);
@@ -36,7 +38,7 @@ export default function GoogleButton({ returnTo = '/', label = 'Continue with Go
     try {
       await signInWithGoogle(returnTo);
     } catch (err) {
-      toast.error(err.message || 'Could not start Google sign-in.');
+      toast.error(err.message || t('Could not start Google sign-in.'));
       setRedirecting(false);
     }
   }
@@ -49,17 +51,18 @@ export default function GoogleButton({ returnTo = '/', label = 'Continue with Go
       className="w-full flex items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-100 disabled:opacity-60"
     >
       <GoogleLogo className="h-5 w-5" />
-      {redirecting ? 'Redirecting to Google...' : label}
+      {redirecting ? t('Redirecting to Google...') : label || t('Continue with Google')}
     </button>
   );
 }
 
 /** "or" separator between Google and email sign-in. */
 export function OrDivider() {
+  const { t } = useTranslation();
   return (
     <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-slate-500">
       <span className="h-px flex-1 bg-white/10" />
-      or
+      {t('or')}
       <span className="h-px flex-1 bg-white/10" />
     </div>
   );

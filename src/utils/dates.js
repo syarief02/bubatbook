@@ -1,9 +1,14 @@
 import { format, parseISO, differenceInDays, addDays, isBefore, isToday } from 'date-fns';
+import { ms } from 'date-fns/locale/ms';
+import i18n from '../i18n';
+
+// Month names in the site's language ("12 Dis 2026" in BM)
+const localeOpts = () => (i18n.language === 'ms' ? { locale: ms } : undefined);
 
 export function formatDate(dateStr) {
   if (!dateStr) return '';
   try {
-    return format(parseISO(dateStr), 'dd MMM yyyy');
+    return format(parseISO(dateStr), 'dd MMM yyyy', localeOpts());
   } catch {
     return dateStr;
   }
@@ -21,7 +26,7 @@ export function formatDateShort(dateStr) {
 export function formatDateTime(dateStr) {
   if (!dateStr) return '';
   try {
-    return format(parseISO(dateStr), 'dd MMM yyyy, HH:mm');
+    return format(parseISO(dateStr), 'dd MMM yyyy, HH:mm', localeOpts());
   } catch {
     return dateStr;
   }

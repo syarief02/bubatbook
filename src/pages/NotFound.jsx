@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Home, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
       {/* Every URL is served with status 200 (SPA), so tell search engines not to index this one */}
@@ -11,14 +13,15 @@ export default function NotFound() {
           <AlertTriangle className="w-10 h-10 text-violet-400" />
         </div>
         <h1 className="text-6xl font-extrabold gradient-text mb-2">404</h1>
-        <p className="text-xl text-white font-semibold mb-2">Page Not Found</p>
+        <p className="text-xl text-white font-semibold mb-2">{t('Page Not Found')}</p>
         <p className="text-slate-400 mb-8">
-          Oops! We couldn&apos;t find the page you&apos;re looking for. It doesn&apos;t exist or has
-          been moved.
+          {t(
+            "Oops! We couldn't find the page you're looking for. It doesn't exist or has been moved."
+          )}
         </p>
         <Link to="/" className="btn-primary inline-flex items-center gap-2">
           <Home className="w-4 h-4" />
-          Back to Home
+          {t('Back to Home')}
         </Link>
       </div>
     </div>

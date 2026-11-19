@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'new',
+        title: 'Customers can switch the site to Bahasa Melayu',
+        text: 'As Zariq asked, rent2go.my now has an EN | BM switch at the top of every page (next to the menu on phones). In BM the home page, car pages, prices and packages, sign-in, booking, checkout, payment details, My Bookings, Profile and Verify Account are in Malay, with Malay month names in dates, and the WhatsApp button writes “saya ingin bertanya tentang…” with the car’s name, plate and link. The choice is remembered on the customer’s device; a first visit follows the phone’s language. The terms and rental agreement were already in both languages. Admin pages and the printable receipt and invoice stay in English. Spot an awkward Malay word? Send the better wording on WhatsApp: all the Malay text is in one list, so it is a quick fix.',
+        link: '/',
+      },
+      {
         kind: 'data',
         title: 'Car documents from Drive: three Bocah vans open, Veloz insurance renewed',
         text: 'New renewals from the Drive are in Car Documents with their photos:\n• NV200 WXN 5736: road tax and Puspakom to 23 Apr 2027 (insurance to 26 Oct 2027).\n• NV200 WYX 6643: road tax to 1 Feb 2027, Puspakom to 12 Mar 2027 (insurance to 1 Feb 2027).\nBoth vans now have every document valid, so they are open for booking at Bocah Trading’s package prices.\n• Veloz VQB 5567: insurance renewed with Allianz, 27 Nov 2026 to 26 Nov 2027.\n• Gran Max WXM 2302: road tax and Puspakom to 15 Feb 2027, insurance to 14 Aug 2027. Every document is valid, so it is open for booking too.',

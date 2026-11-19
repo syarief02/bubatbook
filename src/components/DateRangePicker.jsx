@@ -1,6 +1,7 @@
 import { CalendarDays } from 'lucide-react';
 import { getTodayString, getTomorrowString } from '../utils/dates';
 import { format, addDays, parseISO } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export default function DateRangePicker({
   pickupDate,
@@ -10,6 +11,7 @@ export default function DateRangePicker({
   className = '',
 }) {
   const today = getTodayString();
+  const { t } = useTranslation();
 
   // Return date must be at least 1 day after pickup (DB constraint: return_date > pickup_date)
   let minReturnDate = getTomorrowString();
@@ -26,7 +28,7 @@ export default function DateRangePicker({
       <div>
         <label className="input-label flex items-center gap-1.5">
           <CalendarDays className="w-4 h-4 text-violet-400" />
-          Pick-up Date
+          {t('Pick-up Date')}
         </label>
         <input
           type="date"
@@ -44,7 +46,7 @@ export default function DateRangePicker({
       <div>
         <label className="input-label flex items-center gap-1.5">
           <CalendarDays className="w-4 h-4 text-violet-400" />
-          Return Date
+          {t('Return Date')}
         </label>
         <input
           type="date"

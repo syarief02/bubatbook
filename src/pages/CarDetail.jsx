@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function CarDetail() {
   const { id } = useParams();
@@ -29,6 +30,8 @@ export default function CarDetail() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user, isVerified } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage;
   // `id` is the page address: the plate (e.g. vjc5290), or the car's id on older links
   const { car, loading, error } = useCar(id);
   const carId = car?.id;
@@ -77,9 +80,9 @@ export default function CarDetail() {
   if (error || !car) {
     return (
       <div className="page-container text-center">
-        <p className="text-red-400">Car not found</p>
+        <p className="text-red-400">{t('Car not found')}</p>
         <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">
-          Back to fleet
+          {t('Back to fleet')}
         </Link>
       </div>
     );
@@ -113,7 +116,7 @@ export default function CarDetail() {
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to fleet
+        {t('Back to fleet')}
       </Link>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -127,7 +130,13 @@ export default function CarDetail() {
               <img
                 src={shownPhoto}
                 alt={
-                  gallery ? `${car.name}, photo ${photoIndex + 1} of ${gallery.length}` : car.name
+                  gallery
+                    ? t('{{name}}, photo {{photoIndex}} of {{length}}', {
+                        name: car.name,
+                        photoIndex: photoIndex + 1,
+                        length: gallery.length,
+                      })
+                    : car.name
                 }
                 className={`w-full h-full ${photoIndex === 0 ? 'object-cover' : 'object-contain'}`}
                 loading="lazy"
@@ -146,7 +155,7 @@ export default function CarDetail() {
                   key={src}
                   type="button"
                   onClick={() => setPhotoIndex(i)}
-                  aria-label={`Show photo ${i + 1}`}
+                  aria-label={t('Show photo {{i}}', { i: i + 1 })}
                   className={`shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition-colors ${i === photoIndex ? 'border-violet-400' : 'border-transparent opacity-70 hover:opacity-100'}`}
                 >
                   <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -156,7 +165,7 @@ export default function CarDetail() {
           )}
           {!gallery && PHOTO_CREDITS[car.image_url] && (
             <p className="text-[11px] text-slate-500 mb-6">
-              Photo of a similar vehicle by {PHOTO_CREDITS[car.image_url].author},{' '}
+              {t('Photo of a similar vehicle by')} {PHOTO_CREDITS[car.image_url].author},{' '}
               <a
                 href={PHOTO_CREDITS[car.image_url].licenseUrl}
                 target="_blank"
@@ -196,15 +205,15 @@ export default function CarDetail() {
               </div>
               <div className="text-right shrink-0">
                 <p className="text-2xl font-bold gradient-text">{formatMYR(car.price_per_day)}</p>
-                <p className="text-xs text-slate-500">per day</p>
-                {packageLines(car.long_rental_rates).map((line) => (
+                <p className="text-xs text-slate-500">{t('per day')}</p>
+                {packageLines(car.long_rental_rates, lang).map((line) => (
                   <p key={line} className="text-xs text-slate-400">
                     {line}
                   </p>
                 ))}
                 {car.long_rental_rates?.max_days && (
                   <p className="text-xs text-slate-500">
-                    Max {car.long_rental_rates.max_days} days
+                    {t('Max {{max_days}} days', { max_days: car.long_rental_rates.max_days })}
                   </p>
                 )}
               </div>
@@ -213,9 +222,17 @@ export default function CarDetail() {
             {/* Specs Grid */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               {[
-                { icon: Settings2, label: 'Transmission', value: car.transmission },
-                { icon: Users, label: 'Seats', value: `${car.seats} seats` },
-                { icon: Fuel, label: 'Fuel', value: car.fuel_type },
+                {
+                  icon: Settings2,
+                  label: t('Transmission'),
+                  value: t(car.transmission || ''),
+                },
+                {
+                  icon: Users,
+                  label: t('Seats'),
+                  value: t('{{seats}} seats', { seats: car.seats }),
+                },
+                { icon: Fuel, label: t('Fuel'), value: car.fuel_type },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="glass-card !p-3 text-center">
                   <Icon className="w-5 h-5 text-violet-400 mx-auto mb-1" />
@@ -228,7 +245,7 @@ export default function CarDetail() {
             {/* Features */}
             {features.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Features</h3>
+                <h3 className="text-sm font-semibold text-white mb-3">{t('Features')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {features.map((feature) => (
                     <span
@@ -246,9 +263,9 @@ export default function CarDetail() {
           {/* Trust Section */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { icon: Shield, text: 'Fully Insured' },
-              { icon: CheckCircle, text: 'Verified Vehicle' },
-              { icon: Star, text: 'Premium Maintained' },
+              { icon: Shield, text: t('Fully Insured') },
+              { icon: CheckCircle, text: t('Verified Vehicle') },
+              { icon: Star, text: t('Premium Maintained') },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2 glass-card !p-3">
                 <Icon className="w-4 h-4 text-green-400 shrink-0" />
@@ -264,7 +281,7 @@ export default function CarDetail() {
             <div className="glass-card glow-sm animate-pulse-glow">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-violet-400" />
-                Book This Car
+                {t('Book This Car')}
               </h3>
 
               <CarDatePicker
@@ -280,10 +297,11 @@ export default function CarDetail() {
                 <div className="mb-4 flex items-start gap-2 px-3 py-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-xs text-violet-200">
                   <Truck className="w-4 h-4 shrink-0 mt-0.5 text-violet-400" />
                   <span>
-                    Commercial vehicle: you need a GDL (Goods Driving Licence) valid until the
-                    return date. Add it in{' '}
+                    {t(
+                      'Commercial vehicle: you need a GDL (Goods Driving Licence) valid until the return date. Add it in'
+                    )}{' '}
                     <Link to="/verify?gdl=1" className="underline hover:text-white">
-                      Verify Account
+                      {t('Verify Account')}
                     </Link>
                     .
                   </span>
@@ -296,17 +314,19 @@ export default function CarDetail() {
                   {checkingAvailability ? (
                     <div className="flex items-center gap-2 text-sm text-slate-400">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Checking availability...
+                      {t('Checking availability...')}
                     </div>
                   ) : isAvailable === true ? (
                     <div className="flex items-center gap-2 text-sm text-green-400">
                       <CheckCircle className="w-4 h-4" />
-                      Available for selected dates!
+                      {t('Available for selected dates!')}
                     </div>
                   ) : isAvailable === false ? (
                     <div className="flex items-center gap-2 text-sm text-red-400">
                       <AlertCircle className="w-4 h-4" />
-                      Not available for these dates. Booked days are greyed out in the calendar.
+                      {t(
+                        'Not available for these dates. Booked days are greyed out in the calendar.'
+                      )}
                     </div>
                   ) : null}
                 </div>
@@ -316,13 +336,13 @@ export default function CarDetail() {
                 <div className="text-center">
                   <div className="flex items-center gap-2 justify-center text-sm text-yellow-400 mb-3">
                     <AlertTriangle className="w-4 h-4" />
-                    Account not verified
+                    {t('Account not verified')}
                   </div>
                   <p className="text-xs text-slate-500 mb-3">
-                    You need to verify your identity before booking.
+                    {t('You need to verify your identity before booking.')}
                   </p>
                   <Link to="/verify" className="btn-primary w-full inline-block text-center">
-                    Verify Now
+                    {t('Verify Now')}
                   </Link>
                 </div>
               ) : (
@@ -340,19 +360,21 @@ export default function CarDetail() {
                     className="btn-primary w-full !py-4 text-base"
                   >
                     {!user
-                      ? 'Sign in to Book'
+                      ? t('Sign in to Book')
                       : checkingAvailability
-                        ? 'Checking...'
+                        ? t('Checking...')
                         : isAvailable === false
-                          ? 'Not Available'
+                          ? t('Not Available')
                           : days > 0
-                            ? `Book Now · Pay ${formatMYR(deposit)} Deposit`
-                            : 'Select Dates'}
+                            ? t('Book Now · Pay {{deposit}} Deposit', {
+                                deposit: formatMYR(deposit),
+                              })
+                            : t('Select Dates')}
                   </button>
 
                   {!user && (
                     <p className="text-xs text-slate-500 mt-2 text-center">
-                      You need to sign in before booking.
+                      {t('You need to sign in before booking.')}
                     </p>
                   )}
                 </>
@@ -360,7 +382,7 @@ export default function CarDetail() {
 
               <p className="text-xs text-slate-500 mt-3 text-center">
                 <Link to="/terms" className="underline hover:text-slate-300">
-                  Rental terms (Terma & Syarat)
+                  {t('Rental terms (Terma & Syarat)')}
                 </Link>
               </p>
             </div>

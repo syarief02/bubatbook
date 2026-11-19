@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { Users, Fuel, Settings2, Calendar } from 'lucide-react';
 import { formatMYR } from '../utils/pricing';
 import { carPath } from '../utils/carLinks';
+import { useTranslation } from 'react-i18next';
 
 export default function CarCard({ car, pickupDate, returnDate }) {
+  const { t } = useTranslation();
   const queryParams = new URLSearchParams();
   if (pickupDate) queryParams.append('pickup', pickupDate);
   if (returnDate) queryParams.append('return', returnDate);
@@ -40,7 +42,7 @@ export default function CarCard({ car, pickupDate, returnDate }) {
         {car.price_per_day > 0 && (
           <div className="absolute top-3 right-3">
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
-              {formatMYR(car.price_per_day)}/day
+              {formatMYR(car.price_per_day)}/{t('day')}
             </span>
           </div>
         )}
@@ -66,11 +68,11 @@ export default function CarCard({ car, pickupDate, returnDate }) {
         <div className="flex items-center gap-4 text-xs text-slate-400">
           <span className="flex items-center gap-1">
             <Settings2 className="w-3.5 h-3.5" />
-            {car.transmission}
+            {t(car.transmission || '')}
           </span>
           <span className="flex items-center gap-1">
             <Users className="w-3.5 h-3.5" />
-            {car.seats} seats
+            {car.seats} {t('seats')}
           </span>
           <span className="flex items-center gap-1">
             <Fuel className="w-3.5 h-3.5" />

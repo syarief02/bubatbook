@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { carLabel, carPath, carUrl } from '../utils/carLinks';
+import { useTranslation } from 'react-i18next';
 
 // The customer signs the rental agreement before paying the deposit
 const STEPS = ['Your Info', 'Review', 'Agreement', 'Payment'];
@@ -47,6 +48,8 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { user, profile, isVerified, refreshProfile } = useAuth();
   const toast = useToast();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage;
   const { car, loading: carLoading } = useCar(carId);
   const contact = useCarContact(car?.id);
   // The car's page, by its plate (e.g. /cars/vjc5290)
@@ -115,7 +118,7 @@ export default function Checkout() {
       } catch (err) {
         holdCreatedRef.current = false;
         setHoldError(
-          err.message || 'Unable to hold this booking. The dates may no longer be available.'
+          err.message || t('Unable to hold this booking. The dates may no longer be available.')
         );
       } finally {
         setLoading(false);
@@ -152,9 +155,9 @@ export default function Checkout() {
   if (!pickupDate || !returnDate || !car) {
     return (
       <div className="page-container text-center">
-        <p className="text-red-400">Invalid checkout. Please select dates first.</p>
+        <p className="text-red-400">{t('Invalid checkout. Please select dates first.')}</p>
         <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">
-          Back to fleet
+          {t('Back to fleet')}
         </Link>
       </div>
     );
@@ -168,12 +171,12 @@ export default function Checkout() {
           <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
             <FileCheck className="w-8 h-8 text-yellow-400" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">Verification Required</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">{t('Verification Required')}</h2>
           <p className="text-sm text-slate-400 mb-6">
-            You need to verify your identity before booking a car.
+            {t('You need to verify your identity before booking a car.')}
           </p>
           <Link to="/verify" className="btn-primary inline-flex items-center gap-2">
-            Verify Now
+            {t('Verify Now')}
           </Link>
         </div>
       </div>
@@ -189,16 +192,17 @@ export default function Checkout() {
           <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
             <Landmark className="w-8 h-8 text-violet-400" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">Add Your Bank Details</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">{t('Add Your Bank Details')}</h2>
           <p className="text-sm text-slate-400 mb-6">
-            Before you book, add the bank account we refund your deposit to. You only need to do
-            this once, and you come back to this booking after saving.
+            {t(
+              'Before you book, add the bank account we refund your deposit to. You only need to do this once, and you come back to this booking after saving.'
+            )}
           </p>
           <Link
             to={`/profile?returnTo=${encodeURIComponent(back)}#bank`}
             className="btn-primary inline-flex items-center gap-2"
           >
-            Add Bank Details
+            {t('Add Bank Details')}
           </Link>
         </div>
       </div>
@@ -213,22 +217,29 @@ export default function Checkout() {
           <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
             <Truck className="w-8 h-8 text-violet-400" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">GDL Required</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">{t('GDL Required')}</h2>
           <p className="text-sm text-slate-400 mb-2">
-            The {car.name} is a commercial vehicle. To rent it you need a GDL (Goods Driving
-            Licence) that is valid until your return date, {formatDate(returnDate)}.
+            {t(
+              'The {{name}} is a commercial vehicle. To rent it you need a GDL (Goods Driving Licence) that is valid until your return date, {{returnDate}}.',
+              { name: car.name, returnDate: formatDate(returnDate) }
+            )}
           </p>
           <p className="text-xs text-slate-500 mb-6">
             {profile?.gdl_expiry
-              ? `The GDL on your account is valid until ${formatDate(profile.gdl_expiry)}. Upload your renewed GDL and we'll check it, usually within 24 hours.`
-              : "Add your GDL to your account and we'll check it, usually within 24 hours. Then come back to book."}
+              ? t(
+                  "The GDL on your account is valid until {{gdl_expiry}}. Upload your renewed GDL and we'll check it, usually within 24 hours.",
+                  { gdl_expiry: formatDate(profile.gdl_expiry) }
+                )
+              : t(
+                  "Add your GDL to your account and we'll check it, usually within 24 hours. Then come back to book."
+                )}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/verify?gdl=1" className="btn-primary inline-flex items-center gap-2">
-              {profile?.gdl_expiry ? 'Renew My GDL' : 'Add My GDL'}
+              {profile?.gdl_expiry ? t('Renew My GDL') : t('Add My GDL')}
             </Link>
             <Link to={carPage} className="btn-secondary inline-flex items-center gap-2">
-              Back to the Car
+              {t('Back to the Car')}
             </Link>
           </div>
         </div>
@@ -244,12 +255,14 @@ export default function Checkout() {
           <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">Booking Too Far in Advance</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">
+            {t('Booking Too Far in Advance')}
+          </h2>
           <p className="text-sm text-slate-400 mb-6">
-            You can only book up to 6 months in advance.
+            {t('You can only book up to 6 months in advance.')}
           </p>
           <Link to={carPage} className="btn-primary inline-flex items-center gap-2">
-            Change Dates
+            {t('Change Dates')}
           </Link>
         </div>
       </div>
@@ -263,10 +276,10 @@ export default function Checkout() {
           <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">Booking Unavailable</h2>
-          <p className="text-sm text-slate-400 mb-6">{holdError}</p>
+          <h2 className="text-xl font-semibold text-white mb-2">{t('Booking Unavailable')}</h2>
+          <p className="text-sm text-slate-400 mb-6">{t(holdError)}</p>
           <Link to={carPage} className="btn-primary inline-flex items-center gap-2">
-            Try Different Dates
+            {t('Try Different Dates')}
           </Link>
         </div>
       </div>
@@ -307,7 +320,7 @@ export default function Checkout() {
 
   async function handleDepositPayment() {
     if (amountDue > 0 && !receiptFile) {
-      toast.error('Please upload your payment receipt.');
+      toast.error(t('Please upload your payment receipt.'));
       return;
     }
 
@@ -351,7 +364,7 @@ export default function Checkout() {
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to car
+        {t('Back to car')}
       </Link>
 
       {/* Hold Timer */}
@@ -359,7 +372,11 @@ export default function Checkout() {
         <div className="glass-card !p-3 flex items-center justify-between gap-3 mb-6 border-yellow-500/20">
           <div className="flex items-center gap-2 min-w-0 text-sm text-yellow-300">
             <Clock className="w-4 h-4 shrink-0" />
-            <span>Held for you until {formatDateTime(booking.hold_expires_at)}</span>
+            <span>
+              {t('Held for you until {{hold_expires_at}}', {
+                hold_expires_at: formatDateTime(booking.hold_expires_at),
+              })}
+            </span>
           </div>
           <span className="shrink-0 text-sm font-mono font-bold text-yellow-300">
             {timeRemaining}
@@ -369,9 +386,11 @@ export default function Checkout() {
 
       {isExpired && (
         <div className="glass-card !p-4 mb-6 border-red-500/20 text-center">
-          <p className="text-red-400 font-medium">Your hold has expired. Please start over.</p>
+          <p className="text-red-400 font-medium">
+            {t('Your hold has expired. Please start over.')}
+          </p>
           <Link to={carPage} className="text-violet-400 hover:underline text-sm mt-2 inline-block">
-            Go back
+            {t('Go back')}
           </Link>
         </div>
       )}
@@ -394,7 +413,7 @@ export default function Checkout() {
               ) : (
                 <span className="w-4 text-center">{i + 1}</span>
               )}
-              <span className="hidden sm:inline">{s}</span>
+              <span className="hidden sm:inline">{t(s)}</span>
             </div>
             {i < STEPS.length - 1 && <ChevronRight className="w-4 h-4 text-slate-700" />}
           </div>
@@ -406,7 +425,7 @@ export default function Checkout() {
         <div className="flex-1 min-w-0">
           {step === 0 && (
             <div className="glass-card animate-fade-in">
-              <h2 className="text-lg font-semibold text-white mb-6">Your Information</h2>
+              <h2 className="text-lg font-semibold text-white mb-6">{t('Your Information')}</h2>
               <BookingForm
                 onSubmit={handleInfoSubmit}
                 loading={loading}
@@ -423,38 +442,38 @@ export default function Checkout() {
 
           {step === 1 && (
             <div className="glass-card animate-fade-in">
-              <h2 className="text-lg font-semibold text-white mb-6">Review Your Booking</h2>
+              <h2 className="text-lg font-semibold text-white mb-6">{t('Review Your Booking')}</h2>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Name</p>
+                    <p className="text-xs text-slate-500 mb-1">{t('Name')}</p>
                     <p className="text-sm text-white">{customerInfo?.name}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Email</p>
+                    <p className="text-xs text-slate-500 mb-1">{t('Email')}</p>
                     <p className="text-sm text-white">{customerInfo?.email}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Phone</p>
+                    <p className="text-xs text-slate-500 mb-1">{t('Phone')}</p>
                     <p className="text-sm text-white">{customerInfo?.phone}</p>
                   </div>
                 </div>
                 {customerInfo?.notes && (
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Notes</p>
+                    <p className="text-xs text-slate-500 mb-1">{t('Notes')}</p>
                     <p className="text-sm text-slate-300">{customerInfo.notes}</p>
                   </div>
                 )}
                 <div className="border-t border-white/5 pt-4 flex gap-3">
                   <button onClick={() => setStep(0)} className="btn-secondary flex-1">
-                    Edit Info
+                    {t('Edit Info')}
                   </button>
                   <button
                     onClick={() => setStep(2)}
                     className="btn-primary flex-1"
                     disabled={isExpired}
                   >
-                    Continue to Agreement
+                    {t('Continue to Agreement')}
                   </button>
                 </div>
               </div>
@@ -464,10 +483,9 @@ export default function Checkout() {
           {step === 2 && (
             <div className="animate-fade-in">
               <div className="glass-card mb-6">
-                <h2 className="text-lg font-semibold text-white mb-2">Rental Agreement</h2>
+                <h2 className="text-lg font-semibold text-white mb-2">{t('Rental Agreement')}</h2>
                 <p className="text-sm text-slate-400">
-                  Perjanjian Sewaan Kenderaan. Read and sign the agreement before paying the
-                  deposit.
+                  {t('Read and sign the agreement before paying the deposit.')}
                 </p>
               </div>
               <RentalAgreementForm
@@ -483,17 +501,18 @@ export default function Checkout() {
                 onSigned={handleAgreementSigned}
               />
               <button onClick={() => setStep(1)} className="btn-secondary w-full mt-3">
-                Back to Review
+                {t('Back to Review')}
               </button>
             </div>
           )}
 
           {step === 3 && (
             <div className="glass-card animate-fade-in">
-              <h2 className="text-lg font-semibold text-white mb-2">Deposit Payment</h2>
+              <h2 className="text-lg font-semibold text-white mb-2">{t('Deposit Payment')}</h2>
               <p className="text-sm text-slate-400 mb-6">
-                Upload your payment receipt to secure this booking. Full rental payment is due at
-                pickup.
+                {t(
+                  'Upload your payment receipt to secure this booking. Full rental payment is due at pickup.'
+                )}
               </p>
 
               {/* Credit applied */}
@@ -502,9 +521,13 @@ export default function Checkout() {
                   <Wallet className="w-5 h-5 text-green-400" />
                   <div>
                     <p className="text-sm text-green-300 font-medium">
-                      Credit Applied: {formatMYR(creditApplied)}
+                      {t('Credit Applied: {{creditApplied}}', {
+                        creditApplied: formatMYR(creditApplied),
+                      })}
                     </p>
-                    <p className="text-xs text-green-400/70">Deducted from your deposit balance</p>
+                    <p className="text-xs text-green-400/70">
+                      {t('Deducted from your deposit balance')}
+                    </p>
                   </div>
                 </div>
               )}
@@ -512,17 +535,17 @@ export default function Checkout() {
               {/* Payment breakdown */}
               <div className="space-y-2 mb-6 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Deposit Required</span>
+                  <span className="text-slate-400">{t('Deposit Required')}</span>
                   <span className="text-white">{formatMYR(deposit)}</span>
                 </div>
                 {creditApplied > 0 && (
                   <div className="flex justify-between text-green-400">
-                    <span>Credit Applied</span>
+                    <span>{t('Credit Applied')}</span>
                     <span>-{formatMYR(creditApplied)}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-white/5 pt-2 font-semibold">
-                  <span className="text-white">Amount Due</span>
+                  <span className="text-white">{t('Amount Due')}</span>
                   <span className="text-violet-300">{formatMYR(amountDue)}</span>
                 </div>
               </div>
@@ -545,13 +568,14 @@ export default function Checkout() {
                           reference={bookingReference(booking.id)}
                         />
                         <p className="text-xs text-slate-500 -mt-3 mb-6">
-                          Then upload your receipt below. You can also leave this page: the car
-                          stays held for you until {formatDateTime(booking.hold_expires_at)}, and
-                          you can upload the receipt from{' '}
+                          {t(
+                            'Then upload your receipt below. You can also leave this page: the car stays held for you until {{hold_expires_at}}, and you can upload the receipt from',
+                            { hold_expires_at: formatDateTime(booking.hold_expires_at) }
+                          )}{' '}
                           <Link to="/my-bookings" className="text-violet-400 hover:underline">
-                            My Bookings
+                            {t('My Bookings')}
                           </Link>
-                          . Questions?{' '}
+                          . {t('Questions?')}{' '}
                           <a
                             href={whatsappUrl}
                             target="_blank"
@@ -575,10 +599,10 @@ export default function Checkout() {
                             <p className="text-sm text-slate-300">
                               {receiptFile
                                 ? receiptFile.name
-                                : 'Click or tap to upload payment receipt'}
+                                : t('Click or tap to upload payment receipt')}
                             </p>
                             <p className="text-xs text-slate-500">
-                              JPG, PNG, WebP or PDF · Up to 12MB
+                              {t('JPG, PNG, WebP or PDF · Up to 12MB')}
                             </p>
                           </div>
                         </label>
@@ -590,27 +614,27 @@ export default function Checkout() {
                     <>
                       <div className="text-xs text-slate-400 mb-4 bg-white/5 p-3 rounded-xl border border-white/10">
                         <span className="block mb-2 text-white font-medium">
-                          Payment Instructions:
+                          {t('Payment Instructions:')}
                         </span>
                         <ol className="list-decimal pl-4 space-y-1.5">
                           <li>
-                            Please{' '}
+                            {t('Please')}{' '}
                             <a
                               href={whatsappUrl}
                               target="_blank"
                               rel="noreferrer"
                               className="text-green-400 hover:text-green-300 hover:underline font-medium"
                             >
-                              WhatsApp our admin
+                              {t('WhatsApp our admin')}
                             </a>{' '}
-                            to get the bank account details.
+                            {t('to get the bank account details.')}
                           </li>
                           <li>
-                            Transfer{' '}
+                            {t('Transfer')}{' '}
                             <span className="text-white font-semibold">{formatMYR(amountDue)}</span>{' '}
-                            to the provided account.
+                            {t('to the provided account.')}
                           </li>
-                          <li>Upload your payment receipt below to secure your booking.</li>
+                          <li>{t('Upload your payment receipt below to secure your booking.')}</li>
                         </ol>
                       </div>
 
@@ -621,15 +645,17 @@ export default function Checkout() {
                         className="flex items-center justify-center gap-2 w-full py-3.5 mb-6 bg-[#25D366] hover:bg-[#20BE5C] text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-[#25D366]/30 hover:-translate-y-0.5"
                       >
                         <MessageCircle className="w-5 h-5" />
-                        <span>WhatsApp Admin for Bank Details</span>
+                        <span>{t('WhatsApp Admin for Bank Details')}</span>
                       </a>
                       <p className="text-xs text-slate-500 -mt-3 mb-6">
-                        Waiting for a reply? You can leave this page: the car stays held for you
-                        until {formatDateTime(booking.hold_expires_at)}. Come back from{' '}
+                        {t(
+                          'Waiting for a reply? You can leave this page: the car stays held for you until {{hold_expires_at}}. Come back from',
+                          { hold_expires_at: formatDateTime(booking.hold_expires_at) }
+                        )}{' '}
                         <Link to="/my-bookings" className="text-violet-400 hover:underline">
-                          My Bookings
+                          {t('My Bookings')}
                         </Link>{' '}
-                        to upload the receipt.
+                        {t('to upload the receipt.')}
                       </p>
 
                       <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors mb-6 overflow-hidden">
@@ -645,10 +671,10 @@ export default function Checkout() {
                           <p className="text-sm text-slate-300">
                             {receiptFile
                               ? receiptFile.name
-                              : 'Click or tap to upload payment receipt'}
+                              : t('Click or tap to upload payment receipt')}
                           </p>
                           <p className="text-xs text-slate-500">
-                            JPG, PNG, WebP or PDF · Up to 12MB
+                            {t('JPG, PNG, WebP or PDF · Up to 12MB')}
                           </p>
                         </div>
                       </label>
@@ -659,7 +685,7 @@ export default function Checkout() {
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 mb-6">
                   <CheckCircle className="w-5 h-5 text-green-400" />
                   <p className="text-sm text-green-300">
-                    Deposit fully covered by your credit balance!
+                    {t('Deposit fully covered by your credit balance!')}
                   </p>
                 </div>
               )}
@@ -671,12 +697,12 @@ export default function Checkout() {
               >
                 {uploading ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" /> Processing...
+                    <Loader2 className="w-5 h-5 animate-spin" /> {t('Processing...')}
                   </>
                 ) : (
                   <>
                     <Upload className="w-5 h-5" />{' '}
-                    {amountDue > 0 ? 'Submit Deposit Payment' : 'Confirm Booking'}
+                    {amountDue > 0 ? t('Submit Deposit Payment') : t('Confirm Booking')}
                   </>
                 )}
               </button>
@@ -688,7 +714,7 @@ export default function Checkout() {
         <div className="lg:w-80 shrink-0">
           <div className="glass-card lg:sticky lg:top-24">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-              Summary
+              {t('Summary')}
             </h3>
             {car.image_url && (
               <img
@@ -706,22 +732,22 @@ export default function Checkout() {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-400">Pick-up</span>
+                <span className="text-slate-400">{t('Pick-up')}</span>
                 <span className="text-white">{formatDate(pickupDate)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Return</span>
+                <span className="text-slate-400">{t('Return')}</span>
                 <span className="text-white">{formatDate(returnDate)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Duration</span>
-                <span className="text-white">
-                  {days} day{days > 1 ? 's' : ''}
-                </span>
+                <span className="text-slate-400">{t('Duration')}</span>
+                <span className="text-white">{t('{{count}} days', { count: days })}</span>
               </div>
               {(booking ? Number(booking.long_rental_discount) : estimate.longDiscount) > 0 && (
                 <div className="flex justify-between text-green-400">
-                  <span>{longRentalLabel(days, estimate.discountPct, estimate.isPackage)}</span>
+                  <span>
+                    {longRentalLabel(days, estimate.discountPct, estimate.isPackage, lang)}
+                  </span>
                   <span>
                     -
                     {formatMYR(
@@ -731,21 +757,21 @@ export default function Checkout() {
                 </div>
               )}
               <div className="border-t border-white/5 pt-3 flex justify-between">
-                <span className="text-slate-400">Rental Total</span>
+                <span className="text-slate-400">{t('Rental Total')}</span>
                 <span className="text-white font-semibold">{formatMYR(total)}</span>
               </div>
               <div className="flex justify-between bg-violet-500/10 rounded-xl px-3 py-2 -mx-1">
-                <span className="text-violet-300 text-sm">Deposit (Security)</span>
+                <span className="text-violet-300 text-sm">{t('Deposit (Security)')}</span>
                 <span className="text-violet-300 font-bold">{formatMYR(deposit)}</span>
               </div>
               <p className="text-xs text-slate-600 italic">
-                Full rental payment ({formatMYR(total)}) due at pickup
+                {t('Full rental payment ({{total}}) due at pickup', { total: formatMYR(total) })}
               </p>
             </div>
 
             <div className="flex items-center gap-1.5 mt-4 text-xs text-slate-600">
               <Shield className="w-3.5 h-3.5" />
-              <span>Secure checkout</span>
+              <span>{t('Secure checkout')}</span>
             </div>
           </div>
         </div>

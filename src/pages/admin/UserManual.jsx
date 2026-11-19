@@ -673,6 +673,26 @@ export default function UserManual() {
               next booking.
             </li>
           </Steps>
+          <Sub>English or Bahasa Melayu</Sub>
+          <Bullets>
+            <li>
+              Customers switch the site between English and Bahasa Melayu with the <B>EN | BM</B>{' '}
+              button at the top (next to the menu on a phone). The choice is remembered on that
+              phone or computer; on a first visit the site follows the phone&apos;s language.
+            </li>
+            <li>
+              In BM, the car pages, prices and packages, sign-in, booking, checkout, payment
+              details, My Bookings, Profile and Verify Account are in Malay, and dates use Malay
+              month names (e.g. 10 Dis 2026). The WhatsApp button then writes &quot;saya ingin
+              bertanya tentang…&quot; with the car&apos;s name, plate and link. The terms and the
+              rental agreement were already in both languages.
+            </li>
+            <li>
+              Admin pages, the printable receipt and the invoice stay in English. If a Malay word
+              reads oddly, send the better wording on WhatsApp: all the Malay text is kept in one
+              list, so it is a one-line fix.
+            </li>
+          </Bullets>
           <Sub>Finding customers</Sub>
           <p>
             <B>Customers</B> has a search box (name, email or phone), a role filter and status

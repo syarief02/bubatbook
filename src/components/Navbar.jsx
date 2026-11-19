@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { formatMYR } from '../utils/pricing';
 import { useViewAs } from '../hooks/ViewAsContext';
+import { useTranslation } from 'react-i18next';
+import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
   const { user, profile, isAdmin, isVerified, signOut } = useAuth();
@@ -23,6 +25,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const profileRef = useRef(null);
   const { isViewMode } = useViewAs();
+  const { t } = useTranslation();
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -74,7 +77,7 @@ export default function Navbar() {
               to="/"
               className="text-slate-300 hover:text-white transition-colors text-sm font-medium"
             >
-              Browse Cars
+              {t('Browse Cars')}
             </Link>
             {user && (
               <Link
@@ -82,7 +85,7 @@ export default function Navbar() {
                 className="text-slate-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1.5"
               >
                 <CalendarDays className="w-4 h-4" />
-                My Bookings
+                {t('My Bookings')}
               </Link>
             )}
             {isAdmin && (
@@ -100,13 +103,14 @@ export default function Navbar() {
                 className="text-yellow-400 hover:text-yellow-300 transition-colors text-sm font-medium flex items-center gap-1.5"
               >
                 <AlertTriangle className="w-4 h-4" />
-                Verify
+                {t('Verify')}
               </Link>
             )}
           </div>
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageToggle />
             {user ? (
               <div className="relative" ref={profileRef}>
                 <button
@@ -133,7 +137,7 @@ export default function Navbar() {
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-yellow-400 hover:text-yellow-300 hover:bg-white/5 transition-colors"
                       >
                         <AlertTriangle className="w-4 h-4" />
-                        Verify Account
+                        {t('Verify Account')}
                       </Link>
                     )}
                     <Link
@@ -142,7 +146,7 @@ export default function Navbar() {
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
                     >
                       <User className="w-4 h-4" />
-                      My Profile
+                      {t('My Profile')}
                     </Link>
                     <Link
                       to="/my-bookings"
@@ -150,14 +154,14 @@ export default function Navbar() {
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
                     >
                       <CalendarDays className="w-4 h-4" />
-                      My Bookings
+                      {t('My Bookings')}
                     </Link>
                     <button
                       onClick={handleSignOut}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t('Sign Out')}
                     </button>
                   </div>
                 )}
@@ -165,22 +169,26 @@ export default function Navbar() {
             ) : (
               <>
                 <Link to="/login" className="btn-secondary text-sm !px-4 !py-2">
-                  Sign In
+                  {t('Sign In')}
                 </Link>
                 <Link to="/signup" className="btn-primary text-sm !px-4 !py-2">
-                  Sign Up
+                  {t('Sign Up')}
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 text-slate-300 hover:text-white transition-colors"
-          >
-            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile: language + menu button */}
+          <div className="md:hidden flex items-center gap-2">
+            <LanguageToggle />
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="p-2 text-slate-300 hover:text-white transition-colors"
+              aria-label={t('Menu')}
+            >
+              {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -192,7 +200,7 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
                 className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
               >
-                Browse Cars
+                {t('Browse Cars')}
               </Link>
               {user && (
                 <>
@@ -201,7 +209,7 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
                   >
-                    My Bookings
+                    {t('My Bookings')}
                   </Link>
                   <Link
                     to="/profile"
@@ -209,7 +217,7 @@ export default function Navbar() {
                     className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors flex items-center gap-2"
                   >
                     <User className="w-4 h-4" />
-                    My Profile
+                    {t('My Profile')}
                   </Link>
                 </>
               )}
@@ -229,14 +237,14 @@ export default function Navbar() {
                   className="px-4 py-2 text-yellow-400 hover:text-yellow-300 hover:bg-white/5 rounded-xl transition-colors flex items-center gap-2"
                 >
                   <AlertTriangle className="w-4 h-4" />
-                  Verify Account
+                  {t('Verify Account')}
                 </Link>
               )}
               {user && (
                 <div className="px-4 py-2 flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-green-400" />
                   <span className="text-sm text-green-400 font-medium">
-                    Credit: {formatMYR(creditBalance)}
+                    {t('Credit')}: {formatMYR(creditBalance)}
                   </span>
                 </div>
               )}
@@ -249,7 +257,7 @@ export default function Navbar() {
                     }}
                     className="w-full text-left px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
                   >
-                    Sign Out
+                    {t('Sign Out')}
                   </button>
                 ) : (
                   <div className="flex gap-2 px-4">
@@ -258,14 +266,14 @@ export default function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       className="btn-secondary text-sm flex-1 text-center !py-2"
                     >
-                      Sign In
+                      {t('Sign In')}
                     </Link>
                     <Link
                       to="/signup"
                       onClick={() => setMenuOpen(false)}
                       className="btn-primary text-sm flex-1 text-center !py-2"
                     >
-                      Sign Up
+                      {t('Sign Up')}
                     </Link>
                   </div>
                 )}

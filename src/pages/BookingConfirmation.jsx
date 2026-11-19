@@ -23,11 +23,13 @@ import {
   Clock,
   MessageCircle,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function BookingConfirmation() {
   const { id } = useParams();
   const { user, profile } = useAuth();
   const toast = useToast();
+  const { t } = useTranslation();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -56,9 +58,9 @@ export default function BookingConfirmation() {
       await cancelBooking(id, user?.id);
       setBooking((prev) => ({ ...prev, status: 'CANCELLED' }));
       setShowCancelConfirm(false);
-      toast.success('Booking cancelled');
+      toast.success(t('Booking cancelled'));
     } catch (err) {
-      toast.error('Failed to cancel: ' + err.message);
+      toast.error(t('Failed to cancel:') + ' ' + err.message);
     } finally {
       setCancelling(false);
     }
@@ -68,9 +70,9 @@ export default function BookingConfirmation() {
   if (!booking) {
     return (
       <div className="page-container text-center">
-        <p className="text-red-400">Booking not found.</p>
+        <p className="text-red-400">{t('Booking not found.')}</p>
         <Link to="/" className="text-violet-400 hover:underline mt-4 inline-block">
-          Back to home
+          {t('Back to home')}
         </Link>
       </div>
     );
@@ -174,7 +176,7 @@ export default function BookingConfirmation() {
     const blob = new Blob([receiptHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
-    toast.success('Receipt opened — you can print it!');
+    toast.success(t('Receipt opened — you can print it!'));
   }
 
   return (
@@ -192,12 +194,12 @@ export default function BookingConfirmation() {
               )}
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">
-              {isExpired ? 'Booking Expired' : 'Booking Cancelled'}
+              {isExpired ? t('Booking Expired') : t('Booking Cancelled')}
             </h1>
             <p className="text-slate-400">
               {isExpired
-                ? 'This booking has expired. The hold time ran out before payment was received.'
-                : 'This booking has been cancelled.'}
+                ? t('This booking has expired. The hold time ran out before payment was received.')
+                : t('This booking has been cancelled.')}
             </p>
           </>
         ) : isHold ? (
@@ -205,16 +207,18 @@ export default function BookingConfirmation() {
             <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
               <Clock className="w-10 h-10 text-yellow-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Booking on Hold</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">{t('Booking on Hold')}</h1>
             <p className="text-slate-400">
-              Please upload your deposit receipt to secure this booking. It&apos;s held for you
-              until {formatDateTime(booking.hold_expires_at)}.
+              {t(
+                "Please upload your deposit receipt to secure this booking. It's held for you until {{hold_expires_at}}.",
+                { hold_expires_at: formatDateTime(booking.hold_expires_at) }
+              )}
             </p>
             <Link
               to={`/checkout/${booking.car_id}?pickup=${booking.pickup_date}&return=${booking.return_date}`}
               className="btn-primary inline-flex items-center gap-2 mt-4"
             >
-              Continue booking
+              {t('Continue booking')}
             </Link>
           </>
         ) : (
@@ -223,14 +227,16 @@ export default function BookingConfirmation() {
               <CheckCircle className="w-10 h-10 text-green-400" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">
-              {booking.status === 'DEPOSIT_PAID' ? 'Deposit Received!' : 'Booking Confirmed!'}
+              {booking.status === 'DEPOSIT_PAID' ? t('Deposit Received!') : t('Booking Confirmed!')}
             </h1>
             <p className="text-slate-400">
               {booking.status === 'DEPOSIT_PAID'
                 ? booking.deposit_status === 'verified'
-                  ? 'Your deposit was covered by your credit. Awaiting admin confirmation.'
-                  : "Your deposit has been uploaded. Awaiting admin verification. If it isn't verified within 48 hours, the booking is released."
-                : 'Your booking is secured and confirmed.'}
+                  ? t('Your deposit was covered by your credit. Awaiting admin confirmation.')
+                  : t(
+                      "Your deposit has been uploaded. Awaiting admin verification. If it isn't verified within 48 hours, the booking is released."
+                    )
+                : t('Your booking is secured and confirmed.')}
             </p>
           </>
         )}
@@ -239,7 +245,7 @@ export default function BookingConfirmation() {
       <div className="glass-card mb-6 animate-slide-up">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-xs text-slate-500 mb-1">Booking Reference</p>
+            <p className="text-xs text-slate-500 mb-1">{t('Booking Reference')}</p>
             <div className="flex items-center gap-2">
               <code className="text-sm font-mono text-violet-300 bg-violet-500/10 px-3 py-1 rounded-lg">
                 {booking.id.slice(0, 8).toUpperCase()}
@@ -265,7 +271,7 @@ export default function BookingConfirmation() {
             <img src={car.image_url} alt={car.name} className="w-20 h-14 rounded-xl object-cover" />
           )}
           <div>
-            <h3 className="text-white font-semibold">{car?.name || 'Car'}</h3>
+            <h3 className="text-white font-semibold">{car?.name || t('Car')}</h3>
             <p className="text-xs text-slate-500">
               {car?.brand} {car?.model}
             </p>
@@ -275,20 +281,20 @@ export default function BookingConfirmation() {
         {/* Dates & pricing */}
         <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           <div>
-            <p className="text-xs text-slate-500 mb-1">Pick-up</p>
+            <p className="text-xs text-slate-500 mb-1">{t('Pick-up')}</p>
             <p className="text-white">{formatDate(booking.pickup_date)}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Return</p>
+            <p className="text-xs text-slate-500 mb-1">{t('Return')}</p>
             <p className="text-white">{formatDate(booking.return_date)}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Total Price</p>
+            <p className="text-xs text-slate-500 mb-1">{t('Total Price')}</p>
             <p className="text-white font-semibold">{formatMYR(booking.total_price)}</p>
           </div>
           <div>
             <p className="text-xs text-slate-500 mb-1">
-              {isHold ? 'Deposit Required' : 'Deposit Paid'}
+              {isHold ? t('Deposit Required') : t('Deposit Paid')}
             </p>
             <p className={`font-semibold ${isHold ? 'text-yellow-400' : 'text-green-400'}`}>
               {formatMYR(booking.deposit_amount)}
@@ -298,14 +304,16 @@ export default function BookingConfirmation() {
 
         {/* Customer info */}
         <div className="bg-white/[0.02] rounded-xl p-4 text-sm">
-          <p className="text-xs text-slate-500 mb-2">Customer Details</p>
+          <p className="text-xs text-slate-500 mb-2">{t('Customer Details')}</p>
           <p className="text-white">{booking.customer_name}</p>
           <p className="text-slate-400">{booking.customer_email}</p>
           <p className="text-slate-400">{booking.customer_phone}</p>
         </div>
 
         {payment && (
-          <p className="mt-4 text-xs text-slate-500">Payment Ref: {payment.reference_number}</p>
+          <p className="mt-4 text-xs text-slate-500">
+            {t('Payment Ref: {{reference_number}}', { reference_number: payment.reference_number })}
+          </p>
         )}
 
         {/* WhatsApp Payment Button */}
@@ -326,13 +334,15 @@ export default function BookingConfirmation() {
             className="flex items-center justify-center gap-2 w-full mt-4 px-4 py-3 rounded-xl text-sm font-medium bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/20 transition-all"
           >
             <MessageCircle className="w-4 h-4" />
-            Contact {contact.name} for Payment (WhatsApp)
+            {t('Contact {{name}} for Payment (WhatsApp)', { name: contact.name })}
           </a>
         )}
 
         {Number(booking.credit_applied || 0) > 0 && (
           <p className="mt-2 text-xs text-green-400">
-            Credit applied: {formatMYR(booking.credit_applied)}
+            {t('Credit applied: {{credit_applied}}', {
+              credit_applied: formatMYR(booking.credit_applied),
+            })}
           </p>
         )}
 
@@ -343,7 +353,7 @@ export default function BookingConfirmation() {
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 transition-colors"
             >
               <Download className="w-4 h-4" />
-              Print Receipt
+              {t('Print Receipt')}
             </button>
           </div>
         )}
@@ -356,7 +366,7 @@ export default function BookingConfirmation() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium"
             >
               <XCircle className="w-4 h-4" />
-              Cancel Booking
+              {t('Cancel Booking')}
             </button>
           </div>
         )}
@@ -369,11 +379,12 @@ export default function BookingConfirmation() {
                 <AlertTriangle className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-white font-medium mb-1">
-                    Are you sure you want to cancel?
+                    {t('Are you sure you want to cancel?')}
                   </p>
                   <p className="text-xs text-slate-400">
-                    This action cannot be undone. Your booking will be released and the dates will
-                    become available for others.
+                    {t(
+                      'This action cannot be undone. Your booking will be released and the dates will become available for others.'
+                    )}
                   </p>
                 </div>
               </div>
@@ -383,13 +394,13 @@ export default function BookingConfirmation() {
                   disabled={cancelling}
                   className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors text-sm font-medium disabled:opacity-50"
                 >
-                  {cancelling ? 'Cancelling...' : 'Yes, Cancel Booking'}
+                  {cancelling ? t('Cancelling...') : t('Yes, Cancel Booking')}
                 </button>
                 <button
                   onClick={() => setShowCancelConfirm(false)}
                   className="flex-1 py-2.5 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition-colors text-sm"
                 >
-                  Keep Booking
+                  {t('Keep Booking')}
                 </button>
               </div>
             </div>
@@ -400,7 +411,7 @@ export default function BookingConfirmation() {
       {/* Next Steps — only show if not cancelled */}
       {!isCancelled && (
         <div className="glass-card animate-slide-up" style={{ animationDelay: '150ms' }}>
-          <h3 className="text-sm font-semibold text-white mb-4">Next Steps</h3>
+          <h3 className="text-sm font-semibold text-white mb-4">{t('Next Steps')}</h3>
           <div className="space-y-3">
             {!profile?.is_verified && (
               <Link
@@ -412,10 +423,10 @@ export default function BookingConfirmation() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-white font-medium group-hover:text-violet-300 transition-colors">
-                    Upload Identity Documents
+                    {t('Upload Identity Documents')}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Submit your driving licence for verification (recommended)
+                    {t('Submit your driving licence for verification (recommended)')}
                   </p>
                 </div>
                 <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
@@ -432,10 +443,10 @@ export default function BookingConfirmation() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-white font-medium group-hover:text-cyan-300 transition-colors">
-                    Rental Agreement
+                    {t('Rental Agreement')}
                   </p>
                   <p className="text-xs text-slate-500">
-                    View or print your signed copy, or sign it before pickup
+                    {t('View or print your signed copy, or sign it before pickup')}
                   </p>
                 </div>
                 <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
@@ -451,9 +462,11 @@ export default function BookingConfirmation() {
               </div>
               <div className="flex-1">
                 <p className="text-sm text-white font-medium group-hover:text-indigo-300 transition-colors">
-                  View My Bookings
+                  {t('View My Bookings')}
                 </p>
-                <p className="text-xs text-slate-500">Track all your bookings in one place</p>
+                <p className="text-xs text-slate-500">
+                  {t('Track all your bookings in one place')}
+                </p>
               </div>
               <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-slate-400" />
             </Link>
@@ -465,7 +478,7 @@ export default function BookingConfirmation() {
       {isCancelled && (
         <div className="text-center animate-slide-up" style={{ animationDelay: '150ms' }}>
           <Link to="/" className="btn-primary inline-flex items-center gap-2">
-            Browse Cars
+            {t('Browse Cars')}
           </Link>
         </div>
       )}

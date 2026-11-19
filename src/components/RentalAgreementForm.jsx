@@ -6,6 +6,7 @@ import SignatureCanvas from './SignatureCanvas';
 import { useToast } from './Toast';
 import { FileText, AlertTriangle } from 'lucide-react';
 import { AgreementTerms } from './AgreementTerms';
+import { useTranslation } from 'react-i18next';
 
 // Renter and vehicle details, the terms and the signature pad. Used at checkout
 // (before the deposit) and on the agreement page (later, or staff in person).
@@ -13,6 +14,7 @@ import { AgreementTerms } from './AgreementTerms';
 // agreement's names, dates and prices from the booking when it is signed.
 export default function RentalAgreementForm({ booking, car, renter, disabled = false, onSigned }) {
   const toast = useToast();
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -20,11 +22,11 @@ export default function RentalAgreementForm({ booking, car, renter, disabled = f
   async function handleSubmit(e) {
     e.preventDefault();
     if (!signatureData) {
-      toast.error('Please draw your signature.');
+      toast.error(t('Please draw your signature.'));
       return;
     }
     if (!agreedToTerms) {
-      toast.error('Please agree to the terms and conditions.');
+      toast.error(t('Please agree to the terms and conditions.'));
       return;
     }
 
@@ -37,11 +39,11 @@ export default function RentalAgreementForm({ booking, car, renter, disabled = f
 
       if (error) throw error;
 
-      toast.success('Agreement signed successfully!');
+      toast.success(t('Agreement signed successfully!'));
       onSigned(agreement);
     } catch (err) {
       console.error(err);
-      toast.error(err.message || 'Failed to submit agreement.');
+      toast.error(err.message || t('Failed to submit agreement.'));
     } finally {
       setSubmitting(false);
     }

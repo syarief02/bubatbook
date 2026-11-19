@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { User, Mail, Phone, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function BookingForm({ onSubmit, loading = false, initialData = {} }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialData.name || '');
   const [email, setEmail] = useState(initialData.email || '');
   const [phone, setPhone] = useState(initialData.phone || '');
@@ -10,11 +12,11 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
 
   function validate() {
     const errs = {};
-    if (!name.trim()) errs.name = 'Full name is required';
-    if (!email.trim()) errs.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Invalid email address';
-    if (!phone.trim()) errs.phone = 'Phone number is required';
-    else if (phone.replace(/\D/g, '').length < 9) errs.phone = 'Invalid phone number';
+    if (!name.trim()) errs.name = t('Full name is required');
+    if (!email.trim()) errs.email = t('Email is required');
+    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = t('Invalid email address');
+    if (!phone.trim()) errs.phone = t('Phone number is required');
+    else if (phone.replace(/\D/g, '').length < 9) errs.phone = t('Invalid phone number');
     return errs;
   }
 
@@ -31,7 +33,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
       <div>
         <label className="input-label flex items-center gap-1.5">
           <User className="w-4 h-4 text-violet-400" />
-          Full Name *
+          {t('Full Name')} *
         </label>
         <input
           type="text"
@@ -48,7 +50,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
       <div>
         <label className="input-label flex items-center gap-1.5">
           <Mail className="w-4 h-4 text-violet-400" />
-          Email Address *
+          {t('Email Address')} *
         </label>
         <input
           type="email"
@@ -65,7 +67,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
       <div>
         <label className="input-label flex items-center gap-1.5">
           <Phone className="w-4 h-4 text-violet-400" />
-          Phone Number *
+          {t('Phone Number')} *
         </label>
         <input
           type="tel"
@@ -82,14 +84,14 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
       <div>
         <label className="input-label flex items-center gap-1.5">
           <FileText className="w-4 h-4 text-violet-400" />
-          Notes (optional)
+          {t('Notes (optional)')}
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           className="input-field resize-none"
           rows={3}
-          placeholder="Any special requests or pick-up instructions..."
+          placeholder={t('Any special requests or pick-up instructions...')}
           maxLength={500}
           disabled={loading}
         />
@@ -100,7 +102,7 @@ export default function BookingForm({ onSubmit, loading = false, initialData = {
         disabled={loading}
         className="btn-primary w-full flex items-center justify-center gap-2"
       >
-        {loading ? 'Saving...' : 'Continue'}
+        {loading ? t('Saving...') : t('Continue')}
       </button>
     </form>
   );

@@ -7,12 +7,14 @@ import { useToast } from '../components/Toast';
 import { normalizePhone } from '../utils/phoneUtils';
 import { formatMYR } from '../utils/pricing';
 import { safeReturnTo } from '../utils/returnTo';
+import { useTranslation } from 'react-i18next';
 
 export default function CompleteProfile() {
   const { profile, user, refreshProfile, signOut } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { t } = useTranslation();
   const returnTo = safeReturnTo(searchParams.get('returnTo'));
   const changing = searchParams.get('change') === '1';
   // Decided once: saving the number updates `profile`, and later steps must still show.
@@ -41,7 +43,7 @@ export default function CompleteProfile() {
     setError('');
     const normalized = normalizePhone(phone);
     if (!/^\+\d{9,15}$/.test(normalized)) {
-      setError('Please enter a valid mobile number, e.g. 012-345 6789.');
+      setError(t('Please enter a valid mobile number, e.g. 012-345 6789.'));
       return;
     }
     setBusy(true);
@@ -55,10 +57,10 @@ export default function CompleteProfile() {
         setStep('ic');
         return;
       }
-      toast.success('Mobile number saved');
+      toast.success(t('Mobile number saved'));
       finish();
     } catch (err) {
-      setError(err.message || 'Could not save your number. Please try again.');
+      setError(err.message || t('Could not save your number. Please try again.'));
     } finally {
       setBusy(false);
     }
@@ -76,8 +78,10 @@ export default function CompleteProfile() {
       if (data?.status === 'no_match') {
         setError(
           data.attempts_left > 0
-            ? `That IC number doesn't match our record. ${data.attempts_left} attempt${data.attempts_left > 1 ? 's' : ''} left today.`
-            : "That IC number doesn't match our record."
+            ? t("That IC number doesn't match our record. {{count}} attempts left today.", {
+                count: data.attempts_left,
+              })
+            : t("That IC number doesn't match our record.")
         );
         if (data.attempts_left > 0) return;
         setResult({ status: 'locked' });
@@ -86,7 +90,7 @@ export default function CompleteProfile() {
       if (data?.status === 'linked') await refreshProfile();
       setResult(data);
     } catch (err) {
-      setError(err.message || 'Could not link your account. Please try again.');
+      setError(err.message || t('Could not link your account. Please try again.'));
     } finally {
       setBusy(false);
     }
@@ -109,33 +113,34 @@ export default function CompleteProfile() {
             </div>
             {linked ? (
               <>
-                <h2 className="text-xl font-semibold text-white mb-2">Welcome back!</h2>
+                <h2 className="text-xl font-semibold text-white mb-2">{t('Welcome back!')}</h2>
                 <p className="text-sm text-slate-400 mb-4">
-                  We found the account our team set up for you and linked it to this login.
+                  {t('We found the account our team set up for you and linked it to this login.')}
                 </p>
                 <ul className="text-sm text-slate-300 space-y-1 mb-6">
-                  {result.verified && <li>Your identity is already verified</li>}
+                  {result.verified && <li>{t('Your identity is already verified')}</li>}
                   {result.bookings > 0 && (
-                    <li>
-                      {result.bookings} previous booking{result.bookings > 1 ? 's' : ''}
-                    </li>
+                    <li>{t('{{count}} previous bookings', { count: result.bookings })}</li>
                   )}
-                  {Number(result.credit) > 0 && <li>{formatMYR(result.credit)} credit</li>}
+                  {Number(result.credit) > 0 && (
+                    <li>{t('{{credit}} credit', { credit: formatMYR(result.credit) })}</li>
+                  )}
                 </ul>
               </>
             ) : (
               <>
                 <h2 className="text-xl font-semibold text-white mb-2">
-                  We&apos;ll link it for you
+                  {t("We'll link it for you")}
                 </h2>
                 <p className="text-sm text-slate-400 mb-6">
-                  We couldn&apos;t link your earlier bookings automatically. Tap the WhatsApp button
-                  and our team will sort it out. You can keep using your account meanwhile.
+                  {t(
+                    "We couldn't link your earlier bookings automatically. Tap the WhatsApp button and our team will sort it out. You can keep using your account meanwhile."
+                  )}
                 </p>
               </>
             )}
             <button onClick={finish} className="btn-primary w-full">
-              Continue
+              {t('Continue')}
             </button>
           </div>
         </div>
@@ -156,15 +161,17 @@ export default function CompleteProfile() {
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">
             {step === 'ic'
-              ? 'Have you rented from us before?'
+              ? t('Have you rented from us before?')
               : changing
-                ? 'Change your mobile number'
-                : 'Add your mobile number'}
+                ? t('Change your mobile number')
+                : t('Add your mobile number')}
           </h1>
           <p className="text-sm text-slate-400">
             {step === 'ic'
-              ? 'We have a customer record from our counter with this number. Confirm your IC number to bring over your bookings and verified status.'
-              : 'We need it to contact you about your bookings.'}
+              ? t(
+                  'We have a customer record from our counter with this number. Confirm your IC number to bring over your bookings and verified status.'
+                )
+              : t('We need it to contact you about your bookings.')}
           </p>
         </div>
 
@@ -172,7 +179,7 @@ export default function CompleteProfile() {
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 mb-6">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
+              {t(error)}
             </div>
           )}
 
@@ -181,7 +188,7 @@ export default function CompleteProfile() {
               <div>
                 <label className="input-label flex items-center gap-1.5">
                   <Phone className="w-4 h-4 text-violet-400" />
-                  Mobile number
+                  {t('Mobile number')}
                 </label>
                 <input
                   type="tel"
@@ -197,7 +204,7 @@ export default function CompleteProfile() {
                 />
               </div>
               <button type="submit" disabled={busy} className="btn-primary w-full">
-                {busy ? 'Saving...' : 'Continue'}
+                {busy ? t('Saving...') : t('Continue')}
               </button>
             </form>
           ) : (
@@ -205,7 +212,7 @@ export default function CompleteProfile() {
               <div>
                 <label className="input-label flex items-center gap-1.5">
                   <CreditCard className="w-4 h-4 text-violet-400" />
-                  IC / MyKad number
+                  {t('IC / MyKad number')}
                 </label>
                 <input
                   type="text"
@@ -220,7 +227,7 @@ export default function CompleteProfile() {
                 />
               </div>
               <button type="submit" disabled={busy} className="btn-primary w-full">
-                {busy ? 'Checking...' : 'Link my account'}
+                {busy ? t('Checking...') : t('Link my account')}
               </button>
               <button
                 type="button"
@@ -228,14 +235,14 @@ export default function CompleteProfile() {
                 disabled={busy}
                 className="w-full text-center text-sm text-slate-500 hover:text-white transition-colors"
               >
-                Skip for now
+                {t('Skip for now')}
               </button>
             </form>
           )}
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-6">
-          Signed in as {user?.email}.{' '}
+          {t('Signed in as {{email}}.', { email: user?.email })}{' '}
           <button
             onClick={async () => {
               await signOut();
@@ -243,7 +250,7 @@ export default function CompleteProfile() {
             }}
             className="text-violet-400 hover:text-violet-300"
           >
-            Use a different account
+            {t('Use a different account')}
           </button>
         </p>
       </div>

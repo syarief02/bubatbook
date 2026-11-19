@@ -105,32 +105,42 @@ export function calculatePrice(pricePerDay, pickupDate, returnDate, rates = null
   };
 }
 
-/** "Weekly rate (10% off)", or "Package price" for a car with packages. */
-export function longRentalLabel(days, pct, isPackage = false) {
-  if (isPackage) return 'Package price';
+/** "Weekly rate (10% off)", or "Package price" for a car with packages; lang 'ms' for BM. */
+export function longRentalLabel(days, pct, isPackage = false, lang = 'en') {
+  const bm = lang === 'ms';
+  if (isPackage) return bm ? 'Harga pakej' : 'Package price';
+  if (bm) return `Kadar ${days >= 30 ? 'bulanan' : 'mingguan'} (diskaun ${Number(pct)}%)`;
   return `${days >= 30 ? 'Monthly' : 'Weekly'} rate (${Number(pct)}% off)`;
 }
 
-/** "3 days RM 500" etc. for a car's packages after the first day. */
-export function packageLines(rates) {
+/** "3 days RM 500" etc. for a car's packages after the first day; lang 'ms' for BM. */
+export function packageLines(rates, lang = 'en') {
+  const bm = lang === 'ms';
   const packages = ratePackages(rates);
   const lines = packages
     .filter((p) => p.days > 1)
     .map((p) => {
       const label =
         p.days === 7
-          ? '1 week'
+          ? bm
+            ? '1 minggu'
+            : '1 week'
           : p.days === 14
-            ? '2 weeks'
+            ? bm
+              ? '2 minggu'
+              : '2 weeks'
             : p.days === 30
-              ? '1 month'
-              : `${p.days} days`;
+              ? bm
+                ? '1 bulan'
+                : '1 month'
+              : `${p.days} ${bm ? 'hari' : 'days'}`;
       return `${label} ${formatMYR(p.total)}`;
     });
   // Longer than the last package: its daily rate
   const last = packages[packages.length - 1];
   if (lines.length && last && Number.isInteger(last.total / last.days)) {
-    lines.push(`then ${formatMYR(last.total / last.days)}/day`);
+    const perDay = formatMYR(last.total / last.days);
+    lines.push(bm ? `kemudian ${perDay}/hari` : `then ${perDay}/day`);
   }
   return lines;
 }

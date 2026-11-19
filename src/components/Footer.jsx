@@ -1,9 +1,11 @@
 import { Car, Shield, Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   return (
     <footer className="border-t border-white/5 bg-dark-950/50 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -17,20 +19,21 @@ export default function Footer() {
               <span className="text-lg font-bold gradient-text">Rent2Go</span>
             </Link>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Premium car rental in Malaysia. Browse our fleet, pick your dates, and book instantly
-              with secure deposit payment.
+              {t(
+                'Premium car rental in Malaysia. Browse our fleet, pick your dates, and book instantly with secure deposit payment.'
+              )}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-              Quick Links
+              {t('Quick Links')}
             </h4>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">
-                  Browse Cars
+                  {t('Browse Cars')}
                 </Link>
               </li>
               <li>
@@ -38,7 +41,7 @@ export default function Footer() {
                   to="/my-bookings"
                   className="text-sm text-slate-400 hover:text-white transition-colors"
                 >
-                  My Bookings
+                  {t('My Bookings')}
                 </Link>
               </li>
               <li>
@@ -47,14 +50,14 @@ export default function Footer() {
                     to="/profile"
                     className="text-sm text-slate-400 hover:text-white transition-colors"
                   >
-                    My Profile
+                    {t('My Profile')}
                   </Link>
                 ) : (
                   <Link
                     to="/login"
                     className="text-sm text-slate-400 hover:text-white transition-colors"
                   >
-                    Sign In
+                    {t('Sign In')}
                   </Link>
                 )}
               </li>
@@ -64,7 +67,7 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-              Contact Us
+              {t('Contact Us')}
             </h4>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-slate-400">
@@ -78,20 +81,20 @@ export default function Footer() {
             </ul>
             <div className="mt-4 flex items-center gap-2 text-xs text-slate-600">
               <Shield className="w-3.5 h-3.5" />
-              <span>Secure booking · Verified fleet</span>
+              <span>{t('Secure booking · Verified fleet')}</span>
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/5 mt-8 pt-8 text-center">
           <p className="text-xs text-slate-600">
-            © {new Date().getFullYear()} Rent2Go. All rights reserved. ·{' '}
+            © {new Date().getFullYear()} Rent2Go. {t('All rights reserved.')} ·{' '}
             <Link to="/terms" className="hover:text-slate-400 transition-colors">
-              Terms & Conditions
+              {t('Terms & Conditions')}
             </Link>{' '}
             ·{' '}
             <Link to="/privacy" className="hover:text-slate-400 transition-colors">
-              Privacy Policy
+              {t('Privacy Policy')}
             </Link>
           </p>
         </div>

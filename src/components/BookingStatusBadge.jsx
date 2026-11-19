@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
+
 export default function BookingStatusBadge({ status }) {
+  const { t } = useTranslation();
   const badgeMap = {
     HOLD: 'badge-hold',
     DEPOSIT_PAID: 'badge-paid',
@@ -21,5 +24,7 @@ export default function BookingStatusBadge({ status }) {
     EXPIRED: 'Expired',
   };
 
-  return <span className={badgeMap[status] || 'badge-expired'}>{labelMap[status] || status}</span>;
+  return (
+    <span className={badgeMap[status] || 'badge-expired'}>{t(labelMap[status] || status)}</span>
+  );
 }

@@ -5,6 +5,7 @@ import GoogleButton, { OrDivider } from '../components/GoogleButton';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { safeReturnTo } from '../utils/returnTo';
 import { Mail, Lock, AlertCircle, Car, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Google sends errors (e.g. the user cancelled) back in the URL
 function readOAuthError() {
@@ -15,6 +16,7 @@ function readOAuthError() {
 
 export default function Login() {
   const { signIn, resetPassword, user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const returnTo = safeReturnTo(searchParams.get('returnTo'));
   const [email, setEmail] = useState('');
@@ -64,13 +66,13 @@ export default function Login() {
   const shownError =
     error ||
     (window.location.hash.includes('access_token')
-      ? "We couldn't finish signing you in. Please close other Rent2Go tabs and try again."
+      ? t("We couldn't finish signing you in. Please close other Rent2Go tabs and try again.")
       : '');
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (lockedUntil && Date.now() < lockedUntil) {
-      setError(`Too many attempts. Try again in ${lockCountdown}s`);
+      setError(t('Too many attempts. Try again in {{lockCountdown}}s', { lockCountdown }));
       return;
     }
     setError('');
@@ -84,7 +86,7 @@ export default function Login() {
       if (newAttempts >= 5) {
         setLockedUntil(Date.now() + 30000);
       }
-      setError(err.message || 'Failed to sign in');
+      setError(err.message || t('Failed to sign in'));
     } finally {
       setLoading(false);
     }
@@ -93,7 +95,7 @@ export default function Login() {
   async function handleForgotPassword(e) {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Please enter your email address');
+      setError(t('Please enter your email address'));
       return;
     }
     setError('');
@@ -102,7 +104,7 @@ export default function Login() {
       await resetPassword(email);
       setResetSent(true);
     } catch (err) {
-      setError(err.message || 'Failed to send reset link');
+      setError(err.message || t('Failed to send reset link'));
     } finally {
       setLoading(false);
     }
@@ -116,12 +118,12 @@ export default function Login() {
             <Car className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">
-            {forgotMode ? 'Reset Password' : 'Welcome back'}
+            {forgotMode ? t('Reset Password') : t('Welcome back')}
           </h1>
           <p className="text-sm text-slate-400">
             {forgotMode
-              ? 'Enter your email to receive a reset link'
-              : 'Sign in to your Rent2Go account'}
+              ? t('Enter your email to receive a reset link')
+              : t('Sign in to your Rent2Go account')}
           </p>
         </div>
 
@@ -129,7 +131,7 @@ export default function Login() {
           {shownError && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 mb-6">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              {shownError}
+              {t(shownError)}
             </div>
           )}
 
@@ -139,9 +141,9 @@ export default function Login() {
                 <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-green-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Check your email</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('Check your email')}</h3>
                 <p className="text-sm text-slate-400 mb-6">
-                  We&apos;ve sent a password reset link to{' '}
+                  {t("We've sent a password reset link to")}{' '}
                   <strong className="text-white">{email}</strong>
                 </p>
                 <button
@@ -152,7 +154,7 @@ export default function Login() {
                   className="btn-secondary text-sm"
                 >
                   <ArrowLeft className="w-4 h-4 inline mr-1" />
-                  Back to Sign In
+                  {t('Back to Sign In')}
                 </button>
               </div>
             ) : (
@@ -160,7 +162,7 @@ export default function Login() {
                 <div>
                   <label className="input-label flex items-center gap-1.5">
                     <Mail className="w-4 h-4 text-violet-400" />
-                    Email
+                    {t('Email')}
                   </label>
                   <input
                     type="email"
@@ -174,7 +176,7 @@ export default function Login() {
                 </div>
 
                 <button type="submit" disabled={loading} className="btn-primary w-full">
-                  {loading ? 'Sending...' : 'Send Reset Link'}
+                  {loading ? t('Sending...') : t('Send Reset Link')}
                 </button>
 
                 <button
@@ -186,7 +188,7 @@ export default function Login() {
                   className="w-full text-center text-sm text-slate-500 hover:text-white transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 inline mr-1" />
-                  Back to Sign In
+                  {t('Back to Sign In')}
                 </button>
               </form>
             )
@@ -198,7 +200,7 @@ export default function Login() {
                 <div>
                   <label className="input-label flex items-center gap-1.5">
                     <Mail className="w-4 h-4 text-violet-400" />
-                    Email
+                    {t('Email')}
                   </label>
                   <input
                     type="email"
@@ -215,7 +217,7 @@ export default function Login() {
                   <div className="flex items-center justify-between mb-2">
                     <label className="input-label !mb-0 flex items-center gap-1.5">
                       <Lock className="w-4 h-4 text-violet-400" />
-                      Password
+                      {t('Password')}
                     </label>
                     <button
                       type="button"
@@ -225,7 +227,7 @@ export default function Login() {
                       }}
                       className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
                     >
-                      Forgot password?
+                      {t('Forgot password?')}
                     </button>
                   </div>
                   <div className="relative">
@@ -252,7 +254,9 @@ export default function Login() {
 
                 {lockedUntil && (
                   <p className="text-xs text-yellow-400 text-center">
-                    Account locked for {lockCountdown}s due to too many failed attempts
+                    {t('Account locked for {{lockCountdown}}s due to too many failed attempts', {
+                      lockCountdown,
+                    })}
                   </p>
                 )}
 
@@ -262,17 +266,17 @@ export default function Login() {
                   className="btn-primary w-full"
                 >
                   {loading
-                    ? 'Signing in...'
+                    ? t('Signing in...')
                     : lockedUntil
-                      ? `Locked (${lockCountdown}s)`
-                      : 'Sign In'}
+                      ? t('Locked ({{lockCountdown}}s)', { lockCountdown })
+                      : t('Sign In')}
                 </button>
               </form>
 
               <p className="text-center text-sm text-slate-500 mt-6">
-                Already have an account?{' '}
+                {t("Don't have an account?")}{' '}
                 <Link to="/signup" className="text-violet-400 hover:text-violet-300 font-medium">
-                  Sign up
+                  {t('Sign up')}
                 </Link>
               </p>
             </>

@@ -1,0 +1,6 @@
+{
+  "{{count}} cars available_one": "{{count}} car available",
+  "{{count}} days_one": "{{count}} day",
+  "That IC number doesn't match our record. {{count}} attempts left today._one": "That IC number doesn't match our record. {{count}} attempt left today.",
+  "{{count}} previous bookings_one": "{{count}} previous booking"
+}

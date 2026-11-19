@@ -27,10 +27,12 @@ import {
   Truck,
   MessageCircle,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // While their documents wait for a check, the customer can WhatsApp the team
 // a ready-made message with their name and number, so it's checked sooner.
 function WhatsAppToVerify({ profile, user, isUpdate }) {
+  const { t } = useTranslation();
   const name = profile?.display_name || user?.user_metadata?.full_name || '';
   const lines = [
     isUpdate
@@ -49,7 +51,7 @@ function WhatsAppToVerify({ profile, user, isUpdate }) {
       className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1fb257] text-white text-sm font-medium transition-colors"
     >
       <MessageCircle className="w-4 h-4" />
-      WhatsApp us to verify faster
+      {t('WhatsApp us to verify faster')}
     </a>
   );
 }
@@ -57,6 +59,7 @@ function WhatsAppToVerify({ profile, user, isUpdate }) {
 export default function VerifyAccount() {
   const { user, profile, isVerified, refreshProfile } = useAuth();
   const toast = useToast();
+  const { t } = useTranslation();
   // /verify?gdl=1 (from a commercial vehicle's checkout) opens the form to add a GDL
   const [searchParams] = useSearchParams();
 
@@ -108,14 +111,14 @@ export default function VerifyAccount() {
   const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
 
   function validateFile(file, label) {
-    if (!file) return `${label} image is required`;
-    if (file.size > MAX_FILE_SIZE) return `${label} file exceeds 15MB limit`;
+    if (!file) return t('{{label}} image is required', { label });
+    if (file.size > MAX_FILE_SIZE) return t('{{label}} file exceeds 15MB limit', { label });
     const ext = file.name?.split('.').pop()?.toLowerCase();
     const isAllowedExt = ext && ALLOWED_EXTS.includes(ext);
     const isAllowedType =
       file.type?.startsWith('image/') || file.type === 'application/pdf' || file.type === ''; // Android gallery empty mime fallback
     if (!isAllowedExt && !isAllowedType) {
-      return `${label}: only JPG, PNG, WebP, or PDF allowed`;
+      return t('{{label}}: only JPG, PNG, WebP, or PDF allowed', { label });
     }
     return null;
   }
@@ -142,35 +145,35 @@ export default function VerifyAccount() {
     setError('');
 
     if (!icNumber.trim()) {
-      setError('IC / MyKad number is required.');
+      setError(t('IC / MyKad number is required.'));
       return;
     }
     if (!licenceExpiry) {
-      setError('Driving licence expiry date is required.');
+      setError(t('Driving licence expiry date is required.'));
       return;
     }
     if (new Date(licenceExpiry) < new Date()) {
-      setError('Your driving licence has expired. Please enter a valid expiry date.');
+      setError(t('Your driving licence has expired. Please enter a valid expiry date.'));
       return;
     }
     if (!phone.trim() || phone.replace(/\D/g, '').length < 9) {
-      setError('Please enter a valid phone number.');
+      setError(t('Please enter a valid phone number.'));
       return;
     }
     if (!addressLine1.trim()) {
-      setError('Address line 1 is required.');
+      setError(t('Address line 1 is required.'));
       return;
     }
     if (!city.trim()) {
-      setError('City is required.');
+      setError(t('City is required.'));
       return;
     }
     if (!state.trim()) {
-      setError('State is required.');
+      setError(t('State is required.'));
       return;
     }
     if (!postcode.trim()) {
-      setError('Postcode is required.');
+      setError(t('Postcode is required.'));
       return;
     }
     const bankErr = bankDetailsError(bank);
@@ -182,15 +185,15 @@ export default function VerifyAccount() {
     // GDL: optional, but its expiry date and photo go together
     const newGdl = Boolean(gdlExpiry) && gdlExpiry !== (profile?.gdl_expiry || '');
     if (gdlFile && !gdlExpiry) {
-      setError('Enter your GDL expiry date.');
+      setError(t('Enter your GDL expiry date.'));
       return;
     }
     if (newGdl && new Date(gdlExpiry) < new Date(new Date().toDateString())) {
-      setError('Your GDL has expired. Please enter a valid expiry date.');
+      setError(t('Your GDL has expired. Please enter a valid expiry date.'));
       return;
     }
     if (newGdl && !gdlFile) {
-      setError('Please upload a photo of your GDL.');
+      setError(t('Please upload a photo of your GDL.'));
       return;
     }
     if (gdlFile) {
@@ -208,16 +211,16 @@ export default function VerifyAccount() {
       const newExpiry = licenceExpiry !== (profile.licence_expiry || '');
       const newIc = icNumber.trim() !== (profile.ic_number || '');
       if (newExpiry && !licenceFile) {
-        setError('Please upload a photo of your new driving licence.');
+        setError(t('Please upload a photo of your new driving licence.'));
         return;
       }
       if (newIc && !icFile) {
-        setError('Please upload a photo of your IC for the new IC number.');
+        setError(t('Please upload a photo of your IC for the new IC number.'));
         return;
       }
       if (!newExpiry && !newIc && !icFile && !licenceFile && !gdlFile) {
         setError(
-          'Nothing to review: enter your new licence or GDL expiry date and upload its photo.'
+          t('Nothing to review: enter your new licence or GDL expiry date and upload its photo.')
         );
         return;
       }
@@ -228,7 +231,7 @@ export default function VerifyAccount() {
         setError(icErr);
         return;
       }
-      const licErr = validateFile(licenceFile, 'Driving Licence');
+      const licErr = validateFile(licenceFile, t('Driving Licence'));
       if (licErr) {
         setError(licErr);
         return;
@@ -243,11 +246,17 @@ export default function VerifyAccount() {
 
       const toUpload = [
         icFile && ['IC / MyKad', icFile, 'ic'],
-        licenceFile && ['Driving Licence', licenceFile, 'licence'],
+        licenceFile && [t('Driving Licence'), licenceFile, 'licence'],
         gdlFile && ['GDL', gdlFile, 'gdl'],
       ].filter(Boolean);
       for (const [i, [label, file, folder]] of toUpload.entries()) {
-        setUploadStatus(`Uploading ${label} (${i + 1}/${toUpload.length})...`);
+        setUploadStatus(
+          t('Uploading {{label}} ({{i}}/{{length}})...', {
+            label,
+            i: i + 1,
+            length: toUpload.length,
+          })
+        );
         const path = await uploadFile(file, folder);
         if (folder === 'ic') icPath = path;
         else if (folder === 'licence') licencePath = path;
@@ -255,7 +264,7 @@ export default function VerifyAccount() {
       }
       const gdlFields = { gdl_expiry: gdlExpiry || null, gdl_file_path: gdlPath };
 
-      setUploadStatus('Saving profile...');
+      setUploadStatus(t('Saving profile...'));
       if (isUpdate) {
         // Submit as pending verification update (old stays valid)
         const { error: insertErr } = await supabase
@@ -315,7 +324,7 @@ export default function VerifyAccount() {
       // The form was long; show the "Verification Pending" message from the top
       window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success(
-        isUpdate ? 'Verification update submitted!' : 'Documents submitted for verification!'
+        isUpdate ? t('Verification update submitted!') : t('Documents submitted for verification!')
       );
     } catch (err) {
       setError(friendlyDbError(err));
@@ -333,20 +342,22 @@ export default function VerifyAccount() {
           <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8 text-yellow-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Update Under Review</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">{t('Update Under Review')}</h1>
           <p className="text-sm text-slate-400 mb-2">
-            We received your new details on {formatDateTime(latestUpdate.created_at)} and are
-            checking them. This usually takes less than 24 hours.
+            {t(
+              'We received your new details on {{created_at}} and are checking them. This usually takes less than 24 hours.',
+              { created_at: formatDateTime(latestUpdate.created_at) }
+            )}
           </p>
           <p className="text-xs text-slate-500 mb-6">
             {licenceExpired
-              ? "You can book again once it's approved."
-              : 'Your current verification stays valid meanwhile.'}
+              ? t("You can book again once it's approved.")
+              : t('Your current verification stays valid meanwhile.')}
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <WhatsAppToVerify profile={profile} user={user} isUpdate />
             <Link to="/" className="btn-secondary inline-flex items-center gap-2">
-              Back to Home
+              {t('Back to Home')}
             </Link>
           </div>
         </div>
@@ -359,10 +370,13 @@ export default function VerifyAccount() {
     return (
       <div className="page-container max-w-xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-1">Update Your Licence, GDL or IC</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">
+            {t('Update Your Licence, GDL or IC')}
+          </h1>
           <p className="text-sm text-slate-400">
-            Change the expiry date and upload the new licence, or add your GDL. We check it, then it
-            replaces the old one.
+            {t(
+              'Change the expiry date and upload the new licence, or add your GDL. We check it, then it replaces the old one.'
+            )}
           </p>
         </div>
         {renderForm()}
@@ -378,37 +392,39 @@ export default function VerifyAccount() {
           <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Account Verified</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">{t('Account Verified')}</h1>
           <p className="text-sm text-slate-400 mb-2">
-            Your identity has been verified. You can now book cars.
+            {t('Your identity has been verified. You can now book cars.')}
           </p>
           {latestUpdate?.status === 'rejected' && (
             <p className="text-xs text-red-300 mb-2">
-              Your last update wasn&apos;t accepted
+              {t("Your last update wasn't accepted")}
               {latestUpdate.rejection_reason ? `: ${latestUpdate.rejection_reason}` : '.'}
             </p>
           )}
           <p className="text-xs text-slate-500 mb-2">
             {profile?.licence_expiry &&
-              `Licence valid until ${formatDate(profile.licence_expiry)}. `}
+              t('Licence valid until {{licence_expiry}}. ', {
+                licence_expiry: formatDate(profile.licence_expiry),
+              })}
             {profile?.gdl_expiry
-              ? `GDL ${profile.gdl_expiry < new Date().toISOString().slice(0, 10) ? 'expired on' : 'valid until'} ${formatDate(profile.gdl_expiry)}.`
-              : 'No GDL yet: you need one to rent a commercial vehicle (panel van).'}
+              ? `GDL ${profile.gdl_expiry < new Date().toISOString().slice(0, 10) ? t('expired on') : t('valid until')} ${formatDate(profile.gdl_expiry)}.`
+              : t('No GDL yet: you need one to rent a commercial vehicle (panel van).')}
           </p>
           <p className="text-xs mb-6">
             <button
               onClick={() => setShowUpdate(true)}
               className="text-violet-400 hover:text-violet-300 underline"
             >
-              Renew licence, add GDL or update IC
+              {t('Renew licence, add GDL or update IC')}
             </button>
           </p>
           <div className="flex gap-3 justify-center">
             <Link to="/" className="btn-primary inline-flex items-center gap-2">
-              Browse Fleet
+              {t('Browse Fleet')}
             </Link>
             <Link to="/profile" className="btn-secondary inline-flex items-center gap-2">
-              View Profile
+              {t('View Profile')}
             </Link>
           </div>
         </div>
@@ -424,12 +440,12 @@ export default function VerifyAccount() {
           <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Licence Expired</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">{t('Licence Expired')}</h1>
           <p className="text-sm text-slate-400 mb-4">
-            Your driving licence has expired. Please update your licence to continue booking.
+            {t('Your driving licence has expired. Please update your licence to continue booking.')}
           </p>
           <p className="text-xs text-slate-500 mb-6">
-            Upload a new licence with a valid expiry date below.
+            {t('Upload a new licence with a valid expiry date below.')}
           </p>
         </div>
         {renderForm()}
@@ -445,25 +461,25 @@ export default function VerifyAccount() {
           <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8 text-yellow-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Verification Pending</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">{t('Verification Pending')}</h1>
           <p className="text-sm text-slate-400 mb-2">
-            Your documents have been submitted and are being reviewed.
+            {t('Your documents have been submitted and are being reviewed.')}
           </p>
           <p className="text-xs text-slate-500 mb-6">
-            This usually takes less than 24 hours. You&apos;ll be able to book once verified.
+            {t("This usually takes less than 24 hours. You'll be able to book once verified.")}
           </p>
           {!hasBankDetails(profile) && (
             <p className="text-xs text-amber-300 mb-6">
-              Please also add your bank details, for deposit refunds:{' '}
+              {t('Please also add your bank details, for deposit refunds:')}{' '}
               <Link to="/profile#bank" className="text-violet-400 hover:text-violet-300 underline">
-                Add bank details
+                {t('Add bank details')}
               </Link>
             </p>
           )}
           <div className="flex flex-wrap gap-3 justify-center">
             <WhatsAppToVerify profile={profile} user={user} />
             <Link to="/" className="btn-secondary inline-flex items-center gap-2">
-              Back to Home
+              {t('Back to Home')}
             </Link>
           </div>
         </div>
@@ -477,9 +493,9 @@ export default function VerifyAccount() {
         <div className="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
           <FileCheck className="w-7 h-7 text-violet-400" />
         </div>
-        <h1 className="text-2xl font-bold text-white mb-1">Verify Your Account</h1>
+        <h1 className="text-2xl font-bold text-white mb-1">{t('Verify Your Account')}</h1>
         <p className="text-sm text-slate-400">
-          Submit your IC, driving licence, address and bank details to start booking
+          {t('Submit your IC, driving licence, address and bank details to start booking')}
         </p>
       </div>
       {renderForm()}
@@ -492,8 +508,12 @@ export default function VerifyAccount() {
         <div className="glass-card !p-4 flex items-start gap-3 mb-6">
           <Shield className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
           <div className="text-xs text-slate-400 leading-relaxed">
-            <p className="text-green-300 font-medium mb-1">Your documents are secure</p>
-            <p>Files are stored in private encrypted storage, accessible only by our admin team.</p>
+            <p className="text-green-300 font-medium mb-1">{t('Your documents are secure')}</p>
+            <p>
+              {t(
+                'Files are stored in private encrypted storage, accessible only by our admin team.'
+              )}
+            </p>
           </div>
         </div>
 
@@ -501,15 +521,15 @@ export default function VerifyAccount() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {updating && latestUpdate?.status === 'rejected' && (
               <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-300">
-                Your last update wasn&apos;t accepted
-                {latestUpdate.rejection_reason ? `: ${latestUpdate.rejection_reason}` : '.'} Please
-                send it again.
+                {t("Your last update wasn't accepted")}
+                {latestUpdate.rejection_reason ? `: ${latestUpdate.rejection_reason}` : '.'}{' '}
+                {t('Please send it again.')}
               </div>
             )}
             {error && (
               <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                {error}
+                {t(error)}
               </div>
             )}
 
@@ -517,10 +537,12 @@ export default function VerifyAccount() {
             <div>
               <label className="input-label flex items-center gap-1.5">
                 <Phone className="w-4 h-4 text-violet-400" />
-                Phone Number *
+                {t('Phone Number')} *
               </label>
               <input type="tel" value={phone} className="input-field opacity-70" readOnly />
-              <p className="text-xs text-slate-500 mt-1">You can change it from your profile.</p>
+              <p className="text-xs text-slate-500 mt-1">
+                {t('You can change it from your profile.')}
+              </p>
             </div>
 
             {/* IC Section */}
@@ -531,19 +553,19 @@ export default function VerifyAccount() {
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="input-label">IC Number (MyKad) *</label>
+                  <label className="input-label">{t('IC Number (MyKad) *')}</label>
                   <input
                     type="text"
                     value={icNumber}
                     onChange={(e) => setIcNumber(e.target.value)}
                     className="input-field"
-                    placeholder="e.g. 990101-14-1234"
+                    placeholder={t('e.g. 990101-14-1234')}
                     maxLength={30}
                     disabled={uploading}
                   />
                 </div>
                 <div>
-                  <label className="input-label">Driving Licence Expiry Date *</label>
+                  <label className="input-label">{t('Driving Licence Expiry Date *')}</label>
                   <input
                     type="date"
                     value={licenceExpiry}
@@ -555,8 +577,8 @@ export default function VerifyAccount() {
                 <div>
                   <label className="input-label">
                     {updating
-                      ? 'New IC / MyKad Photo (only if your IC changed)'
-                      : 'IC / MyKad Image *'}
+                      ? t('New IC / MyKad Photo (only if your IC changed)')
+                      : t('IC / MyKad Image *')}
                   </label>
                   <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
                     <input
@@ -569,17 +591,17 @@ export default function VerifyAccount() {
                     <FileImage className="w-6 h-6 text-slate-500" />
                     <div>
                       <p className="text-sm text-slate-300">
-                        {icFile ? icFile.name : 'Click or tap to upload IC photo'}
+                        {icFile ? icFile.name : t('Click or tap to upload IC photo')}
                       </p>
                       <p className="text-xs text-slate-500">
-                        JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)
+                        {t('JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)')}
                       </p>
                     </div>
                   </label>
                 </div>
                 <div>
                   <label className="input-label">
-                    {updating ? 'New Driving Licence Photo *' : 'Driving Licence Image *'}
+                    {updating ? t('New Driving Licence Photo *') : t('Driving Licence Image *')}
                   </label>
                   <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
                     <input
@@ -592,10 +614,10 @@ export default function VerifyAccount() {
                     <FileImage className="w-6 h-6 text-slate-500" />
                     <div>
                       <p className="text-sm text-slate-300">
-                        {licenceFile ? licenceFile.name : 'Click or tap to upload licence photo'}
+                        {licenceFile ? licenceFile.name : t('Click or tap to upload licence photo')}
                       </p>
                       <p className="text-xs text-slate-500">
-                        JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)
+                        {t('JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)')}
                       </p>
                     </div>
                   </label>
@@ -607,18 +629,21 @@ export default function VerifyAccount() {
             <div className="border-t border-white/5 pt-5">
               <p className="text-sm font-medium text-white mb-1 flex items-center gap-2">
                 <Truck className="w-4 h-4 text-violet-400" />
-                GDL (Goods Driving Licence)
-                <span className="text-xs font-normal text-slate-500">optional</span>
+                {t('GDL (Goods Driving Licence)')}
+                <span className="text-xs font-normal text-slate-500">{t('optional')}</span>
               </p>
               <p className="text-xs text-slate-500 mb-4">
-                Needed only to rent a commercial vehicle (our panel vans). It must be valid until
-                the return date.
+                {t(
+                  'Needed only to rent a commercial vehicle (our panel vans). It must be valid until the return date.'
+                )}
                 {profile?.gdl_expiry &&
-                  ` Yours is on file, valid until ${formatDate(profile.gdl_expiry)}.`}
+                  t(' Yours is on file, valid until {{gdl_expiry}}.', {
+                    gdl_expiry: formatDate(profile.gdl_expiry),
+                  })}
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="input-label">GDL Expiry Date</label>
+                  <label className="input-label">{t('GDL Expiry Date')}</label>
                   <input
                     type="date"
                     value={gdlExpiry}
@@ -629,7 +654,9 @@ export default function VerifyAccount() {
                 </div>
                 <div>
                   <label className="input-label">
-                    {profile?.gdl_file_path ? 'New GDL Photo (only if renewing)' : 'GDL Image'}
+                    {profile?.gdl_file_path
+                      ? t('New GDL Photo (only if renewing)')
+                      : t('GDL Image')}
                   </label>
                   <label className="relative flex items-center gap-3 px-4 py-6 rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/30 cursor-pointer transition-colors overflow-hidden">
                     <input
@@ -642,10 +669,10 @@ export default function VerifyAccount() {
                     <FileImage className="w-6 h-6 text-slate-500" />
                     <div>
                       <p className="text-sm text-slate-300">
-                        {gdlFile ? gdlFile.name : 'Click or tap to upload GDL photo'}
+                        {gdlFile ? gdlFile.name : t('Click or tap to upload GDL photo')}
                       </p>
                       <p className="text-xs text-slate-500">
-                        JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)
+                        {t('JPG, PNG, WebP or PDF · Up to 12MB (auto-compressed)')}
                       </p>
                     </div>
                   </label>
@@ -657,52 +684,52 @@ export default function VerifyAccount() {
             <div className="border-t border-white/5 pt-5">
               <p className="text-sm font-medium text-white mb-4 flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-violet-400" />
-                Address
+                {t('Address')}
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="input-label">Address Line 1 *</label>
+                  <label className="input-label">{t('Address Line 1 *')}</label>
                   <input
                     type="text"
                     value={addressLine1}
                     onChange={(e) => setAddressLine1(e.target.value)}
                     className="input-field"
-                    placeholder="Street address"
+                    placeholder={t('Street address')}
                     disabled={uploading}
                   />
                 </div>
                 <div>
-                  <label className="input-label">Address Line 2</label>
+                  <label className="input-label">{t('Address Line 2')}</label>
                   <input
                     type="text"
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
                     className="input-field"
-                    placeholder="Apartment, unit, etc. (optional)"
+                    placeholder={t('Apartment, unit, etc. (optional)')}
                     disabled={uploading}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="input-label">City *</label>
+                    <label className="input-label">{t('City *')}</label>
                     <input
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       className="input-field"
-                      placeholder="City"
+                      placeholder={t('City')}
                       disabled={uploading}
                     />
                   </div>
                   <div>
-                    <label className="input-label">State *</label>
+                    <label className="input-label">{t('State *')}</label>
                     <select
                       value={state}
                       onChange={(e) => setState(e.target.value)}
                       className="input-field"
                       disabled={uploading}
                     >
-                      <option value="">Select state</option>
+                      <option value="">{t('Select state')}</option>
                       {[
                         'Johor',
                         'Kedah',
@@ -729,13 +756,13 @@ export default function VerifyAccount() {
                   </div>
                 </div>
                 <div className="w-1/2">
-                  <label className="input-label">Postcode *</label>
+                  <label className="input-label">{t('Postcode *')}</label>
                   <input
                     type="text"
                     value={postcode}
                     onChange={(e) => setPostcode(e.target.value)}
                     className="input-field"
-                    placeholder="e.g. 50000"
+                    placeholder={t('e.g. 50000')}
                     maxLength={10}
                     disabled={uploading}
                   />
@@ -747,10 +774,10 @@ export default function VerifyAccount() {
             <div className="border-t border-white/5 pt-5">
               <p className="text-sm font-medium text-white mb-1 flex items-center gap-2">
                 <Landmark className="w-4 h-4 text-violet-400" />
-                Bank Account
+                {t('Bank Account')}
               </p>
               <p className="text-xs text-slate-500 mb-4">
-                Your deposit is refunded to this account. Only our staff can see it.
+                {t('Your deposit is refunded to this account. Only our staff can see it.')}
               </p>
               <BankDetailsFields value={bank} onChange={setBank} disabled={uploading} />
             </div>
@@ -763,12 +790,12 @@ export default function VerifyAccount() {
               {uploading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>{uploadStatus || 'Uploading Documents...'}</span>
+                  <span>{uploadStatus || t('Uploading Documents...')}</span>
                 </>
               ) : (
                 <>
                   <Upload className="w-5 h-5" />{' '}
-                  {updating ? 'Send for Review' : 'Submit for Verification'}
+                  {updating ? t('Send for Review') : t('Submit for Verification')}
                 </>
               )}
             </button>

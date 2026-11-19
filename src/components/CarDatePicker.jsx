@@ -12,6 +12,8 @@ import {
 } from 'date-fns';
 import { getTodayString } from '../utils/dates';
 import { useCarBookedDays } from '../hooks/useCars';
+import { useTranslation } from 'react-i18next';
+import { ms } from 'date-fns/locale/ms';
 
 // The car page's pick-up and return dates, on a calendar that greys out the
 // days the car is booked, so customers can see which dates are free.
@@ -23,6 +25,9 @@ const DAY = 'yyyy-MM-dd';
 // Bookings must end within 6 months (the booking functions refuse later returns)
 const MONTHS_AHEAD = 6;
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const WEEKDAYS_MS = ['Ah', 'Is', 'Se', 'Ra', 'Kh', 'Ju', 'Sa'];
+// date-fns options: Malay month and day names when the site is in BM
+const dateOpts = (lang) => (lang === 'ms' ? { locale: ms } : undefined);
 
 const nextDay = (d) => format(addDays(parseISO(d), 1), DAY);
 
@@ -38,6 +43,8 @@ function firstBookedFrom(ranges, d) {
 }
 
 function DateField({ label, value, active, disabled, onClick }) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage;
   return (
     <div>
       <label className="input-label flex items-center gap-1.5">
@@ -50,7 +57,7 @@ function DateField({ label, value, active, disabled, onClick }) {
         disabled={disabled}
         className={`input-field text-left text-sm ${active ? '!border-violet-400/60' : ''} ${value ? '' : 'text-slate-500'}`}
       >
-        {value ? format(parseISO(value), 'EEE, d MMM yyyy') : 'Select date'}
+        {value ? format(parseISO(value), 'EEE, d MMM yyyy', dateOpts(lang)) : t('Select date')}
       </button>
     </div>
   );
@@ -65,6 +72,8 @@ export default function CarDatePicker({
   className = '',
 }) {
   const today = getTodayString();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage;
   const { ranges, loading } = useCarBookedDays(carId);
   // Which date the next tap sets
   const [editing, setEditing] = useState(pickupDate && !returnDate ? 'return' : 'pickup');
@@ -141,7 +150,7 @@ export default function CarDatePicker({
         disabled={!enabled}
         onClick={() => choose(d)}
         aria-pressed={isEnd}
-        aria-label={`${format(date, 'EEEE, d MMMM yyyy')}${booked ? ', booked' : ''}`}
+        aria-label={`${format(date, 'EEEE, d MMMM yyyy', dateOpts(lang))}${booked ? t(', booked') : ''}`}
         className={`h-10 rounded-lg text-sm transition-colors disabled:cursor-not-allowed ${look} ${d === today && !isEnd ? 'ring-1 ring-inset ring-violet-400/40' : ''}`}
       >
         {format(date, 'd')}
@@ -153,13 +162,13 @@ export default function CarDatePicker({
     <div className={className}>
       <div className="grid grid-cols-2 gap-3">
         <DateField
-          label="Pick-up Date"
+          label={t('Pick-up Date')}
           value={pickupDate}
           active={showCalendar && editing === 'pickup'}
           onClick={() => openFor('pickup')}
         />
         <DateField
-          label="Return Date"
+          label={t('Return Date')}
           value={returnDate}
           active={showCalendar && editing === 'return'}
           disabled={!pickupDate}
@@ -171,32 +180,34 @@ export default function CarDatePicker({
         <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
           <p className="text-xs text-slate-400 mb-2">
             {editing === 'return' && pickupDate
-              ? 'Now pick your return day.'
-              : 'Pick your pick-up day. Greyed-out days are booked.'}
+              ? t('Now pick your return day.')
+              : t('Pick your pick-up day. Greyed-out days are booked.')}
           </p>
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
               onClick={() => setMonth(format(addMonths(monthStart, -1), 'yyyy-MM'))}
               disabled={month <= firstMonth}
-              aria-label="Previous month"
+              aria-label={t('Previous month')}
               className="p-2 rounded-lg text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <p className="text-sm font-semibold text-white">{format(monthStart, 'MMMM yyyy')}</p>
+            <p className="text-sm font-semibold text-white">
+              {format(monthStart, 'MMMM yyyy', dateOpts(lang))}
+            </p>
             <button
               type="button"
               onClick={() => setMonth(format(addMonths(monthStart, 1), 'yyyy-MM'))}
               disabled={month >= lastMonth}
-              aria-label="Next month"
+              aria-label={t('Next month')}
               className="p-2 rounded-lg text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
           <div className="grid grid-cols-7 gap-1 text-center">
-            {WEEKDAYS.map((w) => (
+            {(lang === 'ms' ? WEEKDAYS_MS : WEEKDAYS).map((w) => (
               <p key={w} className="text-[11px] font-medium text-slate-500 pb-1">
                 {w}
               </p>
@@ -208,15 +219,15 @@ export default function CarDatePicker({
               <span className="w-5 h-5 rounded bg-white/[0.06] text-slate-600 line-through flex items-center justify-center text-[10px]">
                 9
               </span>
-              Booked
+              {t('Booked')}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-5 h-5 rounded bg-violet-500" />
-              Your dates
+              {t('Your dates')}
             </span>
             {loading && (
               <span className="flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" /> Checking booked days…
+                <Loader2 className="w-3 h-3 animate-spin" /> {t('Checking booked days…')}
               </span>
             )}
             {pickupDate && returnDate && !clash && (
@@ -225,7 +236,7 @@ export default function CarDatePicker({
                 onClick={() => setOpen(false)}
                 className="ml-auto text-violet-300 hover:text-white"
               >
-                Done
+                {t('Done')}
               </button>
             )}
           </div>

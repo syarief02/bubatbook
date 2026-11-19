@@ -7,6 +7,7 @@ import EmptyState from '../components/EmptyState';
 import { Car, Shield, Zap, CreditCard, Search, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { Button } from '../components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export default function Home() {
   const { cars, loading, error, refetch } = useCars();
@@ -15,6 +16,7 @@ export default function Home() {
   const [returnDate, setReturnDate] = useState(searchParams.get('return') || '');
   const [carSearch, setCarSearch] = useState('');
   const toast = useToast();
+  const { t } = useTranslation();
 
   const filteredCars = cars.filter((car) => {
     if (!carSearch) return true;
@@ -29,7 +31,7 @@ export default function Home() {
 
   function handleSearch() {
     if (!pickupDate || !returnDate) {
-      toast.error('Please select both pick-up and return dates.');
+      toast.error(t('Please select both pick-up and return dates.'));
       return;
     }
     const fleetSection = document.getElementById('fleet');
@@ -48,14 +50,16 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center mb-12 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-sm mb-6">
               <Zap className="w-4 h-4" />
-              Premium Car Rental in Malaysia
+              {t('Premium Car Rental in Malaysia')}
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-              Drive Your Way, <span className="gradient-text">Hassle Free</span>
+              {t('Drive Your Way, ')}
+              <span className="gradient-text">{t('Hassle Free')}</span>
             </h1>
             <p className="text-lg text-slate-400 max-w-xl mx-auto">
-              Browse our curated fleet, pick your dates, and book instantly. Secure your ride with a
-              simple deposit.
+              {t(
+                'Browse our curated fleet, pick your dates, and book instantly. Secure your ride with a simple deposit.'
+              )}
             </p>
           </div>
 
@@ -70,7 +74,7 @@ export default function Home() {
             <div className="mt-4 flex justify-center">
               <Button onClick={handleSearch} className="flex items-center gap-2">
                 <Search className="w-4 h-4" />
-                Find Available Cars
+                {t('Find Available Cars')}
               </Button>
             </div>
           </div>
@@ -81,9 +85,21 @@ export default function Home() {
       <section className="page-container -mt-4 mb-12">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: Shield, title: 'Verified Fleet', desc: 'All cars inspected and insured' },
-            { icon: Zap, title: 'Instant Booking', desc: 'Book in minutes, drive today' },
-            { icon: CreditCard, title: 'Secure Deposit', desc: '30% deposit locks your booking' },
+            {
+              icon: Shield,
+              title: t('Verified Fleet'),
+              desc: t('All cars inspected and insured'),
+            },
+            {
+              icon: Zap,
+              title: t('Instant Booking'),
+              desc: t('Book in minutes, drive today'),
+            },
+            {
+              icon: CreditCard,
+              title: t('Secure Deposit'),
+              desc: t('30% deposit locks your booking'),
+            },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title} className="glass-card flex items-center gap-4 !p-4">
               <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
@@ -102,16 +118,16 @@ export default function Home() {
       <section id="fleet" className="page-container scroll-mt-24">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="section-title">Our Fleet</h2>
+            <h2 className="section-title">{t('Our Fleet')}</h2>
             <p className="section-subtitle !mb-0">
-              {filteredCars.length} car{filteredCars.length !== 1 ? 's' : ''} available
+              {t('{{count}} cars available', { count: filteredCars.length })}
             </p>
           </div>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Search cars..."
+              placeholder={t('Search cars...')}
               value={carSearch}
               onChange={(e) => setCarSearch(e.target.value)}
               className="input-field !pl-10 !py-2 text-sm"
@@ -155,8 +171,8 @@ export default function Home() {
         ) : filteredCars.length === 0 ? (
           <EmptyState
             icon={Car}
-            title="No cars available"
-            description="Check back soon — our fleet is being updated."
+            title={t('No cars available')}
+            description={t('Check back soon — our fleet is being updated.')}
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

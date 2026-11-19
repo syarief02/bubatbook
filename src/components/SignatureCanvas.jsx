@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Eraser, Undo2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function SignatureCanvas({ onSignatureChange, width = 400, height = 180 }) {
+  const { t } = useTranslation();
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
@@ -132,7 +134,7 @@ export default function SignatureCanvas({ onSignatureChange, width = 400, height
         />
         {!hasSignature && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-slate-300 text-sm select-none">Draw your signature here</p>
+            <p className="text-slate-300 text-sm select-none">{t('Draw your signature here')}</p>
           </div>
         )}
       </div>
@@ -143,7 +145,7 @@ export default function SignatureCanvas({ onSignatureChange, width = 400, height
           disabled={history.length === 0}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <Undo2 className="w-3.5 h-3.5" /> Undo
+          <Undo2 className="w-3.5 h-3.5" /> {t('Undo')}
         </button>
         <button
           type="button"
@@ -151,7 +153,7 @@ export default function SignatureCanvas({ onSignatureChange, width = 400, height
           disabled={!hasSignature}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <Eraser className="w-3.5 h-3.5" /> Clear
+          <Eraser className="w-3.5 h-3.5" /> {t('Clear')}
         </button>
       </div>
     </div>
