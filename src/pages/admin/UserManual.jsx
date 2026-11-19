@@ -576,9 +576,11 @@ export default function UserManual() {
             Click the history button on a car in <B>Cars</B> (or the car&apos;s name in{' '}
             <B>Car Documents</B>) to see everything about it for a year, month by month: each rental
             with the customer, days, rent and whether it is paid (click one to open the booking),
-            each expense with its receipt, and each document renewal. The top shows the year&apos;s
-            rentals and days, rent received, rent still due, expenses and profit, counted the same
-            way as <B>Sales</B> (rentals in the month they start, expenses by their date).
+            with links to the customer&apos;s payment receipts under it (deposit, rent and charge
+            payments), each expense with its receipt, and each document renewal. The top shows the
+            year&apos;s rentals and days, rent received, rent still due, expenses and profit,
+            counted the same way as <B>Sales</B> (rentals in the month they start, expenses by their
+            date).
           </p>
           <p>
             Expenses include the car loan instalments, running costs and repairs entered in{' '}
@@ -627,9 +629,9 @@ export default function UserManual() {
             on the website (rentals arranged on WhatsApp). Rentals with the same phone number count
             as one customer, so someone&apos;s earlier WhatsApp rentals join their later online
             ones. Each customer shows their rentals, days, total rent, what they still owe and the
-            cars they used; click one to see every booking and open it. Search by name, phone or
-            plate, and sort by latest rental, most rentals, most rent or most owed. <B>Bookings</B>{' '}
-            can also be searched by phone number.
+            cars they used; click one to see every booking, with links to its payment receipts, and
+            open it. Search by name, phone or plate, and sort by latest rental, most rentals, most
+            rent or most owed. <B>Bookings</B> can also be searched by phone number.
           </p>
           <p>
             Customers are shared between fleets, so the list also shows their rentals with other

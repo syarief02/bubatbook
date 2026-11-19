@@ -46,6 +46,35 @@ export function rentReceipts(booking) {
   return receipts;
 }
 
+/** The select for the customer's payments and receipts on a booking. */
+export const CUSTOMER_RECEIPTS_SELECT =
+  'deposit_receipt_path, full_payment_receipt_path, bubatrent_booking_payments(amount, payment_type, status, receipt_path, created_at)';
+
+const RECEIPT_LABELS = { deposit: 'Deposit', full_payment: 'Payment', charge: 'Charge' };
+
+/**
+ * Every receipt the customer sent for a booking (deposit, rent, charges),
+ * oldest first: one per payment that has a receipt, then the deposit and rent
+ * receipts on the booking itself if no payment carries them yet.
+ * [{path, label}] e.g. "Payment RM1,220".
+ */
+export function customerReceipts(booking) {
+  const list = (booking?.bubatrent_booking_payments || [])
+    .filter((p) => p.receipt_path && p.status !== 'failed')
+    .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
+    .map((p) => ({
+      path: p.receipt_path,
+      label: `${RECEIPT_LABELS[p.payment_type] || 'Payment'} ${formatMYR(p.amount)}`,
+    }));
+  for (const [path, label] of [
+    [booking?.deposit_receipt_path, 'Deposit receipt'],
+    [booking?.full_payment_receipt_path, 'Payment receipt'],
+  ]) {
+    if (path && !list.some((r) => r.path === path)) list.push({ path, label });
+  }
+  return list;
+}
+
 export function rentalChanges(booking) {
   return [...(booking?.bubatrent_booking_rental_changes || [])].sort((a, b) =>
     String(a.created_at).localeCompare(String(b.created_at))

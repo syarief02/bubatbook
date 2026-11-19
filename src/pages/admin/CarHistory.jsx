@@ -10,6 +10,7 @@ import { supabase } from '../../lib/supabase';
 import { DOC_LABELS } from '../../utils/carDocuments';
 import { formatDate, getDaysDifference } from '../../utils/dates';
 import { formatMYR } from '../../utils/pricing';
+import { CUSTOMER_RECEIPTS_SELECT, customerReceipts } from '../../utils/rent';
 import {
   BOOKED_STATUSES,
   chargesCollected,
@@ -32,7 +33,7 @@ function useCarHistory(carId) {
         supabase
           .from('bubatrent_booking_bookings')
           .select(
-            'id, status, customer_name, customer_phone, pickup_date, return_date, total_price, deposit_amount, deposit_status, deposit_credited_at, rent_paid, charges_total, amount_owed, full_payment_status, notes, car_id, bubatrent_booking_rental_changes(kind, from_car_id, to_car_id, change_date, created_at)'
+            `id, status, customer_name, customer_phone, pickup_date, return_date, total_price, deposit_amount, deposit_status, deposit_credited_at, rent_paid, charges_total, amount_owed, full_payment_status, notes, car_id, bubatrent_booking_rental_changes(kind, from_car_id, to_car_id, change_date, created_at), ${CUSTOMER_RECEIPTS_SELECT}`
           )
           .eq('car_id', carId)
           .in('status', BOOKED_STATUSES),
@@ -236,31 +237,44 @@ function TimelineItem({ item }) {
     const { b } = item;
     const status = rentStatus(b);
     const days = getDaysDifference(b.pickup_date, b.return_date);
+    const receipts = customerReceipts(b);
     return (
-      <Link
-        to={`/admin/bookings/${b.id}`}
-        className="flex items-start gap-3 p-3 hover:bg-white/[0.03] transition-colors"
-      >
-        <CalendarDays className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-white">
-            {formatDate(b.pickup_date)} – {formatDate(b.return_date)}
-            <span className="text-slate-400">
-              {' '}
-              · {days} day{days === 1 ? '' : 's'} · {b.customer_name || 'Customer'}
-            </span>
+      <div className="p-3 hover:bg-white/[0.03] transition-colors">
+        <Link to={`/admin/bookings/${b.id}`} className="flex items-start gap-3">
+          <CalendarDays className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white">
+              {formatDate(b.pickup_date)} – {formatDate(b.return_date)}
+              <span className="text-slate-400">
+                {' '}
+                · {days} day{days === 1 ? '' : 's'} · {b.customer_name || 'Customer'}
+              </span>
+            </p>
+            <p className="text-xs text-slate-500">
+              {b.customer_phone && `${b.customer_phone} · `}
+              {Number(b.deposit_amount) > 0 &&
+                `Deposit ${formatMYR(b.deposit_amount)}${b.deposit_credited_at ? ' (returned)' : ''} · `}
+              <span className={status.className}>{status.label}</span>
+            </p>
+          </div>
+          <span className="text-sm font-medium text-emerald-400 shrink-0">
+            {formatMYR(b.total_price)}
+          </span>
+        </Link>
+        {receipts.length > 0 && (
+          <p className="text-xs flex flex-wrap gap-x-3 mt-1 pl-7">
+            {receipts.map((r) => (
+              <SignedLink
+                key={r.path}
+                path={r.path}
+                className="text-violet-400 hover:text-violet-300 inline-flex items-center gap-1"
+              >
+                <FileImage className="w-3 h-3" /> {r.label}
+              </SignedLink>
+            ))}
           </p>
-          <p className="text-xs text-slate-500">
-            {b.customer_phone && `${b.customer_phone} · `}
-            {Number(b.deposit_amount) > 0 &&
-              `Deposit ${formatMYR(b.deposit_amount)}${b.deposit_credited_at ? ' (returned)' : ''} · `}
-            <span className={status.className}>{status.label}</span>
-          </p>
-        </div>
-        <span className="text-sm font-medium text-emerald-400 shrink-0">
-          {formatMYR(b.total_price)}
-        </span>
-      </Link>
+        )}
+      </div>
     );
   }
   if (item.type === 'expense') {

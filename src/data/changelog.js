@@ -18,6 +18,18 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'improved',
+        title: 'Payment receipts on Vehicle History and Customer History',
+        text: 'Each rental on a vehicle’s History page (Cars → history button) and in Customer History now shows the customer’s payment receipts under it: the deposit, rent and charge payments, each with its amount. Click one to open the slip without opening the booking.',
+        link: '/admin/cars',
+      },
+      {
+        kind: 'data',
+        title: 'November loan instalments and the Alza service claim',
+        text: 'The November loan instalments of every financed vehicle are in Expenses, each with the bank screen as proof. The Alza PRE 4166’s 16 Nov service claim is now paid, with the payment slip attached.',
+        link: '/admin/expenses',
+      },
+      {
         kind: 'data',
         title: 'November rentals from the new RENTAL group (BuBat Resources)',
         text: 'KkWana now posts rentals from November 2026 in a new Telegram group, “RENTAL”, and it is checked along with the Van Sewa group. Its first posts are on rent2go: the Vellfire VJC 5290 rental of 9–13 Nov and the Veloz VQB 5567 rental of 7–8 Nov, each with its payment slips, and the Alza PRE 4166’s 16 Nov service with the workshop invoice and slip, in Expenses as a claim still to pay. The posts don’t give the renters’ names, so those bookings say “name not recorded” until the names are added.',

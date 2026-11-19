@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronRight, Search, UserCheck } from 'lucide-react';
+import { ChevronDown, ChevronRight, FileImage, Search, UserCheck } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { SignedLink } from '../../components/SignedFile';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { chargeLabel } from '../../utils/charges';
 import { formatDate, getDaysDifference } from '../../utils/dates';
 import { normalizePhone } from '../../utils/phoneUtils';
 import { formatMYR } from '../../utils/pricing';
+import { CUSTOMER_RECEIPTS_SELECT, customerReceipts } from '../../utils/rent';
 import { BOOKED_STATUSES, sumBy } from '../../utils/revenue';
 
 // Every customer who has rented, with or without an account on the website.
@@ -32,7 +34,7 @@ function useAllRentals(fleetId) {
       let query = supabase
         .from('bubatrent_booking_bookings')
         .select(
-          'id, user_id, customer_name, customer_phone, customer_email, pickup_date, return_date, total_price, rent_paid, deposit_amount, status, bubatrent_booking_cars(id, name, plate_number)'
+          `id, user_id, customer_name, customer_phone, customer_email, pickup_date, return_date, total_price, rent_paid, deposit_amount, status, bubatrent_booking_cars(id, name, plate_number), ${CUSTOMER_RECEIPTS_SELECT}`
         )
         .in('status', BOOKED_STATUSES)
         .order('pickup_date', { ascending: false });
@@ -311,31 +313,49 @@ export default function AdminCustomerHistory() {
                           Number(b.total_price || 0) - Number(b.rent_paid || 0),
                           0
                         );
+                        const receipts = customerReceipts(b);
                         return (
-                          <Link
+                          <div
                             key={b.id}
-                            to={`/admin/bookings/${b.id}`}
-                            className="flex justify-between gap-3 text-xs rounded-lg bg-white/[0.03] hover:bg-white/[0.06] px-3 py-2"
+                            className="text-xs rounded-lg bg-white/[0.03] hover:bg-white/[0.06] px-3 py-2"
                           >
-                            <span className="text-slate-300">
-                              {formatDate(b.pickup_date)} – {formatDate(b.return_date)}
-                              <span className="text-slate-500">
-                                {' '}
-                                ·{' '}
-                                {b.bubatrent_booking_cars?.plate_number ||
-                                  b.bubatrent_booking_cars?.name}
-                                {b.customer_name && b.customer_name !== c.name
-                                  ? ` · ${b.customer_name}`
-                                  : ''}
+                            <Link
+                              to={`/admin/bookings/${b.id}`}
+                              className="flex justify-between gap-3"
+                            >
+                              <span className="text-slate-300">
+                                {formatDate(b.pickup_date)} – {formatDate(b.return_date)}
+                                <span className="text-slate-500">
+                                  {' '}
+                                  ·{' '}
+                                  {b.bubatrent_booking_cars?.plate_number ||
+                                    b.bubatrent_booking_cars?.name}
+                                  {b.customer_name && b.customer_name !== c.name
+                                    ? ` · ${b.customer_name}`
+                                    : ''}
+                                </span>
                               </span>
-                            </span>
-                            <span className="shrink-0">
-                              <span className="text-white">{formatMYR(b.total_price)}</span>
-                              <span className={owed > 0 ? 'text-amber-300' : 'text-green-400'}>
-                                {owed > 0 ? ` · ${formatMYR(owed)} owed` : ' · paid'}
+                              <span className="shrink-0">
+                                <span className="text-white">{formatMYR(b.total_price)}</span>
+                                <span className={owed > 0 ? 'text-amber-300' : 'text-green-400'}>
+                                  {owed > 0 ? ` · ${formatMYR(owed)} owed` : ' · paid'}
+                                </span>
                               </span>
-                            </span>
-                          </Link>
+                            </Link>
+                            {receipts.length > 0 && (
+                              <span className="flex flex-wrap gap-x-3 mt-1">
+                                {receipts.map((r) => (
+                                  <SignedLink
+                                    key={r.path}
+                                    path={r.path}
+                                    className="text-violet-400 hover:text-violet-300 inline-flex items-center gap-1"
+                                  >
+                                    <FileImage className="w-3 h-3" /> {r.label}
+                                  </SignedLink>
+                                ))}
+                              </span>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
