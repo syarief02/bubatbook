@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-19',
     items: [
       {
+        kind: 'data',
+        title: 'November rentals from the new RENTAL group (BuBat Resources)',
+        text: 'KkWana now posts rentals from November 2026 in a new Telegram group, “RENTAL”, and it is checked along with the Van Sewa group. Its first posts are on rent2go: the Vellfire VJC 5290 rental of 9–13 Nov and the Veloz VQB 5567 rental of 7–8 Nov, each with its payment slips, and the Alza PRE 4166’s 16 Nov service with the workshop invoice and slip, in Expenses as a claim still to pay. The posts don’t give the renters’ names, so those bookings say “name not recorded” until the names are added.',
+        link: '/admin/expenses',
+      },
+      {
         kind: 'new',
         title: 'Customers can WhatsApp you after sending their documents',
         text: 'On “Verification Pending” (new customers) and “Update Under Review” (a new licence, GDL or IC), a green “WhatsApp us to verify faster” button opens WhatsApp to 019-496 1568 with a message giving their name, phone and email. Find them in Customers (Customers to Verify) and verify them.',
