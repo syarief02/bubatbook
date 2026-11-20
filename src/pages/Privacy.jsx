@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import { BUBAT_NAME, BUBAT_SSM } from '../data/company';
 
-const LAST_UPDATED = '16 November 2026';
+const LAST_UPDATED = '20 November 2026';
 const CONTACT_EMAIL = 'bubatresources@gmail.com';
 const CONTACT_PHONE = '+60 19-496 1568';
 
@@ -22,6 +22,7 @@ const SECTIONS = [
       'Rental agreements: the signature you draw when signing an agreement, together with the agreement details.',
       'Vehicle location: our vehicles may be fitted with GPS trackers. During your rental we can see where the vehicle is, and we use this only for security, getting the vehicle back, and looking into accidents or traffic summonses.',
       'Technical information: when you upload a file we record basic device and browser details to troubleshoot failed uploads. We keep you signed in using your browser’s local storage. We do not use advertising or tracking cookies.',
+      'Visit statistics: we count page visits with Vercel Web Analytics. It uses no cookies, does not record what you type, and does not identify you: we see only totals such as visits per page, the country, and the device and browser type. Only the page address is counted, never the details after it.',
     ],
   },
   {
@@ -45,7 +46,7 @@ const SECTIONS = [
   {
     title: 'Who we share it with',
     body: [
-      'We do not sell your personal data. We share it only with service providers that run this website, under their own security and privacy terms: Supabase (database, login and file storage), Vercel (website hosting), and Google (sign-in and website fonts). If you message us on WhatsApp, WhatsApp’s terms apply to that conversation. We disclose data to authorities when Malaysian law requires it.',
+      'We do not sell your personal data. We share it only with service providers that run this website, under their own security and privacy terms: Supabase (database, login and file storage), Vercel (website hosting and visit statistics), and Google (sign-in and website fonts). If you message us on WhatsApp, WhatsApp’s terms apply to that conversation. We disclose data to authorities when Malaysian law requires it.',
     ],
   },
   {

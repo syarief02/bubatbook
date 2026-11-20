@@ -207,6 +207,15 @@ export default function UserManual() {
             page (it is remembered per browser, so a new phone shows it again). This manual explains
             how things work; What&apos;s New tells you what changed.
           </p>
+          <Sub>Visitor statistics</Sub>
+          <p>
+            How many people visit rent2go.my, which pages and cars they look at, where they come
+            from (Facebook, WhatsApp, Google) and their country and device are counted by Vercel Web
+            Analytics, in the Vercel dashboard (project <B>bubatbook</B> → <B>Analytics</B>; the
+            site owner&apos;s Vercel account). It uses no cookies and does not identify anyone;
+            admin pages are not counted, and only the page address is kept (never dates, emails or
+            codes after it). Use it to see whether an ad or a WhatsApp post brings visitors.
+          </p>
           <Sub>Who can do what</Sub>
           <Bullets>
             <li>

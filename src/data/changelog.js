@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-20',
     items: [
       {
+        kind: 'new',
+        title: 'Visitor statistics (Vercel Web Analytics)',
+        text: 'rent2go.my now counts its visitors: how many people visit, which pages and cars they open, where they came from (Facebook, WhatsApp, Google…) and their country and device. The figures are in the Vercel dashboard (project bubatbook → Analytics). No cookies and no personal data: admin pages are not counted and only the page address is kept. Handy for checking whether the Facebook ads and the new video bring people to the site. The Privacy Policy says so too.',
+        link: '/privacy',
+      },
+      {
         kind: 'data',
         title: 'Veloz VQB 5567: road tax renewed, summons paid, records from the RENTAL group',
         text: 'From the Telegram RENTAL group:\n• Veloz VQB 5567 road tax is in Car Documents to 26 Nov 2027 (renewed with the Allianz insurance through PolicyStreet), so its documents are complete. The renewal is also on the Veloz’s Car History as an expense with the PolicyStreet receipt and the insurance certificate.\n• The Veloz’s JPJ speed-camera summons of 4 Jan 2026 (Gua Musang) was paid on 20 Nov; it is on Car History with the summons and the FPX receipt.\n• The Vellfire (9–13 Nov) and Veloz (7–8 Nov) rentals now also show the bank screenshot confirming the money arrived.',
