@@ -25,8 +25,8 @@ export const CHANGELOG = [
       },
       {
         kind: 'data',
-        title: 'Veloz VQB 5567: road tax renewed, summons paid, records from the RENTAL group',
-        text: 'From the Telegram RENTAL group:\n• Veloz VQB 5567 road tax is in Car Documents to 26 Nov 2027 (renewed with the Allianz insurance through PolicyStreet), so its documents are complete. The renewal is also on the Veloz’s Car History as an expense with the PolicyStreet receipt and the insurance certificate.\n• The Veloz’s JPJ speed-camera summons of 4 Jan 2026 (Gua Musang) was paid on 20 Nov; it is on Car History with the summons and the FPX receipt.\n• The Vellfire (9–13 Nov) and Veloz (7–8 Nov) rentals now also show the bank screenshot confirming the money arrived.',
+        title: 'Veloz VQB 5567: insurance renewed, summons paid, records from the RENTAL group',
+        text: 'From the Telegram RENTAL group:\n• Veloz VQB 5567: the Allianz insurance renewal through PolicyStreet is on its Car History as an expense, with the receipt and the certificate. Its road tax was NOT renewed: PolicyStreet could not do it because the Veloz is registered for e-hailing, so it must be renewed at JPJ (PolicyStreet refunds the road tax part). Car Documents shows the Veloz road tax as missing until it is renewed.\n• The Veloz’s JPJ speed-camera summons of 4 Jan 2026 (Gua Musang) was paid on 20 Nov; it is on Car History with the summons and the FPX receipt.\n• The Vellfire (9–13 Nov) and Veloz (7–8 Nov) rentals now also show the bank screenshot confirming the money arrived.',
         link: '/admin/car-documents',
       },
       {
