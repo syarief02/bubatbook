@@ -15,6 +15,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-20',
+    items: [
+      {
+        kind: 'data',
+        title: 'Car photos sorted: best picture first',
+        text: 'Every car’s photos now open with its best outside shot, then the other outside views, the cab and the cargo area or seats. New main pictures (also on the fleet cards): NV200 VEY 3516 (front), NV200 BPA 3919 (front three-quarter) and Gran Max WB 4690 R (side); all three are hidden from customers for now. Re-ordered: the Vellfire VJC 5290 (all outside shots, day then night, before the inside ones), Gran Max VEY 3830, Bezza RBC 9682, NV200 WXN 5736 and WYX 6643. The other cars already started with their best photo.',
+        link: '/',
+      },
+    ],
+  },
+  {
     date: '2026-11-19',
     items: [
       {
