@@ -468,7 +468,10 @@ export default function UserManual() {
               return date to book online (section 5, GDL and commercial vehicles).
             </li>
             <li>
-              <B>Image URL</B>: a link to the car&apos;s photo.
+              <B>Image URL</B>: a link to the car&apos;s photo. The home page lists the cars with
+              the best photos first (Vellfire, Veloz, Alza, Ranger, Bezza, then the vans); a car you
+              add goes after those, newest first. To move a car up, ask for it to be added to the
+              website&apos;s photo order.
             </li>
             <li>
               <B>Plate Number</B>: printed on the rental agreement and invoice. It is also the car

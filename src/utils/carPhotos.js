@@ -13,6 +13,37 @@ export const PHOTO_CREDITS = {
   },
 };
 
+// Order of the cars on the home page: the best main photo first. Cars not
+// listed here come after these, newest first. Hidden cars are listed too so
+// they land in the right place when they are turned back on.
+export const FLEET_ORDER = [
+  'VJC 5290', // Vellfire
+  'VQB 5567', // Veloz
+  'PRE 4166', // Alza
+  'VDM 6927', // Ranger
+  'RBC 9682', // Bezza
+  'VEY 3830', // Gran Max
+  'VNH 3681', // Gran Max
+  'WXM 2302', // Gran Max
+  'W 9490 C', // NV200
+  'WA 5202 F', // NV200
+  'VEY 3516', // NV200
+  'WXN 5736', // NV200
+  'BPA 3919', // NV200
+  'WB 4690 R', // Gran Max
+  'WYX 6643', // NV200
+  'WA 3301 U', // NV200
+];
+
+/** Cars in FLEET_ORDER order; the sort is stable, so the rest keep theirs. */
+export function sortByBestPhoto(cars) {
+  const rank = (car) => {
+    const i = FLEET_ORDER.indexOf(car.plate_number);
+    return i === -1 ? FLEET_ORDER.length : i;
+  };
+  return [...cars].sort((a, b) => rank(a) - rank(b));
+}
+
 // The owner's own photos of a vehicle, by plate number, shown as a gallery on
 // the car page. The first one is also the car's main picture (image_url).
 // Location data (GPS) is removed from phone photos before they are added.

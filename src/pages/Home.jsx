@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCars } from '../hooks/useCars';
+import { sortByBestPhoto } from '../utils/carPhotos';
 import CarCard from '../components/CarCard';
 import DateRangePicker from '../components/DateRangePicker';
 import EmptyState from '../components/EmptyState';
@@ -18,7 +19,7 @@ export default function Home() {
   const toast = useToast();
   const { t } = useTranslation();
 
-  const filteredCars = cars.filter((car) => {
+  const filteredCars = sortByBestPhoto(cars).filter((car) => {
     if (!carSearch) return true;
     const q = carSearch.toLowerCase();
     return (
