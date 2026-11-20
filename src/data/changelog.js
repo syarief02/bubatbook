@@ -19,6 +19,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'data',
+        title: 'Veloz VQB 5567: road tax renewed at JPJ',
+        text: 'The Veloz VQB 5567 road tax was renewed in MyJPJ on 20 Nov: valid 27 Nov 2026 to 28 Aug 2027. Car Documents now shows it (no longer missing), with the MyJPJ receipt, and the payment is on the Veloz’s Car History. Next renewal is due before 28 Aug 2027.',
+        link: '/admin/car-documents',
+      },
+      {
+        kind: 'data',
         title: 'Alza PRE 4166: new front brake pads',
         text: 'From the Telegram RENTAL group: the Alza PRE 4166 got new front brake pads on 20 Nov (parts from Alat-Alat Ganti Indah and fitting at Yakin Auto Service, Ampang). Both are on the Alza’s Car History with the invoice, KkWana’s payment slip and the reimbursement slip.',
         link: '/admin/expenses',
