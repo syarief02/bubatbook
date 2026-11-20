@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-20',
     items: [
       {
+        kind: 'data',
+        title: 'Veloz VQB 5567: road tax renewed, summons paid, records from the RENTAL group',
+        text: 'From the Telegram RENTAL group:\n• Veloz VQB 5567 road tax is in Car Documents to 26 Nov 2027 (renewed with the Allianz insurance through PolicyStreet), so its documents are complete. The renewal is also on the Veloz’s Car History as an expense with the PolicyStreet receipt and the insurance certificate.\n• The Veloz’s JPJ speed-camera summons of 4 Jan 2026 (Gua Musang) was paid on 20 Nov; it is on Car History with the summons and the FPX receipt.\n• The Vellfire (9–13 Nov) and Veloz (7–8 Nov) rentals now also show the bank screenshot confirming the money arrived.',
+        link: '/admin/car-documents',
+      },
+      {
         kind: 'improved',
         title: 'Home page: cars with the best photos come first',
         text: 'The car list on rent2go.my used to show the newest cars first, so it opened with the vans added on 19 Nov. It now starts with the best photos: Vellfire VJC 5290, Veloz VQB 5567, Alza PRE 4166, Ranger VDM 6927, Bezza RBC 9682, Gran Max VEY 3830 and WXM 2302, then the NV200s WXN 5736, WYX 6643 and WA 3301 U. A newly added car goes after these. Search still works the same.',
