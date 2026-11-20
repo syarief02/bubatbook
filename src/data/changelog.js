@@ -20,7 +20,7 @@ export const CHANGELOG = [
       {
         kind: 'new',
         title: 'Visitor statistics (Vercel Web Analytics)',
-        text: 'rent2go.my now counts its visitors: how many people visit, which pages and cars they open, where they came from (Facebook, WhatsApp, Google…) and their country and device. The figures are in the Vercel dashboard (project bubatbook → Analytics). No cookies and no personal data: admin pages are not counted and only the page address is kept. Handy for checking whether the Facebook ads and the new video bring people to the site. The Privacy Policy says so too.',
+        text: 'rent2go.my now counts its visitors: how many people visit, which pages and cars they open, where they came from (Facebook, WhatsApp, Google…) and their country and device. The figures are in the Vercel dashboard (project bubatbook → Analytics). No cookies and no personal data: admin pages are not counted and only the page address is kept. Handy for checking whether the Facebook ads and the new video bring people to the site: share links with a campaign tag, e.g. rent2go.my/?utm_source=facebook&utm_campaign=video, and they show under UTM Parameters. The Privacy Policy says so too.',
         link: '/privacy',
       },
       {

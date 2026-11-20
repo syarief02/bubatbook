@@ -22,7 +22,7 @@ const SECTIONS = [
       'Rental agreements: the signature you draw when signing an agreement, together with the agreement details.',
       'Vehicle location: our vehicles may be fitted with GPS trackers. During your rental we can see where the vehicle is, and we use this only for security, getting the vehicle back, and looking into accidents or traffic summonses.',
       'Technical information: when you upload a file we record basic device and browser details to troubleshoot failed uploads. We keep you signed in using your browser’s local storage. We do not use advertising or tracking cookies.',
-      'Visit statistics: we count page visits with Vercel Web Analytics. It uses no cookies, does not record what you type, and does not identify you: we see only totals such as visits per page, the country, and the device and browser type. Only the page address is counted, never the details after it.',
+      'Visit statistics: we count page visits with Vercel Web Analytics. It uses no cookies, does not record what you type, and does not identify you: we see only totals such as visits per page, the country, and the device and browser type. Only the page address (and any ad campaign tag in the link) is counted, never other details after it.',
     ],
   },
   {

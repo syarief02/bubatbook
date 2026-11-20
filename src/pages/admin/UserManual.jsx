@@ -214,7 +214,10 @@ export default function UserManual() {
             Analytics, in the Vercel dashboard (project <B>bubatbook</B> → <B>Analytics</B>; the
             site owner&apos;s Vercel account). It uses no cookies and does not identify anyone;
             admin pages are not counted, and only the page address is kept (never dates, emails or
-            codes after it). Use it to see whether an ad or a WhatsApp post brings visitors.
+            codes after it). Use it to see whether an ad or a WhatsApp post brings visitors: add a
+            campaign tag to the link you share, e.g.
+            rent2go.my/?utm_source=facebook&amp;utm_campaign=video, and the visits show under{' '}
+            <B>UTM Parameters</B>.
           </p>
           <Sub>Who can do what</Sub>
           <Bullets>
