@@ -10,6 +10,7 @@ import { normalizePhone, isValidMYPhone } from '../../utils/phoneUtils';
 import { friendlyDbError } from '../../utils/dbErrors';
 import { EMPTY_BANK, bankDetailsError, bankForSave } from '../../utils/banks';
 import BankDetailsFields from '../../components/BankDetailsFields';
+import { LICENCE_TYPES } from '../../utils/licenceTypes';
 import {
   User,
   Phone,
@@ -40,11 +41,6 @@ const STATES = [
   'W.P. Kuala Lumpur',
   'W.P. Labuan',
   'W.P. Putrajaya',
-];
-const GDL_OPTIONS = [
-  { value: 'NONE', label: 'Standard License' },
-  { value: 'GDL', label: 'GDL (Graduated Driver License)' },
-  { value: 'CDL', label: 'CDL (Competent Driver License)' },
 ];
 
 export default function CreateCustomer() {
@@ -320,18 +316,22 @@ export default function CreateCustomer() {
               )}
             </div>
             <div>
-              <label className="input-label">License Type</label>
+              <label className="input-label">Licence type (optional note)</label>
               <select
                 value={form.gdl_license}
                 onChange={set('gdl_license')}
                 className="input-field"
               >
-                {GDL_OPTIONS.map((o) => (
+                {LICENCE_TYPES.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
                   </option>
                 ))}
               </select>
+              <p className="text-[10px] text-slate-500 mt-1">
+                Only a note. For a panel van, add their GDL expiry and photo afterwards with Edit
+                Customer Details: that is what bookings check.
+              </p>
             </div>
           </div>
 

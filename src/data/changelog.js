@@ -15,6 +15,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-22',
+    items: [
+      {
+        kind: 'fixed',
+        title: 'Create Customer: licence types named correctly',
+        text: 'The licence type on Create Customer called GDL a “Graduated Driver License”. In Malaysia GDL is the Goods Driving Licence that panel vans need. The choices are now Not noted, CDL (Competent Driving Licence) and GDL (Goods Driving Licence), with a reminder that this is only a note: for a van, add the customer’s GDL expiry and photo with Edit Customer Details, because that is what bookings check. A customer’s page shows the type on its own line, “Licence type noted”, instead of after their GDL.',
+        link: '/admin/customers/create',
+      },
+    ],
+  },
+  {
     date: '2026-11-21',
     items: [
       {

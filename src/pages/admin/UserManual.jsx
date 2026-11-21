@@ -882,6 +882,9 @@ export default function UserManual() {
             <B>Create Customer</B>. You need their IC number, a Malaysian phone number, address,
             licence expiry, and photos of the IC and licence. Name, email, licence type and bank
             account are optional, but enter the name: it is printed on the agreement and invoice.
+            <B>Licence type</B> (CDL, Competent Driving Licence; or GDL, Goods Driving Licence) is
+            only a note on the customer&apos;s page. For a panel van, add their GDL expiry and photo
+            afterwards with <B>Edit Customer Details</B>: those are what bookings check (section 5).
             Add the bank account when you can (now, or later with Edit Customer Details): it is
             where you refund the deposit, and the customer needs it to book online. The customer is
             created already verified, without a login they can use yet. Then book a car for them

@@ -50,6 +50,7 @@ import { SignedLink, SignedImage } from '../../components/SignedFile';
 import BankDetailsFields from '../../components/BankDetailsFields';
 import VerificationUpdateReview from '../../components/VerificationUpdateReview';
 import { bankDetailsError, bankForSave, bankFromProfile, hasBankDetails } from '../../utils/banks';
+import { licenceTypeLabel } from '../../utils/licenceTypes';
 export default function Customers() {
   const { user, isSuperAdmin } = useAuth();
   const { activeFleetId, isSuperGroup } = useFleet();
@@ -526,10 +527,13 @@ export default function Customers() {
                                     none (needed for commercial vehicles)
                                   </span>
                                 )}
-                                {customer.gdl_license && customer.gdl_license !== 'NONE'
-                                  ? ` · ${customer.gdl_license}`
-                                  : ''}
                               </p>
+                              {customer.gdl_license && customer.gdl_license !== 'NONE' && (
+                                <p>
+                                  <span className="text-slate-500">Licence type noted:</span>{' '}
+                                  {licenceTypeLabel(customer.gdl_license)}
+                                </p>
+                              )}
                               {(customer.address_line1 || customer.city) && (
                                 <p>
                                   <span className="text-slate-500">Address:</span>{' '}
