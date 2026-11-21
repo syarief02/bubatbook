@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
-import { formatPhone } from '../utils/format';
+import { compactPlate, documentTitle, formatPhone } from '../utils/format';
 import { useCarContact } from '../hooks/useCars';
 import { chargeLabel } from '../utils/charges';
 import { workshopPayments } from '../utils/workshop';
@@ -131,6 +131,15 @@ export default function Invoice() {
 
   return (
     <div className="min-h-screen py-8 px-4">
+      {/* Also the file name of Print / Save PDF */}
+      <title>
+        {documentTitle(
+          'Rent2Go Invoice',
+          invoiceNumber,
+          compactPlate(car?.plate_number),
+          booking.customer_name
+        )}
+      </title>
       <div className="max-w-3xl mx-auto">
         {/* Action Bar (hidden when printing) */}
         <div className="flex items-center justify-between mb-6 print:hidden">

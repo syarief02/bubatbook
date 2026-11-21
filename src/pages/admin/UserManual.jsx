@@ -996,7 +996,9 @@ export default function UserManual() {
             <li>
               Once signed you see the signature and <B>View Full Agreement</B>, which has a{' '}
               <B>Print / Save PDF</B> button. The printout leaves out the website&apos;s top bar and
-              keeps each clause on one page. An agreement can only be signed once.
+              keeps each clause on one page. The PDF is named after the booking, e.g.{' '}
+              <i>Rent2Go Agreement VJC5290 29CC0E1F Muhammad Ikram bin Roslan.pdf</i>. An agreement
+              can only be signed once.
             </li>
           </Bullets>
 
@@ -1580,7 +1582,10 @@ export default function UserManual() {
               paid the workshop for us (and what it was taken off), and any charges after the rental
               (what came off the deposit and what is still owed). The fleet name comes from Fleet
               Settings; the phone number is the car&apos;s WhatsApp contact (section 4), the same
-              number its WhatsApp button opens. <B>Print / Save PDF</B> makes a PDF.
+              number its WhatsApp button opens. <B>Print / Save PDF</B> makes a PDF named after the
+              invoice, e.g.{' '}
+              <i>Rent2Go Invoice INV-29CC0E1F VJC5290 Muhammad Ikram bin Roslan.pdf</i>. The Terms
+              page saves as <i>Rent2Go Terms and Conditions.pdf</i>.
             </li>
             <li>
               Customers can also print a simple booking receipt from <B>View Details</B> →{' '}

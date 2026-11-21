@@ -19,6 +19,12 @@ export const CHANGELOG = [
     items: [
       {
         kind: 'improved',
+        title: 'Saved PDFs are named after the booking',
+        text: 'Print / Save PDF used to save every agreement and invoice as “Rent2Go — Premium Car Rental Malaysia.pdf”, so they were hard to tell apart in Downloads. Each one now gets its own name: the agreement as “Rent2Go Agreement <plate> <booking no.> <customer>.pdf” (e.g. Rent2Go Agreement VJC5290 29CC0E1F Muhammad Ikram bin Roslan.pdf), the invoice as “Rent2Go Invoice INV-<booking no.> <plate> <customer>.pdf”, and the Terms page as “Rent2Go Terms and Conditions.pdf”. The browser tab shows the same name while the page is open. The booking receipt already had its own name.',
+        link: '/admin/manual',
+      },
+      {
+        kind: 'improved',
         title: 'Tap a customer’s phone number to WhatsApp them',
         text: 'A customer’s phone number now opens a WhatsApp chat with them: on a booking (Customer box), in Customers (the list and their details), in Customer History (open a customer), under each rental in a car’s History, and on the Counter. The number shows in green with a chat icon. On a phone it opens the WhatsApp app; on a computer, WhatsApp Web. On the Counter the phone icon next to the number still calls them.',
         link: '/admin/customers',

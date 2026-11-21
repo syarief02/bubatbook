@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate, formatDateTime } from '../utils/dates';
+import { compactPlate, documentTitle } from '../utils/format';
 import { RENTAL_CHANGES_SELECT, changeText, rentalChanges } from '../utils/rent';
 import RentalAgreementForm from '../components/RentalAgreementForm';
 import { AgreementTerms } from '../components/AgreementTerms';
@@ -98,10 +99,22 @@ export default function RentalAgreement() {
   const renterEmail = realEmail(isOwner ? user.email : renter?.email);
   const renterName =
     renterInfo?.display_name || booking.customer_name || renterEmail || 'the customer';
+  // Also the file name of Print / Save PDF
+  const pageTitle = (
+    <title>
+      {documentTitle(
+        'Rent2Go Agreement',
+        compactPlate(car?.plate_number),
+        booking.id.slice(0, 8).toUpperCase(),
+        renterInfo?.display_name || booking.customer_name
+      )}
+    </title>
+  );
 
   if (existingAgreement) {
     return (
       <div className="min-h-screen py-8 px-4 print-plain">
+        {pageTitle}
         <div className="max-w-3xl mx-auto">
           {/* Action bar (hidden when printing) */}
           <div className="flex items-center justify-between mb-6 print:hidden">
@@ -236,6 +249,7 @@ export default function RentalAgreement() {
 
   return (
     <div className="min-h-screen py-8 px-4">
+      {pageTitle}
       <div className="max-w-3xl mx-auto">
         <div className="glass-card mb-6 text-center">
           <h1 className="text-2xl font-bold text-white mb-1">PERJANJIAN SEWAAN KENDERAAN</h1>

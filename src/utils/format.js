@@ -38,3 +38,26 @@ export function truncate(str, maxLen = 50) {
   if (!str || str.length <= maxLen) return str;
   return str.slice(0, maxLen) + '...';
 }
+
+/**
+ * Page title for a printable document. "Save as PDF" names the file after the page
+ * title, so each document gets its own name, e.g.
+ * "Rent2Go Agreement VJC5290 29CC0E1F Muhammad Ikram bin Roslan".
+ * Characters a filename can't hold (/ \ : * ? " < > |) become spaces.
+ */
+export function documentTitle(...parts) {
+  return parts
+    .map((p) =>
+      String(p ?? '')
+        .replace(/[\\/:*?"<>|]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    )
+    .filter(Boolean)
+    .join(' ');
+}
+
+/** "VJC 5290" → "VJC5290", for document titles and filenames. */
+export function compactPlate(plate) {
+  return (plate || '').replace(/\s+/g, '');
+}

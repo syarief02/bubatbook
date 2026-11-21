@@ -12,6 +12,8 @@ const WHATSAPP = '60194961568';
 export default function Terms() {
   return (
     <div className="page-container max-w-3xl mx-auto">
+      {/* Also the file name of Print / Save PDF */}
+      <title>Rent2Go Terms and Conditions</title>
       <div className="flex items-center gap-3 mb-2">
         <div className="w-11 h-11 rounded-xl bg-violet-500/10 flex items-center justify-center">
           <FileText className="w-6 h-6 text-violet-400" />
