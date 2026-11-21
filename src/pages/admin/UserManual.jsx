@@ -1411,7 +1411,8 @@ export default function UserManual() {
             </li>
             <li>
               Optionally add <B>Notes</B> (for example, a phone booking). They show on the booking
-              page.
+              page exactly as typed: press Enter for a new line, and leave a blank line between
+              parts to keep long notes easy to read.
             </li>
             <li>
               <B>Initial Status</B>:

@@ -461,7 +461,7 @@ export default function Checkout() {
                 {customerInfo?.notes && (
                   <div>
                     <p className="text-xs text-slate-500 mb-1">{t('Notes')}</p>
-                    <p className="text-sm text-slate-300">{customerInfo.notes}</p>
+                    <p className="text-sm text-slate-300 whitespace-pre-wrap break-words">{customerInfo.notes}</p>
                   </div>
                 )}
                 <div className="border-t border-white/5 pt-4 flex gap-3">

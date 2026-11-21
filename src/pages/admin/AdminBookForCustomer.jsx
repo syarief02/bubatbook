@@ -750,7 +750,7 @@ export default function AdminBookForCustomer() {
             {notes.trim() && (
               <div className="flex justify-between gap-4 text-sm">
                 <span className="text-slate-400">Notes:</span>
-                <span className="text-white text-right">{notes.trim()}</span>
+                <span className="text-white text-right whitespace-pre-wrap break-words min-w-0">{notes.trim()}</span>
               </div>
             )}
             <div className="flex justify-between text-sm">

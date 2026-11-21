@@ -850,7 +850,7 @@ export default function AdminBookingDetail() {
               {booking.notes && (
                 <div className="flex items-start gap-2">
                   <FileText className="w-4 h-4 text-violet-400 mt-0.5" />
-                  <span className="text-slate-300">{booking.notes}</span>
+                  <span className="text-slate-300 whitespace-pre-wrap break-words min-w-0">{booking.notes}</span>
                 </div>
               )}
 

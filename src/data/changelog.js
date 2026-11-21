@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-21',
     items: [
       {
+        kind: 'improved',
+        title: 'Booking notes keep their line breaks',
+        text: 'Notes on a booking now show exactly as typed, with their new lines and spacing, instead of running together as one block. Press Enter in the Notes box (Counter, Book for Customer or checkout) to start a new line. The same applies to the notes under a booking’s receipts and proof. The Vellfire VJC 5290 booking’s notes are now laid out line by line (pick-up, referral, price, payment, handover).',
+        link: '/admin/bookings/29cc0e1f-c231-4c80-947d-7056119630c4',
+      },
+      {
         kind: 'data',
         title: 'Vellfire VJC 5290: out on a one-month rental',
         text: 'The Vellfire VJC 5290 is rented for a month, picked up on 21 Nov at 12:42 and due back on 21 Dec 2026 (booking 29CC0E1F, a customer KkWana referred). The booking has the agreement signed at the counter, the customer’s IC and licence, the bank confirmation of the rent and 10 handover photos, including the odometer at 240,104 km. The rent is also in the van sewa workbook (Nov26, and the new Dis26 tab for December) and posted in the Telegram RENTAL group.',

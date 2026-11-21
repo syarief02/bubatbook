@@ -128,7 +128,7 @@ export function BookingRecordsCard({ bookingId }) {
                   >
                     <FileImage className="w-3.5 h-3.5 shrink-0" /> {KIND_LABELS[r.kind] || r.kind}
                   </SignedLink>
-                  {r.note && <p className="text-xs text-slate-400 mt-0.5">{r.note}</p>}
+                  {r.note && <p className="text-xs text-slate-400 mt-0.5 whitespace-pre-wrap break-words">{r.note}</p>}
                   <p className="text-[11px] text-slate-600">{formatDateTime(r.created_at)}</p>
                 </div>
                 {removing === r.id ? (
