@@ -29,7 +29,7 @@ export default function ViewAsBanner() {
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r ${bgColor} backdrop-blur-md shadow-lg`}
+      className={`fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r ${bgColor} backdrop-blur-md shadow-lg print:hidden`}
     >
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">

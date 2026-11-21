@@ -266,9 +266,11 @@
     background: white !important;
   }
 
+  /* The fixed top bar and the footer stay off paper: a fixed bar repeats on
+     every printed page, over the text. (This rule once had a broken
+     ".print\\:hidden" selector, which made the browser drop all of it.) */
   nav,
-  footer,
-  .print\\:hidden {
+  footer {
     display: none !important;
   }
 

@@ -803,7 +803,7 @@ export default function TermsV3() {
             className="w-full shrink-0 snap-start snap-always print:w-auto"
           >
             <div className="glass-card mb-6">
-              <h2 className="flex items-center gap-3 mb-4">
+              <h2 className="flex items-center gap-3 mb-4 print:break-after-avoid">
                 <span className="w-9 h-9 shrink-0 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 font-bold flex items-center justify-center">
                   {section.letter}
                 </span>
@@ -813,7 +813,10 @@ export default function TermsV3() {
               </h2>
               <ol className="divide-y divide-white/5">
                 {section.clauses.map((clause, i) => (
-                  <li key={clause.ms.title} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+                  <li
+                    key={clause.ms.title}
+                    className="flex gap-3 py-4 first:pt-0 last:pb-0 print:break-inside-avoid"
+                  >
                     <span className="shrink-0 min-w-7 h-7 px-1.5 rounded-lg bg-white/5 text-xs font-bold text-slate-300 tabular-nums flex items-center justify-center">
                       {SECTION_STARTS[s] + i}
                     </span>

@@ -991,7 +991,8 @@ export default function UserManual() {
             </li>
             <li>
               Once signed you see the signature and <B>View Full Agreement</B>, which has a{' '}
-              <B>Print / Save PDF</B> button. An agreement can only be signed once.
+              <B>Print / Save PDF</B> button. The printout leaves out the website&apos;s top bar and
+              keeps each clause on one page. An agreement can only be signed once.
             </li>
           </Bullets>
 

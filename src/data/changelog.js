@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-21',
     items: [
       {
+        kind: 'fixed',
+        title: 'Printed agreement: no more Rent2Go bar over the text',
+        text: 'Print / Save PDF of a signed agreement (and the Terms, invoices and other pages) repeated the website’s top bar (Rent2Go logo, EN/BM, menu) on every page, over the text on page 2 onwards. The printout now leaves out the top bar, the footer and the view-as banner, starts at the top of the page, and keeps each clause of the terms together with its heading instead of splitting it across two pages.',
+        link: '/terms',
+      },
+      {
         kind: 'improved',
         title: 'Booking notes keep their line breaks',
         text: 'Notes on a booking now show exactly as typed, with their new lines and spacing, instead of running together as one block. Press Enter in the Notes box (Counter, Book for Customer or checkout) to start a new line. The same applies to the notes under a booking’s receipts and proof. The Vellfire VJC 5290 booking’s notes are now laid out line by line (pick-up, referral, price, payment, handover).',
