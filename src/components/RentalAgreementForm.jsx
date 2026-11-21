@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
-import { formatDate } from '../utils/dates';
+import { formatDate, getDaysDifference } from '../utils/dates';
 import SignatureCanvas from './SignatureCanvas';
 import { useToast } from './Toast';
 import { FileText, AlertTriangle } from 'lucide-react';
@@ -18,6 +18,9 @@ export default function RentalAgreementForm({ booking, car, renter, disabled = f
   const [submitting, setSubmitting] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  // The rate the customer actually pays: the booking's rent over its days, so
+  // an agreed price, a package or a long-rental discount shows as charged
+  const rentalDays = Math.max(1, getDaysDifference(booking.pickup_date, booking.return_date));
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -101,7 +104,10 @@ export default function RentalAgreementForm({ booking, car, renter, disabled = f
           </div>
           <div>
             <p className="text-slate-500 text-xs mb-0.5">Kadar Sewa / Daily Rate</p>
-            <p className="text-white font-medium">{formatMYR(car?.price_per_day || 0)}/hari</p>
+            <p className="text-white font-medium">
+              {formatMYR(rentalDays > 0 ? Number(booking.total_price || 0) / rentalDays : 0)}/hari ×{' '}
+              {rentalDays} hari
+            </p>
           </div>
           <div>
             <p className="text-slate-500 text-xs mb-0.5">Jumlah Sewa / Total</p>

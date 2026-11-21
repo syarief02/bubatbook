@@ -966,6 +966,13 @@ export default function UserManual() {
               the booking, not from what the customer types.
             </li>
             <li>
+              The agreement&apos;s <B>Kadar Sewa / Daily Rate</B> is what the customer actually
+              pays: the booking&apos;s rent divided by its days, shown with the number of days. So a
+              price changed with <B>Change price</B>, a package or a long-rental discount shows as
+              charged, e.g. RM4,000 for 30 days shows RM133.33/hari × 30 hari, not the car&apos;s
+              listed daily price.
+            </li>
+            <li>
               Counter bookings start unsigned: the booking page shows{' '}
               <B>Rental Agreement Not Signed</B>. Press <B>Copy Agreement Link</B> and send it by
               WhatsApp (a customer with an account signs it in My Bookings), or, with the customer
