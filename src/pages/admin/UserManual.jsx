@@ -970,7 +970,8 @@ export default function UserManual() {
               pays: the booking&apos;s rent divided by its days, shown with the number of days. So a
               price changed with <B>Change price</B>, a package or a long-rental discount shows as
               charged, e.g. RM4,000 for 30 days shows RM133.33/hari × 30 hari, not the car&apos;s
-              listed daily price.
+              listed daily price. The signed copy saves the same rate (since 21 Nov 2026; older
+              signed agreements keep the listed price they saved).
             </li>
             <li>
               Counter bookings start unsigned: the booking page shows{' '}

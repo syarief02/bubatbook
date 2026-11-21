@@ -26,7 +26,7 @@ export const CHANGELOG = [
       {
         kind: 'fixed',
         title: 'Rental agreement shows the rate the customer pays',
-        text: 'The agreement’s Kadar Sewa / Daily Rate showed the car’s listed daily price even when the customer pays less, e.g. RM450/hari on a month agreed at RM4,000. It now shows the booking’s rent divided by its days, with the number of days: RM133.33/hari × 30 hari. A price changed with Change price, a package or a long-rental discount now shows as charged. The total and deposit were already right.',
+        text: 'The agreement’s Kadar Sewa / Daily Rate showed the car’s listed daily price even when the customer pays less, e.g. RM450/hari on a month agreed at RM4,000. It now shows the booking’s rent divided by its days, with the number of days: RM133.33/hari × 30 hari. A price changed with Change price, a package or a long-rental discount now shows as charged. The total and deposit were already right. The signed copy now saves the same rate too (agreements signed before this keep the listed daily price they saved).',
         link: '/admin/manual',
       },
     ],
