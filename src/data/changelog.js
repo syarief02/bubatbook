@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-21',
     items: [
       {
+        kind: 'data',
+        title: 'Vellfire VJC 5290: out on a one-month rental',
+        text: 'The Vellfire VJC 5290 is rented for a month, picked up on 21 Nov at 12:42 and due back on 21 Dec 2026 (booking 29CC0E1F, a customer KkWana referred). The booking has the agreement signed at the counter, the customer’s IC and licence, the bank confirmation of the rent and 10 handover photos, including the odometer at 240,104 km. The rent is also in the van sewa workbook (Nov26, and the new Dis26 tab for December) and posted in the Telegram RENTAL group.',
+        link: '/admin/bookings/29cc0e1f-c231-4c80-947d-7056119630c4',
+      },
+      {
         kind: 'fixed',
         title: 'Rental agreement shows the rate the customer pays',
         text: 'The agreement’s Kadar Sewa / Daily Rate showed the car’s listed daily price even when the customer pays less, e.g. RM450/hari on a month agreed at RM4,000. It now shows the booking’s rent divided by its days, with the number of days: RM133.33/hari × 30 hari. A price changed with Change price, a package or a long-rental discount now shows as charged. The total and deposit were already right.',
