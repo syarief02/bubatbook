@@ -6,6 +6,7 @@ import { format, parseISO } from 'date-fns';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { SignedLink } from '../../components/SignedFile';
+import WhatsAppPhone from '../../components/WhatsAppPhone';
 import { supabase } from '../../lib/supabase';
 import { DOC_LABELS } from '../../utils/carDocuments';
 import { formatDate, getDaysDifference } from '../../utils/dates';
@@ -251,7 +252,6 @@ function TimelineItem({ item }) {
               </span>
             </p>
             <p className="text-xs text-slate-500">
-              {b.customer_phone && `${b.customer_phone} · `}
               {Number(b.deposit_amount) > 0 &&
                 `Deposit ${formatMYR(b.deposit_amount)}${b.deposit_credited_at ? ' (returned)' : ''} · `}
               <span className={status.className}>{status.label}</span>
@@ -261,8 +261,10 @@ function TimelineItem({ item }) {
             {formatMYR(b.total_price)}
           </span>
         </Link>
-        {receipts.length > 0 && (
-          <p className="text-xs flex flex-wrap gap-x-3 mt-1 pl-7">
+        {(b.customer_phone || receipts.length > 0) && (
+          <p className="text-xs flex flex-wrap items-center gap-x-3 mt-1 pl-7">
+            {/* Outside the row link: a link can't sit inside another link */}
+            {b.customer_phone && <WhatsAppPhone phone={b.customer_phone} iconClassName="w-3 h-3" />}
             {receipts.map((r) => (
               <SignedLink
                 key={r.path}

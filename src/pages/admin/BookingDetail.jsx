@@ -36,6 +36,7 @@ import {
   Landmark,
 } from 'lucide-react';
 import { hasBankDetails } from '../../utils/banks';
+import WhatsAppPhone from '../../components/WhatsAppPhone';
 
 import { SignedLink, SignedImage } from '../../components/SignedFile';
 import { ChargesCard, ReturnCarDialog } from '../../components/ReturnCharges';
@@ -845,12 +846,18 @@ export default function AdminBookingDetail() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-violet-400" />
-                <span className="text-slate-300">{booking.customer_phone}</span>
+                {booking.customer_phone ? (
+                  <WhatsAppPhone phone={booking.customer_phone} />
+                ) : (
+                  <span className="text-slate-500">No phone</span>
+                )}
               </div>
               {booking.notes && (
                 <div className="flex items-start gap-2">
                   <FileText className="w-4 h-4 text-violet-400 mt-0.5" />
-                  <span className="text-slate-300 whitespace-pre-wrap break-words min-w-0">{booking.notes}</span>
+                  <span className="text-slate-300 whitespace-pre-wrap break-words min-w-0">
+                    {booking.notes}
+                  </span>
                 </div>
               )}
 

@@ -27,6 +27,15 @@ export function normalizePhone(raw) {
   return '+' + cleaned;
 }
 
+/**
+ * WhatsApp chat link for a phone number (wa.me needs the full number, digits only),
+ * or null when the number is too short to be real.
+ */
+export function whatsAppLink(raw) {
+  const digits = normalizePhone(raw || '').replace(/\D/g, '');
+  return digits.length >= 9 ? `https://wa.me/${digits}` : null;
+}
+
 export function isValidMYPhone(normalized) {
   if (!normalized) return false;
   // Malaysian mobile: +60 1X-XXX XXXX (10-11 digits after +60)

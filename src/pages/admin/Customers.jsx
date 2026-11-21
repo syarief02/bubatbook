@@ -11,6 +11,7 @@ import {
   rejectVerification,
 } from '../../hooks/useAdmin';
 import AdminLayout from '../../components/AdminLayout';
+import WhatsAppPhone from '../../components/WhatsAppPhone';
 import BookingStatusBadge from '../../components/BookingStatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
@@ -357,7 +358,8 @@ export default function Customers() {
                     </span>
                     {customer.phone && (
                       <span className="flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {customer.phone}
+                        <Phone className="w-3 h-3" />{' '}
+                        <WhatsAppPhone phone={customer.phone} iconClassName="w-3 h-3" />
                       </span>
                     )}
                   </div>
@@ -505,7 +507,8 @@ export default function Customers() {
                               )}
                               {customer.phone && (
                                 <p>
-                                  <span className="text-slate-500">Phone:</span> {customer.phone}
+                                  <span className="text-slate-500">Phone:</span>{' '}
+                                  <WhatsAppPhone phone={customer.phone} />
                                 </p>
                               )}
                               <p>

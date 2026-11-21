@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, FileImage, Search, UserCheck } from 'lucide-
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { SignedLink } from '../../components/SignedFile';
+import WhatsAppPhone from '../../components/WhatsAppPhone';
 import { useFleet } from '../../hooks/useFleet';
 import { supabase } from '../../lib/supabase';
 import { chargeLabel } from '../../utils/charges';
@@ -275,13 +276,18 @@ export default function AdminCustomerHistory() {
 
                   {open === c.key && (
                     <div className="px-3 pb-3 pl-10 space-y-1">
-                      {c.userId && (
-                        <Link
-                          to={`/admin/customers?search=${encodeURIComponent(c.name || '')}`}
-                          className="text-xs text-violet-400 hover:text-violet-300"
-                        >
-                          Open their account in Customers →
-                        </Link>
+                      {(c.phone || c.userId) && (
+                        <p className="text-xs flex flex-wrap items-center gap-x-4 gap-y-1">
+                          {c.phone && <WhatsAppPhone phone={c.phone} iconClassName="w-3 h-3" />}
+                          {c.userId && (
+                            <Link
+                              to={`/admin/customers?search=${encodeURIComponent(c.name || '')}`}
+                              className="text-violet-400 hover:text-violet-300"
+                            >
+                              Open their account in Customers →
+                            </Link>
+                          )}
+                        </p>
                       )}
                       {c.bookings.map((b) => {
                         if (b.other) {

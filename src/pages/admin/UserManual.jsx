@@ -326,8 +326,9 @@ export default function UserManual() {
             Tap a car that is out for its rental: <B>Add payment</B> when more rent comes in,{' '}
             <B>Mark returned</B> when it comes back, and extend, end early or change the price. For
             a customer without an account, press <B>Deposit refunded</B> once you have paid the
-            deposit back. The chips at the top list what needs settling: overdue returns, rent owed,
-            deposits to collect, deposits to refund and deposits on hold.
+            deposit back. The customer&apos;s phone number there opens WhatsApp; the phone icon next
+            to it calls them. The chips at the top list what needs settling: overdue returns, rent
+            owed, deposits to collect, deposits to refund and deposits on hold.
           </p>
           <Sub>Every day</Sub>
           <Steps>
@@ -655,8 +656,10 @@ export default function UserManual() {
             as one customer, so someone&apos;s earlier WhatsApp rentals join their later online
             ones. Each customer shows their rentals, days, total rent, what they still owe and the
             cars they used; click one to see every booking, with links to its payment receipts, and
-            open it. Search by name, phone or plate, and sort by latest rental, most rentals, most
-            rent or most owed. <B>Bookings</B> can also be searched by phone number.
+            open it. The opened customer shows their phone number: tap it to WhatsApp them. A
+            car&apos;s History does the same under each rental. Search by name, phone or plate, and
+            sort by latest rental, most rentals, most rent or most owed. <B>Bookings</B> can also be
+            searched by phone number.
           </p>
           <p>
             Customers are shared between fleets, so the list also shows their rentals with other
@@ -715,7 +718,8 @@ export default function UserManual() {
             <B>⏳ Pending</B> (sent, waiting for you), <B>🔄 Renewals</B> (licence renewals waiting
             for you), plus <B>💰 Has Credit</B> for customers holding credit. Click a customer to
             open their details; each booking in their <B>Booking History</B> opens that booking, and
-            one with a deposit on hold says so.
+            one with a deposit on hold says so. A customer&apos;s phone number (in the list and in
+            their details) opens a WhatsApp chat with them.
           </p>
           <Sub>Checking documents</Sub>
           <Steps>
@@ -1200,6 +1204,8 @@ export default function UserManual() {
             </li>
             <li>
               <B>Customer</B>: name, email, phone and the note from checkout or Book for Customer.
+              The phone number is green: tap it to open a WhatsApp chat with the customer (the
+              WhatsApp app on a phone, WhatsApp Web on a computer).
             </li>
             <li>
               <B>Payment Receipts</B>: deposit and full payment with their status and buttons. A

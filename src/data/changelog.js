@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-21',
     items: [
       {
+        kind: 'improved',
+        title: 'Tap a customer’s phone number to WhatsApp them',
+        text: 'A customer’s phone number now opens a WhatsApp chat with them: on a booking (Customer box), in Customers (the list and their details), in Customer History (open a customer), under each rental in a car’s History, and on the Counter. The number shows in green with a chat icon. On a phone it opens the WhatsApp app; on a computer, WhatsApp Web. On the Counter the phone icon next to the number still calls them.',
+        link: '/admin/customers',
+      },
+      {
         kind: 'fixed',
         title: 'Printed agreement: no more Rent2Go bar over the text',
         text: 'Print / Save PDF of a signed agreement (and the Terms, invoices and other pages) repeated the website’s top bar (Rent2Go logo, EN/BM, menu) on every page, over the text on page 2 onwards. The printout now leaves out the top bar, the footer and the view-as banner, starts at the top of the page, and keeps each clause of the terms together with its heading instead of splitting it across two pages.',

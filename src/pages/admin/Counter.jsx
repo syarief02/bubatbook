@@ -11,7 +11,6 @@ import {
   History,
   KeyRound,
   Loader2,
-  MessageCircle,
   Phone,
   Plus,
   Search,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import WhatsAppPhone from '../../components/WhatsAppPhone';
 import { ReceiveDepositDialog } from '../../components/ReceiveDeposit';
 import { Modal, ReturnCarDialog } from '../../components/ReturnCharges';
 import { RentalChangesCard } from '../../components/RentalChanges';
@@ -85,11 +85,6 @@ function rentDue(b) {
   return b.full_payment_status === 'verified'
     ? 0
     : Math.max(Number(b.total_price || 0) - Number(b.rent_paid || 0), 0);
-}
-
-function waLink(phone) {
-  const digits = normalizePhone(phone || '').replace(/\D/g, '');
-  return digits ? `https://wa.me/${digits}` : null;
 }
 
 /** Open rentals, and finished ones with money still to settle. */
@@ -1081,7 +1076,6 @@ function RentalPanel({ booking, onClose, onChanged }) {
   const due = rentDue(booking);
   const toCollect = depositToCollect(booking);
   const car = booking.bubatrent_booking_cars;
-  const wa = waLink(booking.customer_phone);
   const toRefund =
     booking.status === 'RETURNED' &&
     !booking.user_id &&
@@ -1156,14 +1150,15 @@ function RentalPanel({ booking, onClose, onChanged }) {
             <div className="flex justify-between pt-1">
               <span className="text-slate-400">Phone</span>
               <span className="flex items-center gap-3">
-                <a href={`tel:${booking.customer_phone}`} className="text-violet-300">
-                  {booking.customer_phone}
+                <WhatsAppPhone phone={booking.customer_phone} iconClassName="w-4 h-4" />
+                <a
+                  href={`tel:${booking.customer_phone}`}
+                  title="Call"
+                  className="text-violet-300 hover:text-violet-200"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span className="sr-only">Call</span>
                 </a>
-                {wa && (
-                  <a href={wa} target="_blank" rel="noreferrer" className="text-green-400">
-                    <MessageCircle className="w-4 h-4" />
-                  </a>
-                )}
               </span>
             </div>
           )}
