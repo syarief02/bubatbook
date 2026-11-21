@@ -1189,8 +1189,9 @@ export default function UserManual() {
             <B>Delete</B> is for test bookings and mistakes. For a real booking that won&apos;t go
             ahead, use <B>Cancel</B>. Deleting removes the booking, its payments and its signed
             agreement. The customer&apos;s credit history and the audit log are kept. Credit the
-            customer applied, or a verified deposit not yet returned, goes back to their credit
-            first.
+            customer applied, or a deposit they actually paid and haven&apos;t had back, goes back
+            to their credit first. A deposit that was never paid (no deposit payment recorded) gives
+            nothing back.
           </p>
 
           <Sub>7.11 What the booking page shows</Sub>
@@ -1512,7 +1513,9 @@ export default function UserManual() {
             </li>
           </Bullets>
           <p>
-            A deposit goes back once per booking. Every change to a balance appears in the
+            A deposit goes back once per booking, and only up to the deposit money recorded as
+            received (the booking&apos;s deposit payment). A booking marked as deposit verified with
+            no deposit payment gives no credit back. Every change to a balance appears in the
             customer&apos;s credit history with its reason.
           </p>
           <Sub>Adding and deducting credit by hand</Sub>

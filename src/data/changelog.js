@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-21',
     items: [
       {
+        kind: 'fixed',
+        title: 'No credit for a deposit that was never paid',
+        text: 'Deleting, cancelling or returning a booking gave the deposit back to the customer’s credit whenever the deposit was marked verified, even if no money had come in. Counter bookings recorded before 10 Nov were marked verified while the deposit was still to be paid at pick-up, so deleting one could credit money the customer never paid. Now only deposit money recorded as received (the booking’s deposit payment) comes back as credit; a deposit that was never paid gives back nothing. Deleting a booking still removes its payments, now together with the booking.',
+        link: '/admin/manual',
+      },
+      {
         kind: 'improved',
         title: 'Saved PDFs are named after the booking',
         text: 'Print / Save PDF used to save every agreement and invoice as “Rent2Go — Premium Car Rental Malaysia.pdf”, so they were hard to tell apart in Downloads. Each one now gets its own name: the agreement as “Rent2Go Agreement <plate> <booking no.> <customer>.pdf” (e.g. Rent2Go Agreement VJC5290 29CC0E1F Muhammad Ikram bin Roslan.pdf), the invoice as “Rent2Go Invoice INV-<booking no.> <plate> <customer>.pdf”, and the Terms page as “Rent2Go Terms and Conditions.pdf”. The browser tab shows the same name while the page is open. The booking receipt already had its own name.',

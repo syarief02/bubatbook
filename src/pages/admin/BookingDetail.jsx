@@ -408,15 +408,18 @@ export default function AdminBookingDetail() {
   }
 
   // Delete the booking and its payments. The customer's credit history stays;
-  // the database first gives back any credit or verified deposit the booking
-  // still holds, and logs the deletion.
+  // the database first gives back any credit the booking still holds, and a
+  // deposit only if it was actually received (a completed deposit payment),
+  // then logs the deletion. Since 20261121010000 payments go with the booking
+  // (ON DELETE CASCADE) and admins can't delete them by hand, so the first
+  // step below deletes nothing; it stays for databases without that migration.
   async function handleDeleteBooking() {
-    const confirmMsg = `Are you sure you want to DELETE this booking?\n\nCar: ${booking.bubatrent_booking_cars?.name || 'Unknown'}\nDates: ${booking.pickup_date} → ${booking.return_date}\nStatus: ${booking.status}\n\nThis will permanently delete:\n• The booking record, its payments and its signed agreement\n\nKept: the customer's credit history and the audit log. Credit the customer applied, or a verified deposit not yet returned, goes back to their credit balance.\n\nTo stop a real booking, Cancel it instead. This action CANNOT be undone.`;
+    const confirmMsg = `Are you sure you want to DELETE this booking?\n\nCar: ${booking.bubatrent_booking_cars?.name || 'Unknown'}\nDates: ${booking.pickup_date} → ${booking.return_date}\nStatus: ${booking.status}\n\nThis will permanently delete:\n• The booking record, its payments and its signed agreement\n\nKept: the customer's credit history and the audit log. Credit the customer applied, or a deposit they actually paid and haven't had back, goes back to their credit balance. A deposit that was never paid gives nothing back.\n\nTo stop a real booking, Cancel it instead. This action CANNOT be undone.`;
     if (!window.confirm(confirmMsg)) return;
 
     setDeleting(true);
     try {
-      // Payments reference the booking, so they go first
+      // Only needed before 20261121010000 (payments then blocked the delete)
       const { error: payErr } = await supabase
         .from('bubatrent_booking_payments')
         .delete()
