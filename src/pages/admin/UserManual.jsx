@@ -15,6 +15,7 @@ import {
   ListChecks,
   Receipt,
   Shield,
+  Smartphone,
   UserPlus,
   Users,
   Wallet,
@@ -39,6 +40,7 @@ const SECTIONS = [
   { id: 'fleet', title: 'Fleet Settings & Members' },
   { id: 'governance', title: 'Super Group tools' },
   { id: 'logs', title: 'Audit log & Upload Logs' },
+  { id: 'customer-view', title: 'What customers see' },
   { id: 'help', title: 'Troubleshooting' },
 ];
 
@@ -328,7 +330,36 @@ export default function UserManual() {
             a customer without an account, press <B>Deposit refunded</B> once you have paid the
             deposit back. The customer&apos;s phone number there opens WhatsApp; the phone icon next
             to it calls them. The chips at the top list what needs settling: overdue returns, rent
-            owed, deposits to collect, deposits to refund and deposits on hold.
+            owed, deposits to collect, deposits to refund and deposits on hold. The search box at
+            the top finds a car by its plate or name, or by the customer who has it now.
+          </p>
+          <Sub>Keeping a car for yourself</Sub>
+          <p>
+            To keep a car off the website for some days (you or a partner using it, a trip, a
+            viewing), record it as a booking so nobody can book those dates online:
+          </p>
+          <Steps>
+            <li>
+              Tap the car on the <B>Counter</B> and choose <B>New booking</B> (or <B>On rent now</B>{' '}
+              if it has already gone out).
+            </li>
+            <li>
+              Under <B>Customer</B>, search for your own account (it is verified). Pick the dates,
+              type <B>0</B> in <B>Rent</B> and <B>0</B> for the deposit under <B>Money received</B>.
+            </li>
+            <li>
+              In <B>Proof and notes</B>, write who has the car, why, and where it was agreed (e.g.
+              &quot;Owner&apos;s own use, balik kampung, agreed with KkWana on WhatsApp 21
+              Nov&quot;), then <B>Save</B>.
+            </li>
+          </Steps>
+          <p>
+            The car page then greys out those days, and online checkout, the Counter and{' '}
+            <B>Book for Customer</B> refuse them. At RM0 it adds nothing to Sales and gives no
+            credit back when cancelled or deleted. Plans change: when the dates move, use{' '}
+            <B>Edit Dates</B> on the booking (7.9), and <B>Cancel</B> it if the trip is off so the
+            days open again. To take a car off the website with no end date (sold, long repair), set{' '}
+            <B>Available</B> to No in Cars instead (section 4).
           </p>
           <Sub>Every day</Sub>
           <Steps>
@@ -484,7 +515,10 @@ export default function UserManual() {
               <B>Image URL</B>: a link to the car&apos;s photo. The home page lists the cars with
               the best photos first (Vellfire, Veloz, Alza, Ranger, Bezza, then the vans); a car you
               add goes after those, newest first. To move a car up, ask for it to be added to the
-              website&apos;s photo order.
+              website&apos;s photo order. The photo gallery on a car page (several photos to swipe)
+              is added by the developer from the owner&apos;s Drive folder (&quot;gambar
+              kenderaan&quot;, one folder per plate); the photos are resized and their location data
+              removed first. Send new photos the same way.
             </li>
             <li>
               <B>Plate Number</B>: printed on the rental agreement and invoice. It is also the car
@@ -516,11 +550,16 @@ export default function UserManual() {
               for 7 days or more or for 30 days or more: the car&apos;s own (its{' '}
               <B>Long-term bookings</B>), else its fleet&apos;s (Fleet Settings, section 13; BuBat
               Resources 10% and 40%, Bocah Trading 20% and 25%). Since 18 Nov 2026 every vehicle has
-              its own discounts, so the fleet&apos;s are used only for a car added with blank boxes
-              (Alza, Vellfire and Ranger 20% and 50%, Veloz 20% and 45%, panel vans 25% and 54%). A
-              car with long-term bookings off has no discount. Because of the bigger discount, 30
-              days can cost less than 29: at RM140/day with 10% and 40%, 29 days are RM3,654 and 30
-              days RM2,520.
+              its own discounts (below), so the fleet&apos;s are used only for a car added with
+              blank boxes. A car with long-term bookings off has no discount. Because of the bigger
+              discount, 30 days can cost less than 29: at RM140/day with 10% and 40%, 29 days are
+              RM3,654 and 30 days RM2,520.
+            </li>
+            <li>
+              Each vehicle&apos;s settings now (21 Nov 2026): Alza 20% and 50%, Veloz 20% and 45%,
+              Vellfire 20% and 55%, Ranger 15% and 60%, panel vans 25% and 53.5%. Bocah
+              Trading&apos;s NV200s, Gran Max WXM 2302 and VNH 3681, and the Bezza use{' '}
+              <B>Packages</B> instead (above), so their discounts don&apos;t apply.
             </li>
             <li>
               Deposit = 30% of the rental total, rounded up to the ringgit, at least RM100. The
@@ -588,7 +627,9 @@ export default function UserManual() {
             documents (and their expiry alerts) go with it; its past bookings, payments and expenses
             stay with the fleet they belong to. A move can also start fresh from a date: then
             documents and expenses from before that date stay with the old fleet too, and the
-            car&apos;s History shows each fleet only its own part.
+            car&apos;s History shows each fleet only its own part. There is no button for a move:
+            ask the developer, naming the car, the new fleet and whether its records move with it or
+            it starts fresh from a date.
           </p>
           <p>
             The new fleet still sees those documents in <B>Car Documents</B> and on the car&apos;s
@@ -600,13 +641,13 @@ export default function UserManual() {
           <Sub>Vehicle history</Sub>
           <p>
             Click the history button on a car in <B>Cars</B> (or the car&apos;s name in{' '}
-            <B>Car Documents</B>) to see everything about it for a year, month by month: each rental
-            with the customer, days, rent and whether it is paid (click one to open the booking),
-            with links to the customer&apos;s payment receipts under it (deposit, rent and charge
-            payments), each expense with its receipt, and each document renewal. The top shows the
-            year&apos;s rentals and days, rent received, rent still due, expenses and profit,
-            counted the same way as <B>Sales</B> (rentals in the month they start, expenses by their
-            date).
+            <B>Car Documents</B>) to see everything about it for a year (pick the year at the top,
+            or <B>All years</B>), month by month: each rental with the customer, days, rent and
+            whether it is paid (click one to open the booking), with links to the customer&apos;s
+            payment receipts under it (deposit, rent and charge payments), each expense with its
+            receipt, and each document renewal. The top shows the year&apos;s rentals and days, rent
+            received, rent still due, expenses and profit, counted the same way as <B>Sales</B>{' '}
+            (rentals in the month they start, expenses by their date).
           </p>
           <p>
             Expenses include the car loan instalments, running costs and repairs entered in{' '}
@@ -1144,8 +1185,10 @@ export default function UserManual() {
             </li>
             <li>
               Money is handled automatically. A verified deposit goes back to the customer&apos;s
-              credit. If the deposit wasn&apos;t verified yet, only the credit they applied comes
-              back; refund any cash part by hand if you received it.
+              credit, up to the deposit money recorded as received (a deposit marked verified but
+              never paid gives nothing back, section 9). If the deposit wasn&apos;t verified yet,
+              only the credit they applied comes back; refund any cash part by hand if you received
+              it.
             </li>
             <li>
               A customer who cancels <strong>3 days or more</strong> before pick-up gets the deposit
@@ -1250,8 +1293,8 @@ export default function UserManual() {
 
           <Sub>7.12 The Bookings list</Sub>
           <p>
-            Filter by status with the tabs, and search by customer name, email or the start of the
-            booking ID. Quick buttons: <B>Confirm</B> (once the deposit is verified),{' '}
+            Filter by status with the tabs, and search by customer name, phone number, email or the
+            start of the booking ID. Quick buttons: <B>Confirm</B> (once the deposit is verified),{' '}
             <B>Check deposit</B> and <B>Cancel</B>. Click the arrow to open a booking.
           </p>
 
@@ -1493,7 +1536,7 @@ export default function UserManual() {
               <B>Mark Returned</B> (or <B>Settle Deposit</B> for a held one): the booking&apos;s
               deposit, less the charges you entered.
             </li>
-            <li>A booking cancelled after its deposit was verified: the deposit.</li>
+            <li>A booking cancelled after its deposit was verified: the deposit money received.</li>
             <li>
               A booking cancelled or released (48 hours) before its deposit was verified: the credit
               the customer had applied to it.
@@ -1823,10 +1866,109 @@ export default function UserManual() {
           </p>
         </Section>
 
-        {/* 16. Troubleshooting */}
+        {/* 16. What customers see */}
+        <Section
+          id="customer-view"
+          number={16}
+          icon={Smartphone}
+          iconClass="text-pink-400"
+          title="What customers see"
+        >
+          <p>
+            The customer&apos;s side of rent2go.my, step by step, so you can guide them on WhatsApp.
+            Every page below can be switched to Bahasa Melayu (section 5).
+          </p>
+          <Sub>Finding a car</Sub>
+          <Bullets>
+            <li>
+              <B>Home page</B>: pick-up and return dates and <B>Find Available Cars</B>, or scroll
+              through <B>Our Fleet</B>. Each car shows its price per day and its first feature on
+              the photo (e.g. 7ft panel van).
+            </li>
+            <li>
+              <B>Car page</B> (rent2go.my/cars/ and the plate without spaces, e.g.
+              rent2go.my/cars/vqb5567): photos, features, the price per day with the week and month
+              prices or the packages, the deposit (30%, min RM100, or the car&apos;s fixed deposit),
+              and a calendar with booked days greyed out. Once they pick dates it says{' '}
+              <B>Available for selected dates!</B> or <B>Not Available</B>, and the button shows the
+              deposit to pay. Not signed in or not verified: <B>Sign in to Book</B> or{' '}
+              <B>Verify Now</B> instead. <B>Chat on WhatsApp</B> messages the car&apos;s contact
+              (section 4), and <B>Rental terms (Terma &amp; Syarat)</B> opens rent2go.my/terms.
+            </li>
+          </Bullets>
+          <Sub>Booking and paying the deposit</Sub>
+          <Steps>
+            <li>
+              <B>Review Your Booking</B>: dates, days, rental total, deposit and any credit applied.
+              A van needs a valid GDL (<B>Add My GDL</B> / <B>Renew My GDL</B>), and a customer
+              without bank details adds them first (<B>Add Bank Details</B>). A booking starts today
+              or later and ends within 6 months.
+            </li>
+            <li>
+              <B>Confirm Booking</B> holds the car (HOLD) while they finish.
+            </li>
+            <li>
+              <B>Continue to Agreement</B>: they read the terms and sign (7.3).
+            </li>
+            <li>
+              <B>Deposit Payment</B>: the fleet&apos;s bank account and DuitNow QR, the amount and
+              the reference to use (section 7, Where customers pay). They transfer, upload the
+              receipt (a photo or PDF up to 12MB) and press <B>Submit Deposit Payment</B>. Credit
+              that covers the whole deposit needs no receipt. A fleet without an account on the site
+              shows <B>WhatsApp Admin for Bank Details</B>.
+            </li>
+            <li>
+              The confirmation page gives the booking reference, the next steps and{' '}
+              <B>Print Receipt</B>. The booking waits as DEPOSIT_PAID until you verify the deposit
+              (7.1).
+            </li>
+          </Steps>
+          <p>
+            If they stop halfway (e.g. waiting for your bank details), <B>Continue booking</B> in My
+            Bookings takes them back to where they were, until the hold runs out.
+          </p>
+          <Sub>My Bookings</Sub>
+          <Bullets>
+            <li>
+              Every booking with its status, dates and amounts. <B>Cancel</B> while it is HOLD or
+              DEPOSIT_PAID (7.7).
+            </li>
+            <li>
+              <B>Agreement</B>, <B>Invoice</B>, <B>Deposit Receipt</B> and <B>Payment Receipt</B> to
+              open, print or save (section 10).
+            </li>
+            <li>
+              Once confirmed, an upload for the full rental payment receipt (7.4). It then says it
+              is waiting for you, and <B>✓ Full payment verified</B> once you have checked it.
+            </li>
+            <li>
+              <B>Changes to your rental</B> (7.14), <B>Charges after the rental</B> with what came
+              off the deposit and anything still owed (7.6), and <B>Paid to the workshop for us</B>{' '}
+              (7.13).
+            </li>
+            <li>
+              While they have the car: <B>Car documents</B>, the road tax, insurance and Puspakom
+              with their files (section 4).
+            </li>
+          </Bullets>
+          <Sub>My Profile</Sub>
+          <p>
+            Their details and verification status, licence expiry, GDL (needed only for vans), the
+            bank account their deposit is refunded to (only staff see it), <B>Deposit Credit</B>{' '}
+            with each rental company, their recent bookings, and{' '}
+            <B>Update Verification Documents</B> to send a new licence, GDL or IC (section 5).
+          </p>
+          <Note title="What customers don't see">
+            Other customers, the admin pages, a booking&apos;s notes, records and audit log,
+            expenses and Sales, and other fleets&apos; credit. A counter customer without an account
+            sees nothing online: print or send them the agreement and invoice (section 10).
+          </Note>
+        </Section>
+
+        {/* 17. Troubleshooting */}
         <Section
           id="help"
-          number={16}
+          number={17}
           icon={HelpCircle}
           iconClass="text-violet-400"
           title="Troubleshooting"
@@ -1880,6 +2022,18 @@ export default function UserManual() {
               [
                 'A customer asks which dates a car is free',
                 'The calendar on the car page greys out and strikes through the days it is booked: every day from pick-up to return, both included, of bookings on Hold, Deposit Paid, Confirmed or Picked Up. A free day just before a booked one can’t be a pick-up day (a rental needs at least one night), and return days stop before the next booking and 6 months ahead. Customers see only the dates, not who booked.',
+              ],
+              [
+                'A car shows booked on days nobody rented it',
+                'Someone is keeping it for themselves. Search the plate in Bookings: a booking with RM0 rent and a note saying who and why (section 2, Keeping a car for yourself). If plans changed, use Edit Dates or Cancel on it to free the days.',
+              ],
+              [
+                'Counter: "This car is marked unavailable"',
+                'A New booking can’t be made on a car hidden from the website. Set Available to Yes in Cars first, or choose On rent now if the car has already gone out.',
+              ],
+              [
+                'A cancelled or deleted booking gave the customer no credit back',
+                'Only deposit money recorded as received comes back (since 21 Nov 2026, section 9). A booking marked deposit verified with no deposit payment, like Counter bookings before 10 Nov 2026, gives nothing. If the customer did pay, add it with Add Credit and attach their transfer slip.',
               ],
               [
                 'A customer asks for the terms and conditions before signing up',

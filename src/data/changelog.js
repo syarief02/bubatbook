@@ -18,6 +18,18 @@ export const CHANGELOG = [
     date: '2026-11-21',
     items: [
       {
+        kind: 'improved',
+        title: 'User Manual reviewed from start to finish',
+        text: 'The whole User Manual was checked against the admin pages. New: section 16, What customers see (the car page, checkout, My Bookings and My Profile, step by step, to guide customers on WhatsApp), and “Keeping a car for yourself” under the Counter (a RM0 booking on your own account locks the dates). Updated: each vehicle’s long-rental discounts and which cars use packages, how a car moves to another fleet, how gallery photos are added, Bookings search by phone number, the year picker on a car’s History, and the credit rule on cancelling. Troubleshooting adds a car booked on days nobody rented it, “This car is marked unavailable” on the Counter, and a booking that gave no credit back.',
+        link: '/admin/manual',
+      },
+      {
+        kind: 'data',
+        title: 'Veloz VQB 5567: kept for the owner on two dates',
+        text: 'The Veloz is booked for the owner’s own use on Mon 23 – Sat 28 Nov and Sat 19 – Sun 27 Dec 2026 (RM0, arranged with KkWana), so customers can’t book those days online. Other dates are open as usual.',
+        link: '/admin/bookings',
+      },
+      {
         kind: 'fixed',
         title: 'No credit for a deposit that was never paid',
         text: 'Deleting, cancelling or returning a booking gave the deposit back to the customer’s credit whenever the deposit was marked verified, even if no money had come in. Counter bookings recorded before 10 Nov were marked verified while the deposit was still to be paid at pick-up, so deleting one could credit money the customer never paid. Now only deposit money recorded as received (the booking’s deposit payment) comes back as credit; a deposit that was never paid gives back nothing. Deleting a booking still removes its payments, now together with the booking.',
