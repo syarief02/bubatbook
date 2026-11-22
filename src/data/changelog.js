@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-22',
     items: [
       {
+        kind: 'data',
+        title: 'Records: Vellfire’s cancelled December booking, Gran Max pick-up time',
+        text: 'The Vellfire VJC 5290 booking for 10 – 19 Dec 2026 (a referral customer) is on record as cancelled: those dates now belong to the monthly rental that started on 21 Nov, and the customer’s deposit was passed on to the company that rents them another Vellfire. Both transfer slips are on the booking and the car’s History. The Gran Max VEY 3830 booking for 23 – 26 Nov now shows pick-up and return at 8pm, as agreed with the customer.',
+        link: '/admin/bookings',
+      },
+      {
         kind: 'fixed',
         title: 'Create Customer: licence types named correctly',
         text: 'The licence type on Create Customer called GDL a “Graduated Driver License”. In Malaysia GDL is the Goods Driving Licence that panel vans need. The choices are now Not noted, CDL (Competent Driving Licence) and GDL (Goods Driving Licence), with a reminder that this is only a note: for a van, add the customer’s GDL expiry and photo with Edit Customer Details, because that is what bookings check. A customer’s page shows the type on its own line, “Licence type noted”, instead of after their GDL.',
