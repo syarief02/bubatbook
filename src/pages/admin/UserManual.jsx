@@ -349,8 +349,8 @@ export default function UserManual() {
             </li>
             <li>
               In <B>Proof and notes</B>, write who has the car, why, and where it was agreed (e.g.
-              &quot;Owner&apos;s own use, balik kampung, agreed with KkWana on WhatsApp 21
-              Nov&quot;), then <B>Save</B>.
+              &quot;Owner&apos;s own use, family trip, agreed on WhatsApp 21 Nov&quot;), then{' '}
+              <B>Save</B>.
             </li>
           </Steps>
           <p>
@@ -1025,7 +1025,9 @@ export default function UserManual() {
               Counter bookings start unsigned: the booking page shows{' '}
               <B>Rental Agreement Not Signed</B>. Press <B>Copy Agreement Link</B> and send it by
               WhatsApp (a customer with an account signs it in My Bookings), or, with the customer
-              in front of you, press <B>Sign at Counter</B>. In WhatsApp the link shows as{' '}
+              in front of you, press <B>Sign at Counter</B>. Always put rent2go.my/terms in the same
+              message: the agreement page needs the customer to sign in, but the terms page opens
+              without an account, so they can read the terms first. In WhatsApp the link shows as{' '}
               <B>Rental agreement · Booking</B> and the booking number (the first 8 characters of
               the booking ID), so the customer can tell it apart from a car link.
             </li>
@@ -1244,7 +1246,8 @@ export default function UserManual() {
           <Bullets>
             <li>
               <B>Rental Agreement</B> card (from DEPOSIT_PAID): if not signed,{' '}
-              <B>Copy Agreement Link</B> and <B>Sign at Counter</B>; once signed, the signature, who
+              <B>Copy Agreement Link</B> (send it with rent2go.my/terms) and <B>Sign at Counter</B>;
+              once signed, the signature, who
               signed and when (with &quot;in person at the counter&quot; if it was signed on your
               device) and <B>View Full Agreement</B>.
             </li>
@@ -1961,6 +1964,39 @@ export default function UserManual() {
             with each rental company, their recent bookings, and{' '}
             <B>Update Verification Documents</B> to send a new licence, GDL or IC (section 5).
           </p>
+          <Sub>Replying to enquiries</Sub>
+          <p>
+            Most customers ask on WhatsApp or Facebook first. Reply politely and formally (Tuan /
+            Puan, a greeting and thanks), in short lines, with:
+          </p>
+          <Bullets>
+            <li>
+              The car and its prices exactly as its car page shows them (per day, week and month,
+              or the packages), and the deposit: 30% (min RM100) or the car&apos;s fixed deposit,
+              refunded after the return.
+            </li>
+            <li>
+              Where to pick it up, and the licence: class D, plus a valid GDL for panel vans. The
+              terms require the GDL, and without it the damage limits don&apos;t apply, so don&apos;t
+              promise a van to someone without one.
+            </li>
+            <li>
+              Dates only after checking the car page calendar: greyed-out days are booked. If
+              someone else keeps that car&apos;s bookings, send the customer to them instead of
+              promising a date.
+            </li>
+            <li>
+              The car page link and rent2go.my/terms (it opens without an account), and a question
+              to move on: which dates they need.
+            </li>
+          </Bullets>
+          <p>
+            When they decide, they can book on the car page themselves (sign in with Google, then{' '}
+            <B>Verify Now</B>), or you book for them (sections 6 and 8): ask them to send photos of
+            their IC (front and back), driving licence and GDL on WhatsApp. Check the deposit in
+            your own bank app before you confirm, because a slip can be faked. Then send the
+            agreement link and rent2go.my/terms together (7.3).
+          </p>
           <Note title="What customers don't see">
             Other customers, the admin pages, a booking&apos;s notes, records and audit log,
             expenses and Sales, and other fleets&apos; credit. A counter customer without an account
@@ -1984,7 +2020,7 @@ export default function UserManual() {
               ],
               [
                 '"Cannot mark as Picked Up — rental agreement has not been signed yet"',
-                'Send the agreement link, or use Sign at Counter with the customer present (7.3).',
+                'Send the agreement link with rent2go.my/terms in the same message, or use Sign at Counter with the customer present (7.3).',
               ],
               [
                 '"Cannot mark as Picked Up — the full rental payment (RM …) has not been verified yet"',

@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-22',
     items: [
       {
+        kind: 'improved',
+        title: 'User Manual: replying to enquiries, and the terms link with every agreement',
+        text: 'Section 16, What customers see, now ends with “Replying to enquiries”: what a first reply on WhatsApp or Facebook should have (the car page prices and deposit, pick-up place, licence and GDL, dates only after checking the calendar, the car link and rent2go.my/terms) and how to book for a customer once they decide. When you send an agreement link to sign (7.3), always put rent2go.my/terms in the same message: the agreement needs a sign-in, the terms page doesn’t, so customers can read the terms first.',
+        link: '/admin/manual#customer-view',
+      },
+      {
         kind: 'data',
         title: 'Records: Vellfire’s cancelled December booking, Gran Max pick-up time',
         text: 'The Vellfire VJC 5290 booking for 10 – 19 Dec 2026 (a referral customer) is on record as cancelled: those dates now belong to the monthly rental that started on 21 Nov, and the customer’s deposit was passed on to the company that rents them another Vellfire. Both transfer slips are on the booking and the car’s History. The Gran Max VEY 3830 booking for 23 – 26 Nov now shows pick-up and return at 8pm, as agreed with the customer.',
