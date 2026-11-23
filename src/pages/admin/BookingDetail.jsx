@@ -232,10 +232,21 @@ export default function AdminBookingDetail() {
     fetchAll();
   }, [id, user.id, activeFleetId]);
 
+  // Copies a ready-to-send WhatsApp message: the agreement to sign (it needs
+  // the customer to sign in) plus the public terms page (opens without an
+  // account), so the customer can read the terms first. The agreement link
+  // comes first so WhatsApp's preview shows the booking card.
   function copyAgreementLink() {
-    const url = `${window.location.origin}/booking/${id}/agreement`;
-    navigator.clipboard.writeText(url);
-    toast.success('Agreement link copied! Share with the customer via WhatsApp.');
+    const origin = window.location.origin;
+    const message = [
+      'Perjanjian sewa untuk ditandatangani / Rental agreement to sign:',
+      `${origin}/booking/${id}/agreement`,
+      '',
+      'Terma & syarat, boleh dibaca tanpa log masuk / Terms & conditions, no sign-in needed:',
+      `${origin}/terms`,
+    ].join('\n');
+    navigator.clipboard.writeText(message);
+    toast.success('Agreement and terms links copied. Paste them into WhatsApp for the customer.');
   }
 
   // Re-reads the booking and its audit log after a change: the database
@@ -580,7 +591,7 @@ export default function AdminBookingDetail() {
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 transition-colors whitespace-nowrap"
               >
                 <ClipboardCopy className="w-4 h-4" />
-                Copy Agreement Link
+                Copy Agreement + Terms Links
               </button>
               {booking.status !== 'RETURNED' && (
                 <Link

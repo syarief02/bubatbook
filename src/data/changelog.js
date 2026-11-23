@@ -15,6 +15,23 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-23',
+    items: [
+      {
+        kind: 'improved',
+        title: 'Copy Agreement + Terms Links: one message with both links',
+        text: 'On a booking whose agreement is not signed yet, the button is now called Copy Agreement + Terms Links. It copies a short message in Malay and English, ready to paste into WhatsApp: the agreement to sign, then rent2go.my/terms, which opens without signing in so the customer can read the terms first. You no longer need to add the terms link yourself. Sign at Counter is unchanged.',
+        link: '/admin/manual#customer-view',
+      },
+      {
+        kind: 'data',
+        title: 'Vans: cargo size on every car page',
+        text: 'Every NV200 and Gran Max now lists its cargo size under Features, right after “7ft panel van”, so customers can check whether their things fit before they ask. NV200: 204 × 150 × 136 cm (length × width × height), from Nissan Malaysia’s NV200 brochure; a little narrower between the rear wheel arches. Gran Max: about 204 × 158 × 118 cm, from published Gran Max blind van figures. The home page card still shows only “7ft panel van”.',
+        link: '/cars/vey3830',
+      },
+    ],
+  },
+  {
     date: '2026-11-22',
     items: [
       {

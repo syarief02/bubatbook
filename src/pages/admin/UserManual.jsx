@@ -540,7 +540,12 @@ export default function UserManual() {
               vehicle type first, and for a van its cargo size, the way customers ask for it:
               &quot;7ft panel van&quot; (NV200, Gran Max), &quot;7 seater MPV&quot;,
               &quot;Pick-up&quot;. The first feature is also shown on the car&apos;s photo in the
-              car list on the home page.
+              car list on the home page. Vans list their cargo size second (since 23 Nov 2026):
+              NV200 &quot;Cargo 204 × 150 × 136 cm (L × W × H)&quot;, from Nissan Malaysia&apos;s
+              NV200 brochure (a little narrower between the rear wheel arches); Gran Max
+              &quot;Cargo approx. 204 × 158 × 118 cm (L × W × H)&quot;, from published Gran Max
+              blind van figures (no official Malaysian figure found). Add the same line to a new
+              van.
             </li>
           </Bullets>
           <Sub>How prices are worked out</Sub>
@@ -1023,13 +1028,16 @@ export default function UserManual() {
             </li>
             <li>
               Counter bookings start unsigned: the booking page shows{' '}
-              <B>Rental Agreement Not Signed</B>. Press <B>Copy Agreement Link</B> and send it by
-              WhatsApp (a customer with an account signs it in My Bookings), or, with the customer
-              in front of you, press <B>Sign at Counter</B>. Always put rent2go.my/terms in the same
-              message: the agreement page needs the customer to sign in, but the terms page opens
-              without an account, so they can read the terms first. In WhatsApp the link shows as{' '}
-              <B>Rental agreement · Booking</B> and the booking number (the first 8 characters of
-              the booking ID), so the customer can tell it apart from a car link.
+              <B>Rental Agreement Not Signed</B>. Press <B>Copy Agreement + Terms Links</B> and
+              paste it into WhatsApp (a customer with an account signs it in My Bookings), or, with
+              the customer in front of you, press <B>Sign at Counter</B>. Since 23 Nov 2026 the
+              button copies a short message in Malay and English with two links: the agreement to
+              sign, then rent2go.my/terms. Always send both: the agreement page needs the customer
+              to sign in, but the terms page opens without an account, so they can read the terms
+              first. If you type the message yourself, still put rent2go.my/terms in it. In
+              WhatsApp the agreement link shows as <B>Rental agreement · Booking</B> and the booking
+              number (the first 8 characters of the booking ID), so the customer can tell it apart
+              from a car link.
             </li>
             <li>
               <B>Sign at Counter</B> opens the agreement with the customer&apos;s name, IC and phone
@@ -1246,7 +1254,8 @@ export default function UserManual() {
           <Bullets>
             <li>
               <B>Rental Agreement</B> card (from DEPOSIT_PAID): if not signed,{' '}
-              <B>Copy Agreement Link</B> (send it with rent2go.my/terms) and <B>Sign at Counter</B>;
+              <B>Copy Agreement + Terms Links</B> (one message with both links, 7.3) and{' '}
+              <B>Sign at Counter</B>;
               once signed, the signature, who
               signed and when (with &quot;in person at the counter&quot; if it was signed on your
               device) and <B>View Full Agreement</B>.
@@ -1995,7 +2004,9 @@ export default function UserManual() {
             <B>Verify Now</B>), or you book for them (sections 6 and 8): ask them to send photos of
             their IC (front and back), driving licence and GDL on WhatsApp. Check the deposit in
             your own bank app before you confirm, because a slip can be faked. Then send the
-            agreement link and rent2go.my/terms together (7.3).
+            agreement link and rent2go.my/terms together: <B>Copy Agreement + Terms Links</B> on
+            the booking page copies both (7.3). For a van, the cargo size is on its car page
+            (Features), so you can answer &quot;will it fit?&quot; from there.
           </p>
           <Note title="What customers don't see">
             Other customers, the admin pages, a booking&apos;s notes, records and audit log,
@@ -2020,7 +2031,7 @@ export default function UserManual() {
               ],
               [
                 '"Cannot mark as Picked Up — rental agreement has not been signed yet"',
-                'Send the agreement link with rent2go.my/terms in the same message, or use Sign at Counter with the customer present (7.3).',
+                'Press Copy Agreement + Terms Links on the booking page and send that message (agreement link and rent2go.my/terms together), or use Sign at Counter with the customer present (7.3).',
               ],
               [
                 '"Cannot mark as Picked Up — the full rental payment (RM …) has not been verified yet"',
