@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate } from '../utils/dates';
-import { compactPlate, documentTitle, formatPhone } from '../utils/format';
+import { compactPlate, documentTitle, formatPhone, realEmail } from '../utils/format';
 import { useCarContact } from '../hooks/useCars';
 import { chargeLabel } from '../utils/charges';
 import { workshopPayments } from '../utils/workshop';
@@ -196,7 +196,8 @@ export default function Invoice() {
               <p className="text-sm font-semibold text-gray-900">
                 {booking.customer_name || 'Customer'}
               </p>
-              <p className="text-xs text-gray-500">{booking.customer_email || ''}</p>
+              {/* A walk-in's placeholder login email isn't printed */}
+              <p className="text-xs text-gray-500">{realEmail(booking.customer_email)}</p>
               <p className="text-xs text-gray-500">{booking.customer_phone || ''}</p>
             </div>
             <div>

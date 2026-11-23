@@ -61,3 +61,11 @@ export function documentTitle(...parts) {
 export function compactPlate(plate) {
   return (plate || '').replace(/\s+/g, '');
 }
+
+/**
+ * A customer's email to print, or '' for the placeholder login email that
+ * walk-in customers created at the counter get (…@bubatrent.local).
+ */
+export function realEmail(email) {
+  return email && !email.endsWith('@bubatrent.local') ? email : '';
+}

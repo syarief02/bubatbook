@@ -18,6 +18,12 @@ export const CHANGELOG = [
     date: '2026-11-23',
     items: [
       {
+        kind: 'fixed',
+        title: 'Invoice: no placeholder email under Bill To',
+        text: 'Customers added at the counter get a placeholder login email ending in @bubatrent.local. The invoice printed it under Bill To; it now shows only a real email, with the name and phone as before. The rental agreement already left it out.',
+        link: '/admin/manual#documents',
+      },
+      {
         kind: 'improved',
         title: 'Copy Agreement + Terms Links: one message with both links',
         text: 'On a booking whose agreement is not signed yet, the button is now called Copy Agreement + Terms Links. It copies a short message in Malay and English, ready to paste into WhatsApp: the agreement to sign, then rent2go.my/terms, which opens without signing in so the customer can read the terms first. You no longer need to add the terms link yourself. Sign at Counter is unchanged.',

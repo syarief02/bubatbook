@@ -542,10 +542,9 @@ export default function UserManual() {
               &quot;Pick-up&quot;. The first feature is also shown on the car&apos;s photo in the
               car list on the home page. Vans list their cargo size second (since 23 Nov 2026):
               NV200 &quot;Cargo 204 × 150 × 136 cm (L × W × H)&quot;, from Nissan Malaysia&apos;s
-              NV200 brochure (a little narrower between the rear wheel arches); Gran Max
-              &quot;Cargo approx. 204 × 158 × 118 cm (L × W × H)&quot;, from published Gran Max
-              blind van figures (no official Malaysian figure found). Add the same line to a new
-              van.
+              NV200 brochure (a little narrower between the rear wheel arches); Gran Max &quot;Cargo
+              approx. 204 × 158 × 118 cm (L × W × H)&quot;, from published Gran Max blind van
+              figures (no official Malaysian figure found). Add the same line to a new van.
             </li>
           </Bullets>
           <Sub>How prices are worked out</Sub>
@@ -1034,10 +1033,10 @@ export default function UserManual() {
               button copies a short message in Malay and English with two links: the agreement to
               sign, then rent2go.my/terms. Always send both: the agreement page needs the customer
               to sign in, but the terms page opens without an account, so they can read the terms
-              first. If you type the message yourself, still put rent2go.my/terms in it. In
-              WhatsApp the agreement link shows as <B>Rental agreement · Booking</B> and the booking
-              number (the first 8 characters of the booking ID), so the customer can tell it apart
-              from a car link.
+              first. If you type the message yourself, still put rent2go.my/terms in it. In WhatsApp
+              the agreement link shows as <B>Rental agreement · Booking</B> and the booking number
+              (the first 8 characters of the booking ID), so the customer can tell it apart from a
+              car link.
             </li>
             <li>
               <B>Sign at Counter</B> opens the agreement with the customer&apos;s name, IC and phone
@@ -1255,10 +1254,9 @@ export default function UserManual() {
             <li>
               <B>Rental Agreement</B> card (from DEPOSIT_PAID): if not signed,{' '}
               <B>Copy Agreement + Terms Links</B> (one message with both links, 7.3) and{' '}
-              <B>Sign at Counter</B>;
-              once signed, the signature, who
-              signed and when (with &quot;in person at the counter&quot; if it was signed on your
-              device) and <B>View Full Agreement</B>.
+              <B>Sign at Counter</B>; once signed, the signature, who signed and when (with &quot;in
+              person at the counter&quot; if it was signed on your device) and{' '}
+              <B>View Full Agreement</B>.
             </li>
             <li>
               <B>Rental Details</B>: car, dates, total, deposit, credit applied, actual return date.
@@ -1643,8 +1641,9 @@ export default function UserManual() {
               paid the workshop for us (and what it was taken off), and any charges after the rental
               (what came off the deposit and what is still owed). The fleet name comes from Fleet
               Settings; the phone number is the car&apos;s WhatsApp contact (section 4), the same
-              number its WhatsApp button opens. <B>Print / Save PDF</B> makes a PDF named after the
-              invoice, e.g.{' '}
+              number its WhatsApp button opens. Under Bill To it prints the customer&apos;s name,
+              email and phone; a counter customer&apos;s placeholder login email (…@bubatrent.local)
+              is left out. <B>Print / Save PDF</B> makes a PDF named after the invoice, e.g.{' '}
               <i>Rent2Go Invoice INV-29CC0E1F VJC5290 Muhammad Ikram bin Roslan.pdf</i>. The Terms
               page saves as <i>Rent2Go Terms and Conditions.pdf</i>.
             </li>
@@ -1980,14 +1979,14 @@ export default function UserManual() {
           </p>
           <Bullets>
             <li>
-              The car and its prices exactly as its car page shows them (per day, week and month,
-              or the packages), and the deposit: 30% (min RM100) or the car&apos;s fixed deposit,
+              The car and its prices exactly as its car page shows them (per day, week and month, or
+              the packages), and the deposit: 30% (min RM100) or the car&apos;s fixed deposit,
               refunded after the return.
             </li>
             <li>
               Where to pick it up, and the licence: class D, plus a valid GDL for panel vans. The
-              terms require the GDL, and without it the damage limits don&apos;t apply, so don&apos;t
-              promise a van to someone without one.
+              terms require the GDL, and without it the damage limits don&apos;t apply, so
+              don&apos;t promise a van to someone without one.
             </li>
             <li>
               Dates only after checking the car page calendar: greyed-out days are booked. If
@@ -2004,9 +2003,9 @@ export default function UserManual() {
             <B>Verify Now</B>), or you book for them (sections 6 and 8): ask them to send photos of
             their IC (front and back), driving licence and GDL on WhatsApp. Check the deposit in
             your own bank app before you confirm, because a slip can be faked. Then send the
-            agreement link and rent2go.my/terms together: <B>Copy Agreement + Terms Links</B> on
-            the booking page copies both (7.3). For a van, the cargo size is on its car page
-            (Features), so you can answer &quot;will it fit?&quot; from there.
+            agreement link and rent2go.my/terms together: <B>Copy Agreement + Terms Links</B> on the
+            booking page copies both (7.3). For a van, the cargo size is on its car page (Features),
+            so you can answer &quot;will it fit?&quot; from there.
           </p>
           <Note title="What customers don't see">
             Other customers, the admin pages, a booking&apos;s notes, records and audit log,

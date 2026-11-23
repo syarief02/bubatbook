@@ -4,16 +4,13 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { formatMYR } from '../utils/pricing';
 import { formatDate, formatDateTime } from '../utils/dates';
-import { compactPlate, documentTitle } from '../utils/format';
+import { compactPlate, documentTitle, realEmail } from '../utils/format';
 import { RENTAL_CHANGES_SELECT, changeText, rentalChanges } from '../utils/rent';
 import RentalAgreementForm from '../components/RentalAgreementForm';
 import { AgreementTerms } from '../components/AgreementTerms';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
 import { CheckCircle, Printer, UserCheck } from 'lucide-react';
-
-// Walk-in customers created at the counter get a placeholder login email
-const realEmail = (email) => (email && !email.endsWith('@bubatrent.local') ? email : '');
 
 export default function RentalAgreement() {
   const { id } = useParams(); // booking id
