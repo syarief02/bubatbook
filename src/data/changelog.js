@@ -15,6 +15,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-25',
+    items: [
+      {
+        kind: 'data',
+        title: 'Records: Veloz one-day rental on 22 Nov',
+        text: 'The Toyota Veloz VQB 5567 rental of 22 Nov 2026 (one day, posted in the RENTAL Telegram group) is now on record as returned and paid, with the transfer slip on the booking and on the car’s History. The renter’s name was not given, so the booking shows the car and date instead.',
+        link: '/admin/bookings',
+      },
+    ],
+  },
+  {
     date: '2026-11-23',
     items: [
       {
