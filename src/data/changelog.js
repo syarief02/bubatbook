@@ -15,6 +15,17 @@
 
 export const CHANGELOG = [
   {
+    date: '2026-11-27',
+    items: [
+      {
+        kind: 'fixed',
+        title: 'Terms: “Dasar Privasi” is now a link',
+        text: 'The terms say “lihat Dasar Privasi” / “see the Privacy Policy” in two clauses: the renter’s documents and GPS. Those words were plain text; they now open the Privacy Policy (rent2go.my/privacy) in a new tab, so a customer signing the agreement doesn’t lose their place. This works on rent2go.my/terms, on the agreement to sign and on signed agreements, including ones signed on 16 Nov 2026 (version 2). The link at the bottom of rent2go.my/terms now reads “Dasar Privasi / Privacy Policy”. The wording of the terms is unchanged.',
+        link: '/terms',
+      },
+    ],
+  },
+  {
     date: '2026-11-25',
     items: [
       {

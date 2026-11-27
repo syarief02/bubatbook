@@ -9,6 +9,7 @@
 
 import { TERMS_V2_DATE, termsVersion } from '../utils/terms';
 import TermsV3 from './TermsV3';
+import { PrivacyLink } from './PrivacyLink';
 
 // Damage liability by engine CC (from the Bubat Resources paper form)
 const LIABILITY_TABLE = [
@@ -162,10 +163,18 @@ function TermsV2() {
           penyewa tidak dapat dihubungi lebih 24 jam selepas masa pemulangan, syarikat boleh
           mengambil semula kenderaan dan membuat laporan polis.
         </Clause>
-        <Clause en="Vehicles may be fitted with GPS for security. The vehicle's location may be tracked during the rental and used for security, getting the vehicle back, and looking into accidents or summonses (see the Privacy Policy).">
+        <Clause
+          en={
+            <>
+              Vehicles may be fitted with GPS for security. The vehicle&apos;s location may be
+              tracked during the rental and used for security, getting the vehicle back, and looking
+              into accidents or summonses (see the <PrivacyLink>Privacy Policy</PrivacyLink>).
+            </>
+          }
+        >
           Kenderaan mungkin dipasang <B>GPS</B> untuk keselamatan. Lokasi kenderaan boleh dipantau
           sepanjang tempoh sewa dan digunakan untuk keselamatan, mendapatkan semula kenderaan, dan
-          menyiasat kemalangan atau saman (lihat Dasar Privasi).
+          menyiasat kemalangan atau saman (lihat <PrivacyLink>Dasar Privasi</PrivacyLink>).
         </Clause>
       </Part>
 

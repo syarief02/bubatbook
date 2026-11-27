@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { TERMS_V3_DATE } from '../utils/terms';
+import { WithPrivacyLinks } from './PrivacyLink';
 
 // Version 3 of the rental terms, from 17 Nov 2026: one set for every fleet
 // (BuBat Resources and Bocah Trading). Shown in one language at a time, Malay
@@ -540,7 +541,7 @@ const TABLE = {
   ],
 };
 
-// Text with **bold** parts
+// Text with **bold** parts; "Dasar Privasi" / "Privacy Policy" link to /privacy
 function Rich({ text }) {
   return (
     <>
@@ -550,7 +551,7 @@ function Rich({ text }) {
             {part}
           </strong>
         ) : (
-          part
+          <WithPrivacyLinks key={i} text={part} />
         )
       )}
     </>

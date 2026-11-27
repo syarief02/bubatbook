@@ -68,7 +68,7 @@ export default function Terms() {
         </Link>
         {' · '}
         <Link to="/privacy" className="text-violet-400 hover:text-violet-300">
-          Privacy Policy
+          Dasar Privasi / Privacy Policy
         </Link>
       </p>
     </div>

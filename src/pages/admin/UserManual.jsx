@@ -2086,7 +2086,7 @@ export default function UserManual() {
               ],
               [
                 'A customer asks for the terms and conditions before signing up',
-                'Send them rent2go.my/terms. It shows the same Terma & Syarat (Malay, with a switch to English at the top; key amounts and time limits in bold; each part A to G is a slide: swipe sideways or tap its letter, and a printed agreement shows every part), damage table, deposit refund and cancellation penalty as the rental agreement they sign, and needs no account. The footer and every car page link to it too. The terms are the same for every fleet (BuBat Resources and Bocah Trading) from 17 Nov 2026. A signed agreement always shows the terms it was signed with: version 1 before 16 Nov 2026, version 2 on 16 Nov, version 3 from 17 Nov.',
+                'Send them rent2go.my/terms. It shows the same Terma & Syarat (Malay, with a switch to English at the top; key amounts and time limits in bold; each part A to G is a slide: swipe sideways or tap its letter, and a printed agreement shows every part), damage table, deposit refund and cancellation penalty as the rental agreement they sign, and needs no account. The footer and every car page link to it too. Where the terms say “lihat Dasar Privasi” / “see the Privacy Policy” (the documents and GPS clauses), the words open rent2go.my/privacy in a new tab, and the bottom of the page links to it too. The terms are the same for every fleet (BuBat Resources and Bocah Trading) from 17 Nov 2026. A signed agreement always shows the terms it was signed with: version 1 before 16 Nov 2026, version 2 on 16 Nov, version 3 from 17 Nov.',
               ],
               [
                 'Bocah Trading asks what changed from its old terms',
